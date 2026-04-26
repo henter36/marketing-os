@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Marketing OS Phase 0/1 Prototype</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <div class="logo">MO</div>
+        <div>
+          <strong>Marketing OS</strong>
+          <span>Phase 0/1 Prototype</span>
+        </div>
+      </div>
+      <div class="context-card">
+        <label>Workspace Context</label>
+        <select id="workspaceSelect">
+          <option value="ws-alpha">Acme Growth Workspace</option>
+          <option value="ws-beta">Second Tenant Workspace</option>
+        </select>
+        <small>workspace_id is route/context only, never trusted from body.</small>
+      </div>
+      <div class="context-card">
+        <label>Acting Role</label>
+        <select id="roleSelect">
+          <option value="admin">Workspace Admin</option>
+          <option value="creator">Creator</option>
+          <option value="reviewer">Reviewer</option>
+          <option value="publisher">Publisher</option>
+          <option value="viewer">Viewer</option>
+        </select>
+      </div>
+      <nav id="nav"></nav>
+      <div class="guardrail-box">
+        <strong>Forbidden in Phase 0/1</strong>
+        <span>Auto-publishing</span>
+        <span>Paid execution</span>
+        <span>AI agents</span>
+        <span>Advanced attribution</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Clickable UX Prototype</p>
+          <h1 id="pageTitle">Dashboard</h1>
+        </div>
+        <div class="top-actions">
+          <span class="pill ok">Tenant Guard ON</span>
+          <span class="pill warn">Manual Publish Only</span>
+          <button id="simulateErrorBtn" class="ghost-btn">Simulate ErrorModel</button>
+        </div>
+      </header>
+
+      <section id="alertHost" class="alert-host"></section>
+      <section id="content" class="content"></section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
