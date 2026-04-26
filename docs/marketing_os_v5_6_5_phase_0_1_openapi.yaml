@@ -1,0 +1,2359 @@
+openapi: 3.1.0
+info:
+  title: Marketing OS Phase 0/1 API
+  version: 5.6.5-phase-0-1
+  description: |
+    Execution OpenAPI contract derived from the approved Phase 0/1 ERD and PostgreSQL DDL.
+    Source authority: Section 52 only.
+
+    This contract is not a full product API. It intentionally excludes paid execution,
+    auto-publishing, advanced attribution, AI agents, BillingProvider, ProviderUsageLog,
+    and any non-Section-52 relationships.
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production placeholder
+  - url: http://localhost:3000/v1
+    description: Local development placeholder
+
+tags:
+  - name: Workspaces
+  - name: Members
+  - name: RBAC
+  - name: Subscriptions
+  - name: Brand
+  - name: Templates
+  - name: Campaigns
+  - name: Briefs
+  - name: Media Jobs
+  - name: Assets
+  - name: Review
+  - name: Approval
+  - name: Publish
+  - name: Reports
+  - name: Usage
+  - name: Cost
+  - name: Audit
+  - name: Operations
+
+security:
+  - bearerAuth: []
+
+x-contract-rules:
+  source_authority: Section 52 only
+  no_code_before_contracts: true
+  phase_scope: Phase 0/1 only
+  forbidden_entities:
+    - GenerationJob
+    - Asset
+    - Approval
+  approved_entity_translation:
+    GenerationJob: MediaJob
+    Asset: MediaAsset
+    Approval: ApprovalDecision
+  global_guards:
+    - AuthGuard
+    - WorkspaceContextGuard
+    - MembershipCheck
+    - PermissionGuard
+  body_workspace_id_trusted: false
+  no_go_rules:
+    - workspace_id accepted from body as trusted source
+    - endpoint reads or writes workspace-scoped record without workspace path/context
+    - publish job created without approved ApprovalDecision
+    - approved_content_hash differs from MediaAssetVersion.content_hash
+    - UsageMeter recorded without usable_output_confirmed=true
+    - ManualPublishEvidence PATCH or DELETE exposed
+    - approved MediaAssetVersion patched instead of creating a new version
+    - frontend starts without this OpenAPI contract
+
+paths:
+  /workspaces:
+    get:
+      tags: [Workspaces]
+      summary: List workspaces visible to authenticated user
+      operationId: listWorkspaces
+      x-permission: workspace.read
+      x-audit-event: workspace.listed
+      responses:
+        '200':
+          description: Workspaces returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Workspaces]
+      summary: Create workspace under a customer account
+      operationId: createWorkspace
+      x-permission: workspace.create
+      x-audit-event: workspace.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkspaceRequest'
+      responses:
+        '201':
+          description: Workspace created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Workspaces]
+      summary: Get workspace
+      operationId: getWorkspace
+      x-permission: workspace.read
+      x-workspace-context: route
+      responses:
+        '200':
+          description: Workspace returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    patch:
+      tags: [Workspaces]
+      summary: Update workspace mutable fields
+      operationId: updateWorkspace
+      x-permission: workspace.manage
+      x-audit-event: workspace.updated
+      x-immutable-fields:
+        - workspace_id
+        - customer_account_id
+        - created_by_user_id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkspaceRequest'
+      responses:
+        '200':
+          description: Workspace updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/members:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Members]
+      summary: List workspace members
+      operationId: listWorkspaceMembers
+      x-permission: workspace.manage_members
+      responses:
+        '200':
+          description: Members returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Members]
+      summary: Invite workspace member
+      operationId: inviteWorkspaceMember
+      x-permission: workspace.manage_members
+      x-audit-event: member.invited
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteWorkspaceMemberRequest'
+      responses:
+        '201':
+          description: Member invited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/members/{memberId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/MemberId'
+    patch:
+      tags: [Members]
+      summary: Update member role or status
+      operationId: updateWorkspaceMember
+      x-permission: workspace.manage_members
+      x-audit-event: member.role_changed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkspaceMemberRequest'
+      responses:
+        '200':
+          description: Member updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /roles:
+    get:
+      tags: [RBAC]
+      summary: List roles
+      operationId: listRoles
+      x-permission: rbac.read
+      responses:
+        '200':
+          description: Roles returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /permissions:
+    get:
+      tags: [RBAC]
+      summary: List permissions
+      operationId: listPermissions
+      x-permission: rbac.read
+      responses:
+        '200':
+          description: Permissions returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /customer-accounts/{customerAccountId}/subscriptions:
+    parameters:
+      - $ref: '#/components/parameters/CustomerAccountId'
+    get:
+      tags: [Subscriptions]
+      summary: List customer subscriptions
+      operationId: listCustomerSubscriptions
+      x-permission: billing.read
+      responses:
+        '200':
+          description: Subscriptions returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSubscriptionListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/brand-profiles:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Brand]
+      summary: List brand profiles
+      operationId: listBrandProfiles
+      x-permission: brand.read
+      responses:
+        '200':
+          description: Brand profiles returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandProfileListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Brand]
+      summary: Create brand profile
+      operationId: createBrandProfile
+      x-permission: brand.write
+      x-audit-event: brand_profile.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBrandProfileRequest'
+      responses:
+        '201':
+          description: Brand profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandProfileResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/brand-profiles/{brandProfileId}/rules:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/BrandProfileId'
+    get:
+      tags: [Brand]
+      summary: List brand voice rules
+      operationId: listBrandVoiceRules
+      x-permission: brand.read
+      responses:
+        '200':
+          description: Rules returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandVoiceRuleListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Brand]
+      summary: Create brand voice rule
+      operationId: createBrandVoiceRule
+      x-permission: brand.write
+      x-audit-event: brand_voice_rule.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBrandVoiceRuleRequest'
+      responses:
+        '201':
+          description: Rule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandVoiceRuleResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/prompt-templates:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Templates]
+      summary: List prompt templates
+      operationId: listPromptTemplates
+      x-permission: prompt_template.read
+      responses:
+        '200':
+          description: Prompt templates returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptTemplateListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Templates]
+      summary: Create prompt template version
+      operationId: createPromptTemplate
+      x-permission: prompt_template.write
+      x-audit-event: prompt_template.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePromptTemplateRequest'
+      responses:
+        '201':
+          description: Prompt template created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptTemplateResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/report-templates:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Templates]
+      summary: List report templates
+      operationId: listReportTemplates
+      x-permission: report_template.read
+      responses:
+        '200':
+          description: Report templates returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportTemplateListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Templates]
+      summary: Create report template
+      operationId: createReportTemplate
+      x-permission: report_template.write
+      x-audit-event: report_template.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportTemplateRequest'
+      responses:
+        '201':
+          description: Report template created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportTemplateResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/campaigns:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Campaigns]
+      summary: List campaigns
+      operationId: listCampaigns
+      x-permission: campaign.read
+      responses:
+        '200':
+          description: Campaigns returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Campaigns]
+      summary: Create campaign
+      operationId: createCampaign
+      x-permission: campaign.write
+      x-audit-event: campaign.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignRequest'
+      responses:
+        '201':
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Campaigns]
+      summary: Get campaign
+      operationId: getCampaign
+      x-permission: campaign.read
+      responses:
+        '200':
+          description: Campaign returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    patch:
+      tags: [Campaigns]
+      summary: Update campaign mutable fields
+      operationId: updateCampaign
+      x-permission: campaign.write
+      x-audit-event: campaign.updated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCampaignRequest'
+      responses:
+        '200':
+          description: Campaign updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}/state-transitions:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Campaigns]
+      summary: List campaign state transitions
+      operationId: listCampaignStateTransitions
+      x-permission: campaign.read
+      responses:
+        '200':
+          description: Transitions returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignStateTransitionListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Campaigns]
+      summary: Change campaign state
+      operationId: changeCampaignState
+      x-permission: campaign.write
+      x-audit-event: campaign.status_changed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeCampaignStateRequest'
+      responses:
+        '201':
+          description: State transition recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignStateTransitionResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}/brief-versions:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Briefs]
+      summary: List brief versions
+      operationId: listBriefVersions
+      x-permission: brief.read
+      responses:
+        '200':
+          description: Brief versions returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BriefVersionListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Briefs]
+      summary: Create brief version
+      operationId: createBriefVersion
+      x-permission: brief.write
+      x-audit-event: brief.version_created
+      x-rule: create new version; do not patch historical brief content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBriefVersionRequest'
+      responses:
+        '201':
+          description: Brief version created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BriefVersionResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}/media-jobs:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Media Jobs]
+      summary: List media jobs
+      operationId: listMediaJobs
+      x-permission: media_job.read
+      responses:
+        '200':
+          description: Media jobs returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaJobListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Media Jobs]
+      summary: Create media job
+      operationId: createMediaJob
+      x-permission: media_job.create
+      x-feature-gate: media_generation
+      x-cost-guardrail: required
+      x-idempotency-required: true
+      x-audit-event: media_job.created
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMediaJobRequest'
+      responses:
+        '202':
+          description: Media job accepted after cost snapshot approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaJobResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/media-jobs/{mediaJobId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/MediaJobId'
+    get:
+      tags: [Media Jobs]
+      summary: Get media job
+      operationId: getMediaJob
+      x-permission: media_job.read
+      responses:
+        '200':
+          description: Media job returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaJobResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/media-jobs/{mediaJobId}/status:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/MediaJobId'
+    patch:
+      tags: [Media Jobs]
+      summary: Update media job execution status
+      operationId: updateMediaJobStatus
+      x-permission: media_job.update_status
+      x-audit-events:
+        - media_job.completed
+        - media_job.failed
+      x-no-go: running_or_succeeded_without_approved_media_cost_snapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMediaJobStatusRequest'
+      responses:
+        '200':
+          description: Media job status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaJobResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/media-jobs/{mediaJobId}/assets:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/MediaJobId'
+    get:
+      tags: [Assets]
+      summary: List assets created by media job
+      operationId: listMediaAssetsByJob
+      x-permission: media_asset.read
+      responses:
+        '200':
+          description: Assets returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaAssetListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Assets]
+      summary: Create media asset after usable output
+      operationId: createMediaAsset
+      x-permission: media_asset.create
+      x-audit-event: media_asset.created
+      x-rule: asset must be linked to MediaJob and Campaign under same workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMediaAssetRequest'
+      responses:
+        '201':
+          description: Asset created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaAssetResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/assets/{mediaAssetId}/versions:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/MediaAssetId'
+    get:
+      tags: [Assets]
+      summary: List media asset versions
+      operationId: listMediaAssetVersions
+      x-permission: media_asset.read
+      responses:
+        '200':
+          description: Versions returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaAssetVersionListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Assets]
+      summary: Create media asset version
+      operationId: createMediaAssetVersion
+      x-permission: media_asset.version_create
+      x-audit-event: media_asset.version_created
+      x-rule: content change creates new version; approved version is immutable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMediaAssetVersionRequest'
+      responses:
+        '201':
+          description: Version created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaAssetVersionResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/asset-versions/{mediaAssetVersionId}/review-tasks:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/MediaAssetVersionId'
+    get:
+      tags: [Review]
+      summary: List review tasks for asset version
+      operationId: listReviewTasks
+      x-permission: review.read
+      responses:
+        '200':
+          description: Review tasks returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewTaskListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Review]
+      summary: Create review task
+      operationId: createReviewTask
+      x-permission: review.assign
+      x-audit-event: review_task.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewTaskRequest'
+      responses:
+        '201':
+          description: Review task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewTaskResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/review-tasks/{reviewTaskId}/decisions:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ReviewTaskId'
+    post:
+      tags: [Approval]
+      summary: Create approval decision
+      operationId: createApprovalDecision
+      x-permission: approval.decide
+      x-audit-event: approval_decision.created
+      x-no-go: approving_hash_that_differs_from_asset_version_hash
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApprovalDecisionRequest'
+      responses:
+        '201':
+          description: Decision created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalDecisionResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/approval-decisions/{approvalDecisionId}/publish-jobs:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ApprovalDecisionId'
+    post:
+      tags: [Publish]
+      summary: Create publish job from approved decision
+      operationId: createPublishJob
+      x-permission: publish_job.create
+      x-idempotency-required: true
+      x-audit-event: publish_job.created
+      x-no-go: publish_without_approved_decision_or_hash_match
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePublishJobRequest'
+      responses:
+        '201':
+          description: Publish job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishJobResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/publish-jobs/{publishJobId}/manual-evidence:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/PublishJobId'
+    get:
+      tags: [Publish]
+      summary: List manual publish evidence
+      operationId: listManualPublishEvidence
+      x-permission: manual_evidence.read
+      responses:
+        '200':
+          description: Evidence returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualPublishEvidenceListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Publish]
+      summary: Submit manual publish evidence
+      operationId: submitManualPublishEvidence
+      x-permission: manual_evidence.submit
+      x-audit-event: manual_publish_evidence.submitted
+      x-append-only: true
+      x-no-go: patch_or_delete_manual_publish_evidence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitManualPublishEvidenceRequest'
+      responses:
+        '201':
+          description: Evidence submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualPublishEvidenceResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/manual-evidence/{manualPublishEvidenceId}/supersede:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ManualPublishEvidenceId'
+    post:
+      tags: [Publish]
+      summary: Supersede manual publish evidence by creating a new evidence record
+      operationId: supersedeManualPublishEvidence
+      x-permission: manual_evidence.submit
+      x-audit-event: manual_publish_evidence.superseded
+      x-rule: no PATCH; create a new evidence row linked by supersedes_evidence_id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupersedeManualPublishEvidenceRequest'
+      responses:
+        '201':
+          description: Superseding evidence created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualPublishEvidenceResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/manual-evidence/{manualPublishEvidenceId}/invalidate:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ManualPublishEvidenceId'
+    post:
+      tags: [Publish]
+      summary: Invalidate manual publish evidence without deleting it
+      operationId: invalidateManualPublishEvidence
+      x-permission: manual_evidence.invalidate
+      x-audit-event: manual_publish_evidence.invalidated
+      x-rule: invalidation must be implemented without exposing DELETE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvalidateManualPublishEvidenceRequest'
+      responses:
+        '200':
+          description: Evidence invalidated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualPublishEvidenceResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/publish-jobs/{publishJobId}/tracked-links:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/PublishJobId'
+    get:
+      tags: [Publish]
+      summary: List tracked links
+      operationId: listTrackedLinks
+      x-permission: tracked_link.read
+      responses:
+        '200':
+          description: Links returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackedLinkListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Publish]
+      summary: Create tracked link
+      operationId: createTrackedLink
+      x-permission: tracked_link.create
+      x-audit-event: tracked_link.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrackedLinkRequest'
+      responses:
+        '201':
+          description: Tracked link created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackedLinkResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}/client-report-snapshots:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Reports]
+      summary: List client report snapshots
+      operationId: listClientReportSnapshots
+      x-permission: report.read
+      responses:
+        '200':
+          description: Report snapshots returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientReportSnapshotListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Reports]
+      summary: Generate frozen client report snapshot
+      operationId: createClientReportSnapshot
+      x-permission: report.generate
+      x-audit-event: client_report_snapshot.generated
+      x-rule: later evidence changes must not mutate historical report snapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClientReportSnapshotRequest'
+      responses:
+        '201':
+          description: Report snapshot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientReportSnapshotResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/usage-meter:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Usage]
+      summary: List usage meter records
+      operationId: listUsageMeter
+      x-permission: usage.read
+      responses:
+        '200':
+          description: Usage records returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageMeterListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Usage]
+      summary: Record commercial usage
+      operationId: recordUsageMeter
+      x-permission: usage.record
+      x-idempotency-required: true
+      x-audit-event: usage_meter.recorded
+      x-no-go: usage_counted_without_usable_output
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordUsageMeterRequest'
+      responses:
+        '201':
+          description: Usage recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageMeterResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/quota-state:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Usage]
+      summary: List usage quota state
+      operationId: listUsageQuotaState
+      x-permission: usage.read
+      responses:
+        '200':
+          description: Quota states returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageQuotaStateListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/cost-events:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Cost]
+      summary: List internal cost events
+      operationId: listCostEvents
+      x-permission: cost.read
+      responses:
+        '200':
+          description: Cost events returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostEventListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Cost]
+      summary: Record internal cost event
+      operationId: recordCostEvent
+      x-permission: cost.record
+      x-audit-event: cost_event.recorded
+      x-rule: CostEvent does not mean customer billing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordCostEventRequest'
+      responses:
+        '201':
+          description: Cost event recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostEventResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/cost-budgets:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Cost]
+      summary: List cost budgets
+      operationId: listCostBudgets
+      x-permission: cost_budget.read
+      responses:
+        '200':
+          description: Budgets returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostBudgetListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Cost]
+      summary: Create cost budget
+      operationId: createCostBudget
+      x-permission: cost_budget.write
+      x-audit-event: cost_budget.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCostBudgetRequest'
+      responses:
+        '201':
+          description: Budget created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostBudgetResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/cost-guardrails:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Cost]
+      summary: List cost guardrails
+      operationId: listCostGuardrails
+      x-permission: cost_guardrail.read
+      responses:
+        '200':
+          description: Guardrails returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostGuardrailListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Cost]
+      summary: Create cost guardrail
+      operationId: createCostGuardrail
+      x-permission: cost_guardrail.write
+      x-audit-event: cost_guardrail.created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCostGuardrailRequest'
+      responses:
+        '201':
+          description: Guardrail created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostGuardrailResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/audit-logs:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Audit]
+      summary: List audit logs
+      operationId: listAuditLogs
+      x-permission: audit.read
+      x-append-only: true
+      responses:
+        '200':
+          description: Audit logs returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/safe-mode:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Operations]
+      summary: Get safe mode state
+      operationId: getSafeModeState
+      x-permission: operations.read
+      responses:
+        '200':
+          description: Safe mode state returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SafeModeStateResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Operations]
+      summary: Set safe mode state
+      operationId: setSafeModeState
+      x-permission: operations.safe_mode
+      x-audit-events:
+        - safe_mode.activated
+        - safe_mode.deactivated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetSafeModeStateRequest'
+      responses:
+        '200':
+          description: Safe mode updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SafeModeStateResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/onboarding-progress:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Operations]
+      summary: Get onboarding progress
+      operationId: getOnboardingProgress
+      x-permission: onboarding.read
+      responses:
+        '200':
+          description: Onboarding progress returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingProgressResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    patch:
+      tags: [Operations]
+      summary: Update onboarding progress
+      operationId: updateOnboardingProgress
+      x-permission: onboarding.write
+      x-audit-event: onboarding.updated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOnboardingProgressRequest'
+      responses:
+        '200':
+          description: Onboarding progress updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingProgressResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Workspace context. Must be authorized and must not be trusted from request body.
+    CustomerAccountId:
+      name: customerAccountId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MemberId:
+      name: memberId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BrandProfileId:
+      name: brandProfileId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MediaJobId:
+      name: mediaJobId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MediaAssetId:
+      name: mediaAssetId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MediaAssetVersionId:
+      name: mediaAssetVersionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ReviewTaskId:
+      name: reviewTaskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ApprovalDecisionId:
+      name: approvalDecisionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PublishJobId:
+      name: publishJobId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ManualPublishEvidenceId:
+      name: manualPublishEvidenceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 180
+      description: Required for repeatable write operations. Scoped by workspace_id.
+
+  responses:
+    ErrorResponse:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+
+  schemas:
+    ErrorModel:
+      type: object
+      required: [code, message, user_action, correlation_id]
+      properties:
+        code:
+          type: string
+          examples: [TENANT_ACCESS_DENIED, PERMISSION_DENIED, APPROVAL_HASH_MISMATCH, IDEMPOTENCY_CONFLICT]
+        message:
+          type: string
+        user_action:
+          type: string
+        correlation_id:
+          type: string
+
+    PageMeta:
+      type: object
+      required: [limit, next_cursor]
+      properties:
+        limit:
+          type: integer
+        next_cursor:
+          type: string
+          nullable: true
+
+    EntityBase:
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Workspace:
+      allOf:
+        - $ref: '#/components/schemas/EntityBase'
+        - type: object
+          required: [workspace_id, customer_account_id, workspace_name, workspace_slug, workspace_status]
+          properties:
+            workspace_id: { type: string, format: uuid }
+            customer_account_id: { type: string, format: uuid }
+            workspace_name: { type: string }
+            workspace_slug: { type: string }
+            workspace_status: { type: string, enum: [active, suspended, archived] }
+            default_locale: { type: string }
+            timezone: { type: string }
+
+    CreateWorkspaceRequest:
+      type: object
+      required: [customer_account_id, workspace_name, workspace_slug]
+      additionalProperties: false
+      properties:
+        customer_account_id: { type: string, format: uuid }
+        workspace_name: { type: string }
+        workspace_slug: { type: string }
+        default_locale: { type: string, default: en }
+        timezone: { type: string, default: UTC }
+
+    UpdateWorkspaceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        workspace_name: { type: string }
+        workspace_status: { type: string, enum: [active, suspended, archived] }
+        default_locale: { type: string }
+        timezone: { type: string }
+
+    WorkspaceResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Workspace' }
+
+    WorkspaceListResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Workspace' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+
+    WorkspaceMember:
+      type: object
+      required: [workspace_member_id, workspace_id, user_id, role_id, member_status]
+      properties:
+        workspace_member_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        role_id: { type: string, format: uuid }
+        member_status: { type: string, enum: [invited, active, disabled, removed] }
+        joined_at: { type: string, format: date-time, nullable: true }
+
+    InviteWorkspaceMemberRequest:
+      type: object
+      required: [email, role_id]
+      additionalProperties: false
+      properties:
+        email: { type: string, format: email }
+        role_id: { type: string, format: uuid }
+
+    UpdateWorkspaceMemberRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        role_id: { type: string, format: uuid }
+        member_status: { type: string, enum: [active, disabled, removed] }
+
+    WorkspaceMemberResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/WorkspaceMember' }
+
+    WorkspaceMemberListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/WorkspaceMember' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+
+    Role:
+      type: object
+      properties:
+        role_id: { type: string, format: uuid }
+        role_code: { type: string }
+        role_name: { type: string }
+        role_scope: { type: string, enum: [system, workspace] }
+
+    Permission:
+      type: object
+      properties:
+        permission_id: { type: string, format: uuid }
+        permission_code: { type: string }
+        permission_name: { type: string }
+        domain: { type: string }
+
+    RoleListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Role' }
+
+    PermissionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Permission' }
+
+    CustomerSubscription:
+      type: object
+      properties:
+        customer_subscription_id: { type: string, format: uuid }
+        customer_account_id: { type: string, format: uuid }
+        subscription_plan_version_id: { type: string, format: uuid }
+        subscription_status: { type: string, enum: [trialing, active, past_due, canceled, expired] }
+        current_period_start: { type: string, format: date-time }
+        current_period_end: { type: string, format: date-time }
+
+    CustomerSubscriptionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/CustomerSubscription' }
+
+    BrandProfile:
+      type: object
+      properties:
+        brand_profile_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        profile_name: { type: string }
+        brand_summary: { type: string, nullable: true }
+        language: { type: string }
+        tone: { type: string, nullable: true }
+        brand_status: { type: string, enum: [draft, active, archived] }
+
+    CreateBrandProfileRequest:
+      type: object
+      required: [profile_name, language]
+      additionalProperties: false
+      properties:
+        profile_name: { type: string }
+        brand_summary: { type: string }
+        language: { type: string }
+        tone: { type: string }
+
+    BrandProfileResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/BrandProfile' }
+
+    BrandProfileListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/BrandProfile' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+
+    BrandVoiceRule:
+      type: object
+      properties:
+        brand_voice_rule_id: { type: string, format: uuid }
+        brand_profile_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        rule_type: { type: string, enum: [tone, banned_claim, required_phrase, style, legal, locale] }
+        rule_text: { type: string }
+        severity: { type: string, enum: [info, warning, blocker] }
+        rule_status: { type: string, enum: [active, disabled] }
+
+    CreateBrandVoiceRuleRequest:
+      type: object
+      required: [rule_type, rule_text, severity]
+      additionalProperties: false
+      properties:
+        rule_type: { type: string, enum: [tone, banned_claim, required_phrase, style, legal, locale] }
+        rule_text: { type: string }
+        severity: { type: string, enum: [info, warning, blocker] }
+
+    BrandVoiceRuleResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/BrandVoiceRule' }
+
+    BrandVoiceRuleListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/BrandVoiceRule' }
+
+    PromptTemplate:
+      type: object
+      properties:
+        prompt_template_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        template_name: { type: string }
+        template_type: { type: string, enum: [caption, ad_copy, image_prompt, video_script, report, reply] }
+        template_body: { type: string }
+        template_variables: { type: object }
+        template_status: { type: string, enum: [draft, active, retired] }
+        version_number: { type: integer }
+
+    CreatePromptTemplateRequest:
+      type: object
+      required: [template_name, template_type, template_body, version_number]
+      additionalProperties: false
+      properties:
+        template_name: { type: string }
+        template_type: { type: string, enum: [caption, ad_copy, image_prompt, video_script, report, reply] }
+        template_body: { type: string }
+        template_variables: { type: object, default: {} }
+        version_number: { type: integer, minimum: 1 }
+
+    PromptTemplateResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/PromptTemplate' }
+
+    PromptTemplateListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/PromptTemplate' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+
+    ReportTemplate:
+      type: object
+      properties:
+        report_template_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        template_name: { type: string }
+        template_body: { type: object }
+        template_status: { type: string, enum: [draft, active, retired] }
+
+    CreateReportTemplateRequest:
+      type: object
+      required: [template_name, template_body]
+      additionalProperties: false
+      properties:
+        template_name: { type: string }
+        template_body: { type: object }
+
+    ReportTemplateResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/ReportTemplate' }
+
+    ReportTemplateListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ReportTemplate' }
+
+    Campaign:
+      type: object
+      properties:
+        campaign_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        customer_account_id: { type: string, format: uuid }
+        campaign_name: { type: string }
+        campaign_objective: { type: string }
+        campaign_status: { type: string, enum: [draft, active, paused, completed, archived] }
+
+    CreateCampaignRequest:
+      type: object
+      required: [campaign_name, campaign_objective]
+      additionalProperties: false
+      properties:
+        campaign_name: { type: string }
+        campaign_objective: { type: string }
+
+    UpdateCampaignRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        campaign_name: { type: string }
+        campaign_objective: { type: string }
+
+    CampaignResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/Campaign' }
+
+    CampaignListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Campaign' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+
+    CampaignStateTransition:
+      type: object
+      properties:
+        campaign_state_transition_id: { type: string, format: uuid }
+        campaign_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        from_status: { type: string, enum: [draft, active, paused, completed, archived], nullable: true }
+        to_status: { type: string, enum: [draft, active, paused, completed, archived] }
+        reason: { type: string, nullable: true }
+        changed_at: { type: string, format: date-time }
+
+    ChangeCampaignStateRequest:
+      type: object
+      required: [to_status]
+      additionalProperties: false
+      properties:
+        to_status: { type: string, enum: [draft, active, paused, completed, archived] }
+        reason: { type: string }
+
+    CampaignStateTransitionResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/CampaignStateTransition' }
+
+    CampaignStateTransitionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/CampaignStateTransition' }
+
+    BriefVersion:
+      type: object
+      properties:
+        brief_version_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        campaign_id: { type: string, format: uuid }
+        version_number: { type: integer }
+        brief_title: { type: string }
+        brief_content: { type: object }
+        content_hash: { type: string, minLength: 64, maxLength: 64 }
+        status: { type: string, enum: [draft, locked, superseded] }
+
+    CreateBriefVersionRequest:
+      type: object
+      required: [brief_title, brief_content, version_number]
+      additionalProperties: false
+      properties:
+        brief_title: { type: string }
+        brief_content: { type: object }
+        version_number: { type: integer, minimum: 1 }
+
+    BriefVersionResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/BriefVersion' }
+
+    BriefVersionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/BriefVersion' }
+
+    MediaJob:
+      type: object
+      properties:
+        media_job_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        customer_account_id: { type: string, format: uuid }
+        campaign_id: { type: string, format: uuid }
+        brief_version_id: { type: string, format: uuid }
+        prompt_template_id: { type: string, format: uuid }
+        job_type: { type: string, enum: [text, image, video, image_enhancement, variant, report_asset] }
+        job_status: { type: string, enum: [queued, running, succeeded, failed, canceled] }
+        input_payload: { type: object }
+        requested_output_format: { type: string }
+        idempotency_key: { type: string }
+        failure_code: { type: string, nullable: true }
+
+    CreateMediaJobRequest:
+      type: object
+      required: [brief_version_id, prompt_template_id, job_type, input_payload, requested_output_format]
+      additionalProperties: false
+      properties:
+        brief_version_id: { type: string, format: uuid }
+        prompt_template_id: { type: string, format: uuid }
+        job_type: { type: string, enum: [text, image, video, image_enhancement, variant, report_asset] }
+        input_payload: { type: object }
+        requested_output_format: { type: string }
+
+    UpdateMediaJobStatusRequest:
+      type: object
+      required: [job_status]
+      additionalProperties: false
+      properties:
+        job_status: { type: string, enum: [running, succeeded, failed, canceled] }
+        failure_code: { type: string }
+
+    MediaJobResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/MediaJob' }
+
+    MediaJobListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/MediaJob' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+
+    MediaAsset:
+      type: object
+      properties:
+        media_asset_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        customer_account_id: { type: string, format: uuid }
+        media_job_id: { type: string, format: uuid }
+        campaign_id: { type: string, format: uuid }
+        asset_type: { type: string, enum: [text, image, video, mixed, report] }
+        asset_status: { type: string, enum: [draft, in_review, approved, rejected, archived] }
+
+    CreateMediaAssetRequest:
+      type: object
+      required: [asset_type]
+      additionalProperties: false
+      properties:
+        asset_type: { type: string, enum: [text, image, video, mixed, report] }
+
+    MediaAssetResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/MediaAsset' }
+
+    MediaAssetListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/MediaAsset' }
+
+    MediaAssetVersion:
+      type: object
+      properties:
+        media_asset_version_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        customer_account_id: { type: string, format: uuid }
+        media_asset_id: { type: string, format: uuid }
+        version_number: { type: integer }
+        content_payload: { type: object }
+        content_hash: { type: string, minLength: 64, maxLength: 64 }
+        storage_ref: { type: string, nullable: true }
+        version_status: { type: string, enum: [draft, in_review, approved, rejected, superseded, archived] }
+
+    CreateMediaAssetVersionRequest:
+      type: object
+      required: [version_number, content_payload]
+      additionalProperties: false
+      properties:
+        version_number: { type: integer, minimum: 1 }
+        content_payload: { type: object }
+        storage_ref: { type: string }
+
+    MediaAssetVersionResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/MediaAssetVersion' }
+
+    MediaAssetVersionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/MediaAssetVersion' }
+
+    ReviewTask:
+      type: object
+      properties:
+        review_task_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        media_asset_version_id: { type: string, format: uuid }
+        assigned_to_user_id: { type: string, format: uuid, nullable: true }
+        review_status: { type: string, enum: [open, in_review, completed, canceled] }
+        review_type: { type: string, enum: [brand, legal, quality, final] }
+        due_at: { type: string, format: date-time, nullable: true }
+
+    CreateReviewTaskRequest:
+      type: object
+      required: [review_type]
+      additionalProperties: false
+      properties:
+        assigned_to_user_id: { type: string, format: uuid }
+        review_type: { type: string, enum: [brand, legal, quality, final] }
+        due_at: { type: string, format: date-time }
+
+    ReviewTaskResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/ReviewTask' }
+
+    ReviewTaskListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ReviewTask' }
+
+    ApprovalDecision:
+      type: object
+      properties:
+        approval_decision_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        review_task_id: { type: string, format: uuid }
+        media_asset_version_id: { type: string, format: uuid }
+        decision: { type: string, enum: [approved, rejected, changes_requested] }
+        approved_content_hash: { type: string, minLength: 64, maxLength: 64, nullable: true }
+        decision_reason: { type: string, nullable: true }
+        decided_at: { type: string, format: date-time }
+
+    CreateApprovalDecisionRequest:
+      type: object
+      required: [media_asset_version_id, decision]
+      additionalProperties: false
+      properties:
+        media_asset_version_id: { type: string, format: uuid }
+        decision: { type: string, enum: [approved, rejected, changes_requested] }
+        approved_content_hash: { type: string, minLength: 64, maxLength: 64 }
+        decision_reason: { type: string }
+
+    ApprovalDecisionResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/ApprovalDecision' }
+
+    PublishJob:
+      type: object
+      properties:
+        publish_job_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        customer_account_id: { type: string, format: uuid }
+        approval_decision_id: { type: string, format: uuid }
+        media_asset_version_id: { type: string, format: uuid }
+        campaign_id: { type: string, format: uuid }
+        channel: { type: string }
+        publish_status: { type: string, enum: [draft, ready, submitted, published, failed, canceled] }
+        scheduled_at: { type: string, format: date-time, nullable: true }
+        published_at: { type: string, format: date-time, nullable: true }
+
+    CreatePublishJobRequest:
+      type: object
+      required: [media_asset_version_id, campaign_id, channel]
+      additionalProperties: false
+      properties:
+        media_asset_version_id: { type: string, format: uuid }
+        campaign_id: { type: string, format: uuid }
+        channel: { type: string }
+        scheduled_at: { type: string, format: date-time }
+
+    PublishJobResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/PublishJob' }
+
+    ManualPublishEvidence:
+      type: object
+      properties:
+        manual_publish_evidence_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        publish_job_id: { type: string, format: uuid }
+        media_asset_version_id: { type: string, format: uuid }
+        published_url: { type: string, nullable: true }
+        screenshot_ref: { type: string, nullable: true }
+        external_post_id: { type: string, nullable: true }
+        content_hash: { type: string, minLength: 64, maxLength: 64 }
+        evidence_status: { type: string, enum: [valid, superseded, invalidated] }
+        supersedes_evidence_id: { type: string, format: uuid, nullable: true }
+        submitted_at: { type: string, format: date-time }
+
+    SubmitManualPublishEvidenceRequest:
+      type: object
+      required: [media_asset_version_id, content_hash]
+      additionalProperties: false
+      properties:
+        media_asset_version_id: { type: string, format: uuid }
+        published_url: { type: string }
+        screenshot_ref: { type: string }
+        external_post_id: { type: string }
+        content_hash: { type: string, minLength: 64, maxLength: 64 }
+
+    SupersedeManualPublishEvidenceRequest:
+      allOf:
+        - $ref: '#/components/schemas/SubmitManualPublishEvidenceRequest'
+
+    InvalidateManualPublishEvidenceRequest:
+      type: object
+      required: [invalidated_reason]
+      additionalProperties: false
+      properties:
+        invalidated_reason: { type: string }
+
+    ManualPublishEvidenceResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/ManualPublishEvidence' }
+
+    ManualPublishEvidenceListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ManualPublishEvidence' }
+
+    TrackedLink:
+      type: object
+      properties:
+        tracked_link_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        publish_job_id: { type: string, format: uuid }
+        original_url: { type: string }
+        tracked_url: { type: string }
+        tracking_code: { type: string }
+        link_status: { type: string, enum: [active, disabled, expired] }
+
+    CreateTrackedLinkRequest:
+      type: object
+      required: [original_url]
+      additionalProperties: false
+      properties:
+        original_url: { type: string }
+
+    TrackedLinkResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/TrackedLink' }
+
+    TrackedLinkListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/TrackedLink' }
+
+    ClientReportSnapshot:
+      type: object
+      properties:
+        client_report_snapshot_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        customer_account_id: { type: string, format: uuid }
+        campaign_id: { type: string, format: uuid }
+        report_template_id: { type: string, format: uuid }
+        report_period_start: { type: string, format: date-time }
+        report_period_end: { type: string, format: date-time }
+        report_snapshot_payload: { type: object }
+        evidence_snapshot_payload: { type: object }
+        content_hash: { type: string, minLength: 64, maxLength: 64 }
+
+    CreateClientReportSnapshotRequest:
+      type: object
+      required: [report_template_id, report_period_start, report_period_end]
+      additionalProperties: false
+      properties:
+        report_template_id: { type: string, format: uuid }
+        report_period_start: { type: string, format: date-time }
+        report_period_end: { type: string, format: date-time }
+
+    ClientReportSnapshotResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/ClientReportSnapshot' }
+
+    ClientReportSnapshotListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ClientReportSnapshot' }
+
+    RecordUsageMeterRequest:
+      type: object
+      required: [usage_type, quantity, unit, source_entity_type, source_entity_id, usable_output_confirmed]
+      additionalProperties: false
+      properties:
+        usage_type: { type: string }
+        quantity: { type: number, exclusiveMinimum: 0 }
+        unit: { type: string }
+        source_entity_type: { type: string }
+        source_entity_id: { type: string, format: uuid }
+        usable_output_confirmed: { type: boolean, const: true }
+
+    UsageMeter:
+      allOf:
+        - $ref: '#/components/schemas/RecordUsageMeterRequest'
+        - type: object
+          properties:
+            usage_meter_id: { type: string, format: uuid }
+            workspace_id: { type: string, format: uuid }
+            customer_account_id: { type: string, format: uuid }
+            metered_at: { type: string, format: date-time }
+
+    UsageMeterResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/UsageMeter' }
+
+    UsageMeterListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/UsageMeter' }
+
+    UsageQuotaState:
+      type: object
+      properties:
+        quota_code: { type: string }
+        period_start: { type: string, format: date-time }
+        period_end: { type: string, format: date-time }
+        used_quantity: { type: number }
+        limit_quantity: { type: number }
+
+    UsageQuotaStateListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/UsageQuotaState' }
+
+    RecordCostEventRequest:
+      type: object
+      required: [cost_type, amount, currency, event_status, source_entity_type, source_entity_id]
+      additionalProperties: false
+      properties:
+        media_job_id: { type: string, format: uuid }
+        cost_type: { type: string }
+        provider_name: { type: string }
+        amount: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        event_status: { type: string, enum: [estimated, actual, reversed] }
+        source_entity_type: { type: string }
+        source_entity_id: { type: string, format: uuid }
+
+    CostEvent:
+      allOf:
+        - $ref: '#/components/schemas/RecordCostEventRequest'
+        - type: object
+          properties:
+            cost_event_id: { type: string, format: uuid }
+            workspace_id: { type: string, format: uuid }
+            customer_account_id: { type: string, format: uuid }
+            occurred_at: { type: string, format: date-time }
+
+    CostEventResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/CostEvent' }
+
+    CostEventListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/CostEvent' }
+
+    CreateCostBudgetRequest:
+      type: object
+      required: [budget_name, budget_amount, currency, period_start, period_end]
+      properties:
+        budget_name: { type: string }
+        budget_amount: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        period_start: { type: string, format: date-time }
+        period_end: { type: string, format: date-time }
+
+    CostBudget:
+      allOf:
+        - $ref: '#/components/schemas/CreateCostBudgetRequest'
+        - type: object
+          properties:
+            cost_budget_id: { type: string, format: uuid }
+            budget_status: { type: string, enum: [active, paused, expired] }
+
+    CostBudgetResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/CostBudget' }
+
+    CostBudgetListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/CostBudget' }
+
+    CreateCostGuardrailRequest:
+      type: object
+      required: [guardrail_name, guardrail_type, threshold_amount, currency, action]
+      properties:
+        guardrail_name: { type: string }
+        guardrail_type: { type: string, enum: [daily, monthly, per_job, per_campaign] }
+        threshold_amount: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        action: { type: string, enum: [warn, block, require_review] }
+
+    CostGuardrail:
+      allOf:
+        - $ref: '#/components/schemas/CreateCostGuardrailRequest'
+        - type: object
+          properties:
+            cost_guardrail_id: { type: string, format: uuid }
+            guardrail_status: { type: string, enum: [active, disabled] }
+
+    CostGuardrailResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/CostGuardrail' }
+
+    CostGuardrailListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/CostGuardrail' }
+
+    AuditLog:
+      type: object
+      properties:
+        audit_log_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        customer_account_id: { type: string, format: uuid, nullable: true }
+        actor_user_id: { type: string, format: uuid, nullable: true }
+        action: { type: string }
+        entity_type: { type: string }
+        entity_id: { type: string, format: uuid }
+        before_snapshot: { type: object, nullable: true }
+        after_snapshot: { type: object, nullable: true }
+        metadata: { type: object, nullable: true }
+        correlation_id: { type: string }
+        occurred_at: { type: string, format: date-time }
+
+    AuditLogListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/AuditLog' }
+        page: { $ref: '#/components/schemas/PageMeta' }
+
+    SetSafeModeStateRequest:
+      type: object
+      required: [safe_mode_status]
+      properties:
+        safe_mode_status: { type: string, enum: [inactive, active] }
+        reason: { type: string }
+
+    SafeModeStateResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            safe_mode_state_id: { type: string, format: uuid }
+            workspace_id: { type: string, format: uuid }
+            safe_mode_status: { type: string, enum: [inactive, active] }
+            reason: { type: string, nullable: true }
+            activated_at: { type: string, format: date-time, nullable: true }
+            deactivated_at: { type: string, format: date-time, nullable: true }
+
+    UpdateOnboardingProgressRequest:
+      type: object
+      properties:
+        onboarding_status: { type: string, enum: [not_started, in_progress, completed, skipped] }
+        current_step: { type: string }
+        progress_payload: { type: object }
+
+    OnboardingProgressResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            onboarding_progress_id: { type: string, format: uuid }
+            workspace_id: { type: string, format: uuid }
+            onboarding_status: { type: string, enum: [not_started, in_progress, completed, skipped] }
+            current_step: { type: string }
+            progress_payload: { type: object }
+
+x-no-go-api-rules:
+  - Do not expose DELETE for ManualPublishEvidence.
+  - Do not expose PATCH for ManualPublishEvidence.
+  - Do not expose PATCH for approved MediaAssetVersion content.
+  - Do not accept workspace_id in request body as trusted source.
+  - Do not create PublishJob unless ApprovalDecision is approved and content hash matches.
+  - Do not record UsageMeter unless usable_output_confirmed=true.
+  - Do not derive customer billing from CostEvent.
+  - Do not add endpoints for BillingProvider, ProviderUsageLog, PaidExecution, AutoPublishing, Advanced Attribution, or AI Agents in Phase 0/1.
+  - Do not allow cross-workspace reads using entity ID alone.
