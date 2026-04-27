@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 const DEFAULT_ACTION = "Review the request and try again.";
 
 class AppError extends Error {
