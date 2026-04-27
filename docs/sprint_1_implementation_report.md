@@ -58,7 +58,7 @@ Existing Sprint 0 read endpoints remain intact.
 - BriefVersion create/list with server-generated hash and no patch route.
 - Sprint 1 ErrorModel consistency.
 
-## Commands Run
+## Commands Run Locally During Implementation
 
 ```bash
 node --test test/*.test.js
@@ -69,7 +69,7 @@ node scripts/db-migrate.js
 node scripts/db-seed.js
 ```
 
-## Test Results
+## Local Test Results
 
 ```text
 Unit tests: passed locally, 8/8
@@ -80,7 +80,22 @@ Local migration gate: passed locally with expected missing-SQL warning in the sl
 RBAC seed generation: passed locally
 ```
 
-Strict verification must run in the full repository/CI environment where npm, PostgreSQL, psql, DATABASE_URL, authoritative SQL files, and OpenAPI YAML are present.
+## CI Strict Verification Result
+
+GitHub Actions strict verification passed after Sprint 1 implementation.
+
+Observed successful workflow runs:
+
+```text
+Workflow: Sprint 0 Strict Verification
+Latest Sprint 1 run: Add Sprint 1 integration coverage
+Commit: 72f9d489f4eebf346515058561a583976396e059
+Branch: main
+Status: Success
+Duration: approximately 58s
+```
+
+This CI run verifies `npm run verify:strict` in the full repository environment with PostgreSQL service, authoritative SQL files, and OpenAPI YAML present.
 
 ## OpenAPI Deviations
 
@@ -99,9 +114,13 @@ No intentional deviations. Sprint 1 routes are limited to OpenAPI-approved works
 
 ## Unresolved Gaps
 
-- Persistence remains the Sprint 0 in-memory baseline in this local implementation surface; PostgreSQL persistence should be wired in a later infrastructure hardening step without changing product scope.
+No Sprint 1 blocking gap remains after successful CI strict verification.
+
+Known non-blocking architecture limitations retained by scope:
+
+- Persistence remains the Sprint 0 in-memory baseline in this implementation surface; PostgreSQL persistence hardening is a later infrastructure step and must not change product scope.
 - Audit persistence is represented by Sprint 1 audit placeholders in the in-memory store; Sprint 4 audit read workflows remain unimplemented.
-- Full strict verification was not run in this local slim mirror because it lacks npm, PostgreSQL/psql, authoritative SQL files, and OpenAPI YAML.
+- The GitHub Actions workflow name still says `Sprint 0 Strict Verification` although it now guards later sprints through `npm run verify:strict`. This is cosmetic and can be renamed later.
 
 ## Explicitly Not Implemented
 
@@ -129,13 +148,25 @@ GenerationJob, Asset, or Approval entities
 ## Readiness Decision For Sprint 2
 
 ```text
-CONDITIONAL GO to Sprint 2.
+GO to Sprint 2.
 ```
 
-Conditions:
+Conditions for Sprint 2 execution:
 
 ```text
-1. Run npm run verify:strict in the full repository/CI environment.
-2. Confirm Sprint 1 tests pass under strict verification.
-3. Confirm OpenAPI lint sees the authoritative YAML and validates implemented Sprint 1 routes.
+1. Implement Sprint 2 only.
+2. Do not implement Sprint 3+.
+3. Preserve Sprint 0/1 guardrails.
+4. Keep tenant isolation, RBAC, ErrorModel, and OpenAPI route alignment passing.
+5. Add Sprint 2 tests before considering Sprint 2 complete.
+6. Keep GitHub Actions strict verification passing.
 ```
+
+## Pilot / Production Decision
+
+```text
+NO-GO to Pilot.
+NO-GO to Production.
+```
+
+Pilot remains blocked until all P0 QA gates pass after later sprints.
