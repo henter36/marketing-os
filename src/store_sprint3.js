@@ -1,4 +1,4 @@
-const base = require("./store");
+const base = require("../store");
 
 function createSeedStore() {
   const store = base.createSeedStore();

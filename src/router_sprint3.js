@@ -1,4 +1,4 @@
-const base = require("./router");
+const base = require("../router");
 const { createHash } = require("crypto");
 const { AppError, correlationId, errorBody, sendJson } = require("./error-model");
 const { createSeedStore } = require("./store_sprint3");
