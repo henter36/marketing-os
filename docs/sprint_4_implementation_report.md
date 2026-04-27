@@ -89,7 +89,7 @@ Result:
 GitHub returned 404 from the local desktop shell, so local verification could not be completed from an archive snapshot.
 ```
 
-Required gates still to be run by GitHub Actions on the pull request:
+GitHub Actions strict verification ran the required gates:
 
 ```bash
 npm test
@@ -103,10 +103,27 @@ npm run verify:strict
 ## GitHub Actions Strict Verification Result
 
 ```text
-Pending / not available at report creation time.
+Workflow: Sprint 0 Strict Verification
+Run: 48
+Commit: afedcc487d414b6503a028cae56aa7c65a901060
+Branch: sprint-4-implementation
+Status: Success
+Job: Verify Sprint 0 Gates
+Conclusion: success
 ```
 
-The branch must not be marked GO until the GitHub Actions strict verification workflow passes on `sprint-4-implementation`.
+Successful workflow steps included:
+
+```text
+Run strict OpenAPI lint: success
+Run unit tests: success
+Run integration tests: success
+Run RBAC seed generation: success
+Run strict database migration: success
+Run full strict verification aggregate: success
+```
+
+A docs-only report update was made after this run to record the CI result; that update must also pass the same pull request workflow before merge.
 
 ## OpenAPI Deviations
 
@@ -116,7 +133,6 @@ Sprint 4 implementation is limited to the OpenAPI-approved routes listed above. 
 
 ## Unresolved Gaps
 
-- GitHub Actions strict verification result was not available at report creation time.
 - No dedicated PilotGate API exists in the approved OpenAPI contract; no such endpoint was implemented.
 - `AdminNotification` exists in approved SQL/backlog but has no approved API endpoint; no AdminNotification API was implemented.
 - `SetupChecklistItem` exists in approved SQL/backlog but has no approved API endpoint; no SetupChecklistItem API was implemented.
@@ -148,7 +164,7 @@ unapproved endpoints
 ## Readiness Decision
 
 ```text
-NO-GO to next step until GitHub Actions strict verification passes on sprint-4-implementation.
+CONDITIONAL GO to next step after the current pull request head passes GitHub Actions strict verification.
 ```
 
-Once GitHub Actions strict verification passes on the pull request branch, the readiness decision may be updated to GO for the next step. This report does not claim Sprint 4 production or pilot readiness before CI evidence exists.
+Sprint 4 implementation itself passed strict verification on commit `afedcc487d414b6503a028cae56aa7c65a901060`. The hard GO gate should be evaluated against the latest pull request head before merge.
