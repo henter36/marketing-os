@@ -4,7 +4,8 @@
 
 - Application/backend baseline in Node.js CommonJS with no frontend shell.
 - Package manager setup with `package.json` and `package-lock.json`.
-- Environment variables documented for `PORT` and `DATABASE_URL`.
+- Environment configuration through `.env.example` and `src/config.js`.
+- Separate local and strict gate commands for migration, OpenAPI lint, and verification.
 - PostgreSQL migration wiring for the approved SQL order:
   1. `docs/marketing_os_v5_6_5_phase_0_1_schema.sql`
   2. `docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql`
@@ -17,9 +18,11 @@
 
 ## Files Changed
 
+- `.env.example`
 - `package.json`
 - `package-lock.json`
 - `README_SPRINT_0.md`
+- `src/config.js`
 - `src/error-model.js`
 - `src/guards.js`
 - `src/integrity.js`
@@ -40,24 +43,32 @@
 
 ```bash
 npm run db:migrate
+npm run db:migrate:local
+npm run db:migrate:strict
 npm run db:seed
 npm run openapi:lint
+npm run openapi:lint:local
+npm run openapi:lint:strict
 npm test
 npm run test:integration
+npm run verify:local
+npm run verify:strict
 npm run verify
 ```
 
 ## Migration Result
 
-Migration wiring preserves the approved execution order. In the local slim mirror, the SQL files are absent, so `db:migrate` validates wiring and exits with a warning. In the full repository, setting `DATABASE_URL` runs both approved SQL files through `psql`.
+Migration wiring preserves the approved execution order. `db:migrate:local` validates wiring and exits with a warning when the SQL files or `DATABASE_URL` are unavailable. `db:migrate:strict` fails if approved SQL files are missing or `DATABASE_URL` is not set, and applies both approved SQL files through `psql` when prerequisites are present.
 
 ## OpenAPI Lint Result
 
-`openapi:lint` checks that implemented backend routes are limited to allowed internal routes and OpenAPI-defined routes. In the local slim mirror, the OpenAPI source file is absent, so the command exits successfully with a warning. In the full repository, it validates against `docs/marketing_os_v5_6_5_phase_0_1_openapi.yaml`.
+`openapi:lint:local` checks Sprint 0 contract fragments and RBAC permission alignment, exiting with a warning when the OpenAPI file is absent. `openapi:lint:strict` fails when the OpenAPI file is absent. If a real validator package such as `@redocly/cli` or `swagger-cli` is installed, strict lint invokes it; otherwise it clearly reports that only Sprint 0 contract checks were completed.
 
 ## Tests Added
 
 - Migration wiring and approved order.
+- Strict migration failure when SQL prerequisites are unavailable.
+- Environment configuration loading.
 - Tenant isolation across workspace-scoped reads.
 - RBAC allow/deny behavior.
 - Unified ErrorModel shape.
@@ -69,19 +80,19 @@ Migration wiring preserves the approved execution order. In the local slim mirro
 
 - Unit tests: passed locally.
 - Integration tests: passed locally.
-- Sprint 0 verification: passed locally.
-- Failures: none observed locally.
+- Sprint 0 local verification: passed locally.
+- Strict migration/OpenAPI gates: fail as expected in this slim local mirror because authoritative docs and `DATABASE_URL` are absent.
+- Failures: none observed locally outside expected strict prerequisite failures.
 
 ## Unresolved Gaps
 
-- Local execution did not apply PostgreSQL migrations because this local mirror does not include the authoritative SQL docs.
-- Local OpenAPI lint did not parse the full OpenAPI contract because this local mirror does not include the authoritative OpenAPI doc.
+- Strict execution did not apply PostgreSQL migrations because this local mirror does not include the authoritative SQL docs or a `DATABASE_URL`.
+- Strict OpenAPI lint did not parse the full OpenAPI contract because this local mirror does not include the authoritative OpenAPI doc.
 - No production database connectivity was verified in this environment.
-- `.env.example` and `src/config.js` were prepared locally, but the GitHub connector blocked creation of those two new files without an additional explicit repository-write confirmation.
 
 ## Deviations From Approved Contracts
 
-- No product-scope deviations.
+- No intentional deviations.
 - Campaign and asset route behavior is limited to guarded, non-business test surfaces and does not create Sprint 1+ entities.
 
 ## Readiness Decision For Sprint 1
@@ -90,5 +101,4 @@ Conditional go: Sprint 0 is ready for Sprint 1 handoff after the full repository
 
 - PostgreSQL migrations apply successfully against a real database.
 - OpenAPI lint runs against the authoritative OpenAPI YAML.
-- The same unit, integration, and verification commands pass in CI.
-- The environment template/config helper creation is approved or completed in the target repo workflow.
+- `npm run verify:strict` passes in CI.
