@@ -15,10 +15,12 @@
 - Basic OpenAPI Sprint 0 endpoints for workspaces, members, roles, and permissions.
 - Internal health/readiness endpoints allowed by the API spec.
 - Sprint 0 tests for migrations, tenant isolation, RBAC, ErrorModel, Patch 001 ApprovalDecision behavior, and Patch 001 ManualPublishEvidence behavior.
+- GitHub Actions strict verification workflow: `.github/workflows/sprint0-verify.yml`.
 
 ## Files Changed
 
 - `.env.example`
+- `.github/workflows/sprint0-verify.yml`
 - `package.json`
 - `package-lock.json`
 - `README_SPRINT_0.md`
@@ -37,6 +39,7 @@
 - `test/helpers.js`
 - `test/sprint0.test.js`
 - `test/integration/sprint0.integration.test.js`
+- `docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql`
 - `docs/sprint_0_implementation_report.md`
 
 ## Commands Added
@@ -58,11 +61,29 @@ npm run verify
 
 ## Migration Result
 
-Migration wiring preserves the approved execution order. `db:migrate:local` validates wiring and exits with a warning when the SQL files or `DATABASE_URL` are unavailable. `db:migrate:strict` fails if approved SQL files are missing or `DATABASE_URL` is not set, and applies both approved SQL files through `psql` when prerequisites are present.
+Migration wiring preserves the approved execution order. `db:migrate:strict` now fails if approved SQL files are missing, if `DATABASE_URL` is not set, or if `psql` is unavailable.
+
+GitHub Actions strict verification successfully applied the approved SQL order against PostgreSQL 16:
+
+```text
+1. docs/marketing_os_v5_6_5_phase_0_1_schema.sql
+2. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
+```
+
+Patch 001 was corrected to be migration-retry safe by dropping `trg_manual_publish_evidence_protect_update` before recreating it.
 
 ## OpenAPI Lint Result
 
-`openapi:lint:local` checks Sprint 0 contract fragments and RBAC permission alignment, exiting with a warning when the OpenAPI file is absent. `openapi:lint:strict` fails when the OpenAPI file is absent. If a real validator package such as `@redocly/cli` or `swagger-cli` is installed, strict lint invokes it; otherwise it clearly reports that only Sprint 0 contract checks were completed.
+`openapi:lint:strict` runs in GitHub Actions as part of `npm run verify:strict` and passed during Sprint 0 CI verification.
+
+Current strict lint behavior:
+
+- fails if the authoritative OpenAPI file is absent
+- checks required Sprint 0 OpenAPI fragments
+- checks declared `x-permission` values against RBAC seed permissions
+- invokes `@redocly/cli` or `swagger-cli` if installed
+
+Future hardening recommendation: add a real OpenAPI validator dependency before or during Sprint 1.
 
 ## Tests Added
 
@@ -78,27 +99,75 @@ Migration wiring preserves the approved execution order. `db:migrate:local` vali
 
 ## Tests Passed / Failed
 
-- Unit tests: passed locally.
-- Integration tests: passed locally.
-- Sprint 0 local verification: passed locally.
-- Strict migration/OpenAPI gates: fail as expected in this slim local mirror because authoritative docs and `DATABASE_URL` are absent.
-- Failures: none observed locally outside expected strict prerequisite failures.
+GitHub Actions result for commit `b081bb4a8ce169ae79f2df0fccb25f732103ebba`:
+
+```text
+Status: Success
+Workflow: Sprint 0 Strict Verification
+Job: Verify Sprint 0 Gates
+Duration: 53s
+```
+
+Gate status:
+
+```text
+Unit tests: passed
+Integration tests: passed
+Sprint 0 static verification: passed
+Strict OpenAPI lint: passed
+RBAC seed generation: passed
+Strict PostgreSQL migration: passed
+Full strict verification aggregate: passed
+```
+
+Remaining warning:
+
+```text
+Node.js 20 deprecation warning for actions/checkout@v4 and actions/setup-node@v4 being forced to run on Node.js 24.
+```
+
+This is a GitHub Actions runtime warning, not a Sprint 0 gate failure.
 
 ## Unresolved Gaps
 
-- Strict execution did not apply PostgreSQL migrations because this local mirror does not include the authoritative SQL docs or a `DATABASE_URL`.
-- Strict OpenAPI lint did not parse the full OpenAPI contract because this local mirror does not include the authoritative OpenAPI doc.
-- No production database connectivity was verified in this environment.
+No Sprint 0 blocking gaps remain after successful GitHub Actions strict verification.
+
+Non-blocking hardening items before or during Sprint 1:
+
+- Add `@redocly/cli` or equivalent as a development dependency for stronger OpenAPI validation.
+- Consider branch protection requiring `Sprint 0 Strict Verification` to pass before merging.
+- Keep frontend implementation blocked until backend Sprint 1 APIs are implemented and tested.
 
 ## Deviations From Approved Contracts
 
-- No intentional deviations.
-- Campaign and asset route behavior is limited to guarded, non-business test surfaces and does not create Sprint 1+ entities.
+- No intentional product-scope deviations.
+- No Sprint 1+ implementation was added.
+- No frontend shell was added.
+- No auto-publishing, paid execution, AI agents, advanced attribution, BillingProvider, ProviderUsageLog, GenerationJob, Asset, or Approval entities were added.
+- Campaign and asset route behavior remains limited to guarded, non-business test surfaces and does not create Sprint 1+ entities.
 
 ## Readiness Decision For Sprint 1
 
-Conditional go: Sprint 0 is ready for Sprint 1 handoff after the full repository environment confirms:
+```text
+GO to Sprint 1.
+```
 
-- PostgreSQL migrations apply successfully against a real database.
-- OpenAPI lint runs against the authoritative OpenAPI YAML.
-- `npm run verify:strict` passes in CI.
+Conditions for Sprint 1 execution:
+
+```text
+1. Implement Sprint 1 only.
+2. Do not implement Sprint 2+.
+3. Do not build frontend shell yet unless explicitly scoped as non-production review UI.
+4. Preserve tenant isolation, RBAC, ErrorModel, and OpenAPI alignment.
+5. Keep GitHub Actions strict verification passing.
+6. Add Sprint 1 tests before considering Sprint 1 complete.
+```
+
+## Pilot / Production Decision
+
+```text
+NO-GO to Pilot.
+NO-GO to Production.
+```
+
+Pilot remains blocked until all P0 QA gates pass after later sprints.
