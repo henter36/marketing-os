@@ -2,13 +2,13 @@ const { existsSync } = require("fs");
 const { spawnSync } = require("child_process");
 const path = require("path");
 
-const root = path.resolve(__dirname, "..");
+const defaultRoot = path.resolve(__dirname, "..");
 const migrations = [
   "docs/marketing_os_v5_6_5_phase_0_1_schema.sql",
   "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql"
 ];
 
-function validateMigrationFiles() {
+function validateMigrationFiles(root = defaultRoot) {
   return migrations.filter((file) => !existsSync(path.join(root, file)));
 }
 
@@ -18,7 +18,10 @@ function isStrictMode(options = {}) {
 
 function run(options = {}) {
   const strict = isStrictMode(options);
-  const missing = validateMigrationFiles();
+  const root = options.root || defaultRoot;
+  const env = options.env || process.env;
+  const missing = validateMigrationFiles(root);
+
   if (missing.length > 0) {
     const message = `Migration files not present in this checkout: ${missing.join(", ")}`;
     if (strict) {
@@ -31,7 +34,7 @@ function run(options = {}) {
     return 0;
   }
 
-  if (!process.env.DATABASE_URL) {
+  if (!env.DATABASE_URL) {
     if (strict) {
       console.error("DATABASE_URL is required for strict Sprint 0 migration execution.");
       return 1;
@@ -48,7 +51,7 @@ function run(options = {}) {
   }
 
   for (const migration of migrations) {
-    const result = spawnSync("psql", [process.env.DATABASE_URL, "-v", "ON_ERROR_STOP=1", "-f", path.join(root, migration)], {
+    const result = spawnSync("psql", [env.DATABASE_URL, "-v", "ON_ERROR_STOP=1", "-f", path.join(root, migration)], {
       stdio: "inherit"
     });
 
