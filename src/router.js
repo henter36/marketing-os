@@ -31,6 +31,14 @@ function route(req, body, store) {
   const url = new URL(req.url, "http://localhost");
   const path = url.pathname.replace(/^\/v1/, "");
 
+  if (req.method === "GET" && path === "/health") {
+    return { body: { data: { status: "ok", service: "marketing-os", sprint: "0" } } };
+  }
+
+  if (req.method === "GET" && path === "/ready") {
+    return { body: { data: { status: "ready", checks: { application: "ok" } } } };
+  }
+
   if (req.method === "GET" && path === "/roles") {
     const user = authGuard(req, store);
     return { body: { data: store.roles, actor_user_id: user.user_id } };
