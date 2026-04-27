@@ -47,6 +47,19 @@ jobs:
           node-version: "24"
           cache: "npm"
 
+      - name: Print runtime diagnostics
+        run: |
+          node --version
+          npm --version
+          pwd
+          ls -la
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          psql --version
+
       - name: Install dependencies
         run: npm install
 
@@ -59,5 +72,23 @@ jobs:
           test -f docs/18_sprint_0_execution_lock.md
           test -f docs/20_sprint_0_report_template.md
 
-      - name: Run strict Sprint 0 verification
+      - name: Run Sprint 0 static verification
+        run: node scripts/verify-sprint0.js
+
+      - name: Run strict OpenAPI lint
+        run: npm run openapi:lint:strict
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Run RBAC seed generation
+        run: npm run db:seed
+
+      - name: Run strict database migration
+        run: npm run db:migrate:strict
+
+      - name: Run full strict verification aggregate
         run: npm run verify:strict
