@@ -1,6 +1,7 @@
 const { existsSync, readFileSync } = require("fs");
 const path = require("path");
 const { permissions } = require("../src/rbac");
+const { implementedRoutes } = require("../src/router");
 
 const specPath = path.resolve(__dirname, "..", "docs", "marketing_os_v5_6_5_phase_0_1_openapi.yaml");
 const strict = process.argv.includes("--strict") || process.env.CI === "true" || process.env.STRICT_GATES === "true";
@@ -41,6 +42,14 @@ const unknown = declaredPermissions.filter((permission) => !permissionCodes.has(
 if (unknown.length > 0) {
   console.error(`OpenAPI declares permissions absent from Sprint 0 seed: ${[...new Set(unknown)].join(", ")}`);
   process.exit(1);
+}
+
+if (Array.isArray(implementedRoutes)) {
+  const missingRoutes = implementedRoutes.filter((route) => !routeExistsInSpec(spec, route));
+  if (missingRoutes.length > 0) {
+    console.error(`Implemented routes are absent from OpenAPI: ${missingRoutes.join(", ")}`);
+    process.exit(1);
+  }
 }
 
 const validator = loadValidator();
@@ -91,4 +100,15 @@ function runNodeBin(candidate) {
     name: candidate.name,
     status: result.status || 0
   };
+}
+
+function routeExistsInSpec(spec, route) {
+  const [method, routePath] = route.split(" ");
+  const pathIndex = spec.indexOf(`  ${routePath}:`);
+  if (pathIndex === -1) {
+    return false;
+  }
+  const nextPathIndex = spec.indexOf("\n  /", pathIndex + 1);
+  const pathBlock = nextPathIndex === -1 ? spec.slice(pathIndex) : spec.slice(pathIndex, nextPathIndex);
+  return pathBlock.includes(`    ${method.toLowerCase()}:`);
 }
