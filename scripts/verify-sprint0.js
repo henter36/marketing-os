@@ -4,7 +4,9 @@ const path = require("path");
 const requiredFiles = [
   "package.json",
   "package-lock.json",
+  ".env.example",
   "src/router.js",
+  "src/config.js",
   "src/guards.js",
   "src/error-model.js",
   "src/rbac.js",
