@@ -1,4 +1,4 @@
-name: Sprint 0 Strict Verification
+name: Phase 0/1 Strict Verification
 
 on:
   push:
@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  verify-sprint-0:
-    name: Verify Sprint 0 Gates
+  verify-phase-0-1:
+    name: Verify Phase 0/1 Gates
     runs-on: ubuntu-latest
 
     services:
@@ -72,7 +72,7 @@ jobs:
           test -f docs/18_sprint_0_execution_lock.md
           test -f docs/20_sprint_0_report_template.md
 
-      - name: Run Sprint 0 static verification
+      - name: Run static implementation verification
         run: node scripts/verify-sprint0.js
 
       - name: Run strict OpenAPI lint
