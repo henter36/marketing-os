@@ -41,6 +41,12 @@ function run(options = {}) {
     return 0;
   }
 
+  const psqlCheck = spawnSync("psql", ["--version"], { stdio: "ignore" });
+  if (psqlCheck.error) {
+    console.error("psql is required for Sprint 0 migration execution.");
+    return 1;
+  }
+
   for (const migration of migrations) {
     const result = spawnSync("psql", [process.env.DATABASE_URL, "-v", "ON_ERROR_STOP=1", "-f", path.join(root, migration)], {
       stdio: "inherit"
