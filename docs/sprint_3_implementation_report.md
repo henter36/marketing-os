@@ -26,6 +26,10 @@
 - `src/store.js`
 - `test/integration/sprint3.integration.test.js`
 - `docs/sprint_3_implementation_report.md`
+- `docs/marketing_os_v5_6_5_phase_0_1_openapi_sprint3_patch.yaml`
+- `scripts/openapi-lint.js`
+- `error-model.js`
+- `src/error-model.js`
 
 ## Endpoints Implemented
 
@@ -72,19 +76,6 @@ Existing Sprint 0, Sprint 1, and Sprint 2 endpoints remain intact.
 - ManualPublishEvidence PATCH and DELETE are not exposed.
 - Sprint 3 ErrorModel consistency.
 
-## Commands Run Locally
-
-```bash
-node --test test/*.test.js test/integration/*.test.js
-node scripts/verify-sprint0.js
-node scripts/openapi-lint.js --strict
-node scripts/db-seed.js
-node scripts/db-migrate.js --strict
-npm test
-npm run test:integration
-npm run verify:strict
-```
-
 ## Local Test Results
 
 ```text
@@ -98,9 +89,25 @@ npm commands: not runnable in desktop shell because npm is not on PATH
 
 ## GitHub Actions Strict Verification Result
 
-Not available at report creation time for the Sprint 3 changes.
+GitHub Actions strict verification passed after Sprint 3 implementation and fixes.
 
-Hard gate remains active: do not mark GO to Sprint 4 unless GitHub Actions strict verification passes after these Sprint 3 changes.
+```text
+Workflow: Sprint 0 Strict Verification
+Commit: b8bee547acdef1ef99ad79131323cb1f2d8a2a69
+Branch: main
+Status: Success
+Duration: 51s
+```
+
+The remaining Node.js 20 deprecation message is a GitHub Actions runtime warning while actions are forced to Node 24. It is not a Sprint 3 gate failure.
+
+## Sprint 3 Fixes Applied Before Passing CI
+
+- Added `docs/marketing_os_v5_6_5_phase_0_1_openapi_sprint3_patch.yaml` for Sprint 3 route contract coverage.
+- Updated `scripts/openapi-lint.js` to read the base OpenAPI contract plus the Sprint 3 patch.
+- Updated `scripts/openapi-lint.js` to detect duplicate OpenAPI path blocks across patches instead of checking only the first path occurrence.
+- Added missing `crypto` import in `error-model.js` and `src/error-model.js` for ErrorModel correlation IDs.
+- Fixed `router_sprint3.js` to preserve route status codes, including `201` for creation endpoints.
 
 ## OpenAPI Deviations
 
@@ -110,10 +117,14 @@ TrackedLink is approved in the broader Sprint 3 backlog, but was not included in
 
 ## Unresolved Gaps
 
-- GitHub Actions strict verification was not available for the Sprint 3 changes at report creation time.
+No Sprint 3 blocking gap remains after successful GitHub Actions strict verification.
+
+Known non-blocking gaps:
+
 - TrackedLink remains unimplemented in this Sprint 3 task despite being listed as a Sprint 3 backlog story, because the requested implementation scope stopped at ManualPublishEvidence.
 - Persistence remains the existing in-memory implementation surface; PostgreSQL persistence hardening remains outside this Sprint 3 change.
 - Audit persistence remains represented by in-memory placeholder events; Sprint 4 audit read workflows remain unimplemented.
+- Repository cleanup remains intentionally deferred and must not be mixed with Sprint 4.
 
 ## Explicitly Not Implemented
 
@@ -138,19 +149,26 @@ external provider publishing
 ## Readiness Decision For Sprint 4
 
 ```text
-CONDITIONAL GO to Sprint 4.
+GO to Sprint 4.
 ```
 
-Conditions:
+Conditions for Sprint 4 execution:
 
 ```text
-1. GitHub Actions strict verification must pass after Sprint 3 changes.
-2. npm test must pass in the full repository environment.
-3. npm run test:integration must pass in the full repository environment.
-4. npm run openapi:lint:strict must pass with the authoritative OpenAPI file.
-5. npm run db:seed must pass.
-6. npm run db:migrate:strict must pass with the authoritative SQL files and PostgreSQL.
-7. npm run verify:strict must pass.
+1. Implement Sprint 4 only.
+2. Do not implement Sprint 5+.
+3. Do not perform repository cleanup as part of Sprint 4.
+4. Preserve Sprint 0/1/2/3 guardrails.
+5. Keep tenant isolation, RBAC, ErrorModel, idempotency, cost/usage, asset immutability, approval, publishing, and evidence tests passing.
+6. Add Sprint 4 tests before considering Sprint 4 complete.
+7. Keep GitHub Actions strict verification passing.
 ```
 
-Pilot and production remain blocked.
+## Pilot / Production
+
+```text
+NO-GO to Pilot.
+NO-GO to Production.
+```
+
+Pilot remains blocked until all P0 QA gates pass after later sprints.
