@@ -4,6 +4,7 @@ const { permissions } = require("../src/rbac");
 const { implementedRoutes } = require("../src/router");
 
 const specPath = path.resolve(__dirname, "..", "docs", "marketing_os_v5_6_5_phase_0_1_openapi.yaml");
+const sprint3PatchPath = path.resolve(__dirname, "..", "docs", "marketing_os_v5_6_5_phase_0_1_openapi_sprint3_patch.yaml");
 const strict = process.argv.includes("--strict") || process.env.CI === "true" || process.env.STRICT_GATES === "true";
 
 if (!existsSync(specPath)) {
@@ -17,7 +18,9 @@ if (!existsSync(specPath)) {
   process.exit(0);
 }
 
-const spec = readFileSync(specPath, "utf8");
+const baseSpec = readFileSync(specPath, "utf8");
+const sprint3Patch = existsSync(sprint3PatchPath) ? readFileSync(sprint3PatchPath, "utf8") : "";
+const spec = `${baseSpec}\n${sprint3Patch}`;
 const requiredFragments = [
   "openapi: 3.1.0",
   "ErrorModel:",
@@ -60,10 +63,10 @@ if (validator) {
   }
   console.log(`OpenAPI strict validator passed using ${result.name}.`);
 } else if (strict) {
-  console.warn("No real OpenAPI validator package is installed; strict lint completed Sprint 0 contract checks only.");
+  console.warn("No real OpenAPI validator package is installed; strict lint completed contract checks only.");
 }
 
-console.log(`OpenAPI Sprint 0 ${strict ? "strict" : "lightweight"} lint passed: ${declaredPermissions.length} declared permissions checked.`);
+console.log(`OpenAPI ${strict ? "strict" : "lightweight"} lint passed: ${declaredPermissions.length} declared permissions checked.`);
 
 function loadValidator() {
   const candidates = [
@@ -86,7 +89,7 @@ function loadValidator() {
       require.resolve(candidate.moduleName);
       return () => runNodeBin(candidate);
     } catch {
-      // Optional validator is not installed in this dependency-free Sprint 0 baseline.
+      // Optional validator is not installed in this dependency-free baseline.
     }
   }
 
@@ -104,11 +107,17 @@ function runNodeBin(candidate) {
 
 function routeExistsInSpec(spec, route) {
   const [method, routePath] = route.split(" ");
-  const pathIndex = spec.indexOf(`  ${routePath}:`);
-  if (pathIndex === -1) {
+  const pathPattern = new RegExp(`\\n  ${escapeRegExp(routePath)}:`);
+  const match = pathPattern.exec(`\n${spec}`);
+  if (!match) {
     return false;
   }
+  const pathIndex = match.index;
   const nextPathIndex = spec.indexOf("\n  /", pathIndex + 1);
   const pathBlock = nextPathIndex === -1 ? spec.slice(pathIndex) : spec.slice(pathIndex, nextPathIndex);
   return pathBlock.includes(`    ${method.toLowerCase()}:`);
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
