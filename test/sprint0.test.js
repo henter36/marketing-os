@@ -1,5 +1,8 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
+const { mkdtempSync } = require("fs");
+const { tmpdir } = require("os");
+const path = require("path");
 const { hasPermission, permissions, roles } = require("../src/rbac");
 const {
   applyApprovalDecision,
@@ -24,7 +27,8 @@ test("migration wiring preserves approved SQL order", () => {
 });
 
 test("strict migration gate fails when approved SQL files are unavailable", () => {
-  assert.equal(runMigrations({ strict: true }), 1);
+  const emptyRoot = mkdtempSync(path.join(tmpdir(), "marketing-os-empty-"));
+  assert.equal(runMigrations({ strict: true, root: emptyRoot, env: { DATABASE_URL: "postgres://example" } }), 1);
 });
 
 test("RBAC seed includes Sprint 0 required roles and OpenAPI permissions", () => {
