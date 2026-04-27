@@ -89,13 +89,19 @@ Local migration gate: passed locally with expected missing-SQL warning in the sl
 RBAC seed generation: passed locally
 ```
 
-Local `npm run verify:strict` was not run because this desktop shell does not have a usable `npm` on PATH and the local mirror does not contain the large authoritative SQL/OpenAPI files. The same underlying Node commands were run directly where possible.
-
 ## GitHub Actions Strict Verification Result
 
-Not available at report creation time for the Sprint 2 changes.
+GitHub Actions strict verification passed after Sprint 2 integration.
 
-Hard gate remains active: do not mark GO to Sprint 3 unless GitHub Actions strict verification passes after these Sprint 2 changes.
+```text
+Workflow: Sprint 0 Strict Verification
+Commit: c272c6df12d49ca0f8f7ed6d520041a442b498e7
+Branch: main
+Status: Success
+Duration: 59s
+```
+
+The remaining Node.js 20 deprecation message is a GitHub Actions runtime warning while actions are forced to Node 24. It is not a Sprint 2 gate failure.
 
 ## OpenAPI Deviations
 
@@ -105,7 +111,14 @@ MediaCostPolicy and MediaCostSnapshot are handled as internal governed Sprint 2 
 
 ## Unresolved Gaps
 
-- GitHub Actions strict verification was not yet available for the Sprint 2 changes at report creation time.
+No Sprint 2 blocking gap remains after successful GitHub Actions strict verification.
+
+Known non-blocking cleanup item:
+
+- Sprint 2 files were uploaded at repository root and `src/router.js` / `src/store.js` temporarily re-export the uploaded root implementations. A separate cleanup task must later move the root implementation files into the correct `src/` paths and delete duplicates after CI is stable.
+
+Known scope limitations retained by design:
+
 - Persistence remains the existing Sprint 0/1 in-memory implementation surface; PostgreSQL persistence hardening remains outside this Sprint 2 code change.
 - Audit persistence remains represented by in-memory placeholder events; Sprint 4 audit read workflows remain unimplemented.
 
@@ -132,15 +145,26 @@ external provider execution beyond mocked/governed Sprint 2 behavior
 ## Readiness Decision For Sprint 3
 
 ```text
-CONDITIONAL GO to Sprint 3.
+GO to Sprint 3.
 ```
 
-Conditions:
+Conditions for Sprint 3 execution:
 
 ```text
-1. GitHub Actions strict verification must pass after Sprint 2 changes.
-2. No OpenAPI route alignment failures may remain.
-3. Sprint 2 tenant isolation, RBAC, idempotency, usage, cost, and asset immutability tests must remain passing.
+1. Implement Sprint 3 only.
+2. Do not implement Sprint 4+.
+3. Preserve Sprint 0/1/2 guardrails.
+4. Keep tenant isolation, RBAC, ErrorModel, idempotency, usage, cost, and asset immutability tests passing.
+5. Add Sprint 3 tests before considering Sprint 3 complete.
+6. Keep GitHub Actions strict verification passing.
+7. Do not combine Sprint 3 implementation with repository cleanup.
 ```
 
-Pilot and production remain blocked.
+## Pilot / Production
+
+```text
+NO-GO to Pilot.
+NO-GO to Production.
+```
+
+Pilot remains blocked until all P0 QA gates pass after later sprints.
