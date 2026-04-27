@@ -16,6 +16,21 @@ test("unauthenticated requests return the unified ErrorModel", async () => {
   }
 });
 
+test("health and readiness endpoints expose no tenant data", async () => {
+  const server = await createTestServer();
+  try {
+    const health = await server.request("GET", "/health");
+    const ready = await server.request("GET", "/ready");
+    assert.equal(health.status, 200);
+    assert.equal(health.body.data.status, "ok");
+    assert.equal(ready.status, 200);
+    assert.equal(ready.body.data.status, "ready");
+    assert.equal(Object.hasOwn(health.body.data, "workspace_id"), false);
+  } finally {
+    server.close();
+  }
+});
+
 test("workspace list is scoped to authenticated user's memberships", async () => {
   const server = await createTestServer();
   try {
