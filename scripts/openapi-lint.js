@@ -107,15 +107,20 @@ function runNodeBin(candidate) {
 
 function routeExistsInSpec(spec, route) {
   const [method, routePath] = route.split(" ");
-  const pathPattern = new RegExp(`\\n  ${escapeRegExp(routePath)}:`);
-  const match = pathPattern.exec(`\n${spec}`);
-  if (!match) {
-    return false;
+  const normalizedSpec = `\n${spec}`;
+  const pathRegex = new RegExp(`\\n  ${escapeRegExp(routePath)}:`, "g");
+  let match;
+
+  while ((match = pathRegex.exec(normalizedSpec)) !== null) {
+    const pathIndex = match.index;
+    const nextPathIndex = normalizedSpec.indexOf("\n  /", pathIndex + 1);
+    const pathBlock = nextPathIndex === -1 ? normalizedSpec.slice(pathIndex) : normalizedSpec.slice(pathIndex, nextPathIndex);
+    if (pathBlock.includes(`    ${method.toLowerCase()}:`)) {
+      return true;
+    }
   }
-  const pathIndex = match.index;
-  const nextPathIndex = spec.indexOf("\n  /", pathIndex + 1);
-  const pathBlock = nextPathIndex === -1 ? spec.slice(pathIndex) : spec.slice(pathIndex, nextPathIndex);
-  return pathBlock.includes(`    ${method.toLowerCase()}:`);
+
+  return false;
 }
 
 function escapeRegExp(value) {
