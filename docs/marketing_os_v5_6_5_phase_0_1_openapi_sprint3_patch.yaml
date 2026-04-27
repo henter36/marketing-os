@@ -1,0 +1,111 @@
+# Marketing OS V5.6.5 — OpenAPI Sprint 3 Route Patch
+# Purpose: documents Sprint 3 implemented routes that are approved by scope but absent from the base OpenAPI file.
+# This file is consumed by scripts/openapi-lint.js together with the authoritative base OpenAPI contract.
+
+paths:
+  /workspaces/{workspaceId}/review-tasks/{reviewTaskId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ReviewTaskId'
+    get:
+      tags: [Review]
+      summary: Get review task
+      operationId: getReviewTask
+      x-permission: review.read
+      responses:
+        '200':
+          description: Review task returned
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/review-tasks/{reviewTaskId}/status:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ReviewTaskId'
+    patch:
+      tags: [Review]
+      summary: Update review task status
+      operationId: updateReviewTaskStatus
+      x-permission: review.assign
+      x-audit-event: review_task.status_updated
+      responses:
+        '200':
+          description: Review task status updated
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/review-tasks/{reviewTaskId}/decisions:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ReviewTaskId'
+    get:
+      tags: [Approval]
+      summary: List approval decisions for review task
+      operationId: listApprovalDecisionsForReviewTask
+      x-permission: review.read
+      responses:
+        '200':
+          description: Approval decisions returned
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/approval-decisions/{approvalDecisionId}/publish-jobs:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ApprovalDecisionId'
+    get:
+      tags: [Publish]
+      summary: List publish jobs for approval decision
+      operationId: listPublishJobsForApprovalDecision
+      x-permission: publish_job.create
+      responses:
+        '200':
+          description: Publish jobs returned
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/publish-jobs/{publishJobId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/PublishJobId'
+    get:
+      tags: [Publish]
+      summary: Get publish job
+      operationId: getPublishJob
+      x-permission: manual_evidence.read
+      responses:
+        '200':
+          description: Publish job returned
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/publish-jobs/{publishJobId}/status:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/PublishJobId'
+    patch:
+      tags: [Publish]
+      summary: Update publish job status
+      operationId: updatePublishJobStatus
+      x-permission: publish_job.create
+      x-audit-event: publish_job.status_updated
+      responses:
+        '200':
+          description: Publish job status updated
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/manual-evidence/{manualPublishEvidenceId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ManualPublishEvidenceId'
+    get:
+      tags: [Publish]
+      summary: Get manual publish evidence
+      operationId: getManualPublishEvidence
+      x-permission: manual_evidence.read
+      responses:
+        '200':
+          description: Manual publish evidence returned
+        default:
+          $ref: '#/components/responses/ErrorResponse'
