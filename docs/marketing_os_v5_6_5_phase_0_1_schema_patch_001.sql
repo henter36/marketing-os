@@ -171,6 +171,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trg_manual_publish_evidence_protect_update ON manual_publish_evidence;
 CREATE TRIGGER trg_manual_publish_evidence_protect_update
 BEFORE UPDATE OR DELETE ON manual_publish_evidence
 FOR EACH ROW EXECUTE FUNCTION protect_manual_publish_evidence_update();
