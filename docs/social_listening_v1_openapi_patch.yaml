@@ -1,0 +1,1286 @@
+openapi: 3.1.0
+info:
+  title: Marketing OS Social Listening V1 OpenAPI Patch
+  version: 0.1.0-candidate
+  description: |
+    Candidate OpenAPI contract patch for Social Listening V1.
+    This file is not an implementation authority until aligned with the approved ERD, SQL DDL, QA suite, and sprint implementation prompt.
+
+x-document-status:
+  status: candidate_contract_patch
+  source_documents:
+    - docs/social_listening_v1_backlog.md
+    - docs/social_listening_v1_erd.md
+    - docs/social_listening_v1_sql_ddl.md
+  implementation_authority: false
+  notes:
+    - Social Listening is a bounded brand monitoring and sentiment insight module.
+    - No auto-publishing, paid execution, AI agents, trading signals, or stock prediction is allowed in this contract.
+    - Every endpoint is workspace-scoped and must enforce tenant isolation, RBAC, audit, and ErrorModel behavior.
+
+servers:
+  - url: /api
+
+tags:
+  - name: Social Listening Keywords
+  - name: Social Listening Sources
+  - name: Social Listening Jobs
+  - name: Social Listening Mentions
+  - name: Social Listening Dashboard
+  - name: Social Listening Alerts
+  - name: Social Listening Exports
+
+security:
+  - bearerAuth: []
+
+paths:
+  /workspaces/{workspaceId}/social-listening/keywords:
+    post:
+      tags: [Social Listening Keywords]
+      operationId: createSocialMonitoredKeyword
+      summary: Create a monitored keyword
+      description: Creates a workspace-scoped monitored keyword, hashtag, product, campaign, competitor, topic, or custom tracked term.
+      x-required-permission: social_listening.keyword.create
+      x-audit-event: social_listening.keyword.created
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMonitoredKeywordRequest'
+      responses:
+        '201':
+          description: Monitored keyword created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoredKeyword'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    get:
+      tags: [Social Listening Keywords]
+      operationId: listSocialMonitoredKeywords
+      summary: List monitored keywords
+      description: Lists monitored keywords within the active workspace only.
+      x-required-permission: social_listening.keyword.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/SocialConfigStatus'
+        - name: keywordType
+          in: query
+          schema:
+            $ref: '#/components/schemas/KeywordType'
+        - name: languageHint
+          in: query
+          schema:
+            $ref: '#/components/schemas/LanguageCode'
+      responses:
+        '200':
+          description: Paginated monitored keywords
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MonitoredKeyword'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /workspaces/{workspaceId}/social-listening/keywords/{keywordId}:
+    patch:
+      tags: [Social Listening Keywords]
+      operationId: updateSocialMonitoredKeyword
+      summary: Update or deactivate a monitored keyword
+      description: Updates non-historical fields or deactivates a keyword without deleting historical mentions, matches, snapshots, sentiment results, or alerts.
+      x-required-permission: social_listening.keyword.update
+      x-audit-events:
+        - social_listening.keyword.updated
+        - social_listening.keyword.deactivated
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/KeywordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMonitoredKeywordRequest'
+      responses:
+        '200':
+          description: Monitored keyword updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoredKeyword'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /workspaces/{workspaceId}/social-listening/sources:
+    post:
+      tags: [Social Listening Sources]
+      operationId: createSocialMonitoredSource
+      summary: Register monitored source
+      description: Registers a governed external source or manual import source for workspace-scoped monitoring.
+      x-required-permission: social_listening.source.create
+      x-audit-event: social_listening.source.created
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMonitoredSourceRequest'
+      responses:
+        '201':
+          description: Source registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoredSource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    get:
+      tags: [Social Listening Sources]
+      operationId: listSocialMonitoredSources
+      summary: List monitored sources
+      x-required-permission: social_listening.source.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/SocialConfigStatus'
+        - name: sourceType
+          in: query
+          schema:
+            $ref: '#/components/schemas/SourceType'
+      responses:
+        '200':
+          description: Paginated monitored sources
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MonitoredSource'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /workspaces/{workspaceId}/social-listening/sources/{sourceId}:
+    patch:
+      tags: [Social Listening Sources]
+      operationId: updateSocialMonitoredSource
+      summary: Update monitored source
+      description: Updates source configuration, status, or policy state. Secrets must not be passed through this endpoint.
+      x-required-permission: social_listening.source.update
+      x-audit-events:
+        - social_listening.source.updated
+        - social_listening.source.paused
+        - social_listening.source.disabled
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/SourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMonitoredSourceRequest'
+      responses:
+        '200':
+          description: Source updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoredSource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /workspaces/{workspaceId}/social-listening/sources/{sourceId}/health:
+    get:
+      tags: [Social Listening Sources]
+      operationId: getSocialSourceHealth
+      summary: Get source health and rate-limit state
+      x-required-permission: social_listening.source.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/SourceId'
+      responses:
+        '200':
+          description: Source health state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceHealth'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /workspaces/{workspaceId}/social-listening/ingestion-jobs:
+    post:
+      tags: [Social Listening Jobs]
+      operationId: createSocialIngestionJob
+      summary: Create ingestion job
+      description: Creates a workspace-scoped async ingestion job. The operation must be idempotent and must not run if the source is disabled, rejected, or rate-limited.
+      x-required-permission: social_listening.ingestion.create
+      x-audit-event: social_listening.ingestion_job.created
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIngestionJobRequest'
+      responses:
+        '202':
+          description: Ingestion job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisJob'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /workspaces/{workspaceId}/social-listening/analysis-jobs/{jobId}:
+    get:
+      tags: [Social Listening Jobs]
+      operationId: getSocialAnalysisJob
+      summary: Get analysis job status
+      x-required-permission: social_listening.job.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: Analysis job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisJob'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /workspaces/{workspaceId}/social-listening/mentions:
+    get:
+      tags: [Social Listening Mentions]
+      operationId: listSocialMentions
+      summary: List normalized mentions
+      description: Lists normalized mentions only. Raw payload is not returned.
+      x-required-permission: social_listening.mention.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/KeywordIdQuery'
+        - $ref: '#/components/parameters/SourceIdQuery'
+        - name: language
+          in: query
+          schema:
+            $ref: '#/components/schemas/LanguageCode'
+        - name: sentimentLabel
+          in: query
+          schema:
+            $ref: '#/components/schemas/SentimentLabel'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated mentions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SocialMention'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /workspaces/{workspaceId}/social-listening/mentions/{mentionId}/sentiment-results:
+    get:
+      tags: [Social Listening Mentions]
+      operationId: listMentionSentimentResults
+      summary: List sentiment results for a mention
+      x-required-permission: social_listening.sentiment.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/MentionId'
+      responses:
+        '200':
+          description: Sentiment results for a mention
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SentimentResult'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /workspaces/{workspaceId}/social-listening/trend-snapshots:
+    get:
+      tags: [Social Listening Dashboard]
+      operationId: listSocialTrendSnapshots
+      summary: List trend snapshots
+      x-required-permission: social_listening.dashboard.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/KeywordIdQuery'
+        - $ref: '#/components/parameters/SourceIdQuery'
+        - name: windowGrain
+          in: query
+          schema:
+            $ref: '#/components/schemas/WindowGrain'
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Trend snapshots
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TrendSnapshot'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /workspaces/{workspaceId}/social-listening/dashboard/summary:
+    get:
+      tags: [Social Listening Dashboard]
+      operationId: getSocialListeningDashboardSummary
+      summary: Get dashboard summary
+      x-required-permission: social_listening.dashboard.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/KeywordIdQuery'
+        - $ref: '#/components/parameters/SourceIdQuery'
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummary'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /workspaces/{workspaceId}/social-listening/alert-rules:
+    post:
+      tags: [Social Listening Alerts]
+      operationId: createSocialAlertRule
+      summary: Create alert rule
+      description: Creates a threshold-based alert rule. Rules cannot trigger auto-publishing or paid execution.
+      x-required-permission: social_listening.alert_rule.create
+      x-audit-event: social_listening.alert_rule.created
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlertRuleRequest'
+      responses:
+        '201':
+          description: Alert rule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRule'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    get:
+      tags: [Social Listening Alerts]
+      operationId: listSocialAlertRules
+      summary: List alert rules
+      x-required-permission: social_listening.alert_rule.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated alert rules
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AlertRule'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /workspaces/{workspaceId}/social-listening/alert-rules/{alertRuleId}:
+    patch:
+      tags: [Social Listening Alerts]
+      operationId: updateSocialAlertRule
+      summary: Update alert rule
+      x-required-permission: social_listening.alert_rule.update
+      x-audit-events:
+        - social_listening.alert_rule.updated
+        - social_listening.alert_rule.paused
+        - social_listening.alert_rule.disabled
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/AlertRuleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAlertRuleRequest'
+      responses:
+        '200':
+          description: Alert rule updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRule'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /workspaces/{workspaceId}/social-listening/alert-events:
+    get:
+      tags: [Social Listening Alerts]
+      operationId: listSocialAlertEvents
+      summary: List alert events
+      x-required-permission: social_listening.alert_event.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AlertEventStatus'
+        - name: severity
+          in: query
+          schema:
+            $ref: '#/components/schemas/Severity'
+      responses:
+        '200':
+          description: Paginated alert events
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AlertEvent'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /workspaces/{workspaceId}/social-listening/alert-events/{alertEventId}/acknowledge:
+    post:
+      tags: [Social Listening Alerts]
+      operationId: acknowledgeSocialAlertEvent
+      summary: Acknowledge alert event
+      description: Acknowledges an alert without mutating original alert evidence.
+      x-required-permission: social_listening.alert_event.acknowledge
+      x-audit-event: social_listening.alert_event.acknowledged
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/AlertEventId'
+      responses:
+        '200':
+          description: Alert event acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertEvent'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /workspaces/{workspaceId}/social-listening/exports:
+    post:
+      tags: [Social Listening Exports]
+      operationId: createSocialListeningExport
+      summary: Create export job
+      description: Creates a governed export. Raw payload is excluded unless explicitly allowed by future governance.
+      x-required-permission: social_listening.export.create
+      x-audit-event: social_listening.export.created
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExportRequest'
+      responses:
+        '202':
+          description: Export job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    get:
+      tags: [Social Listening Exports]
+      operationId: listSocialListeningExports
+      summary: List export jobs
+      x-required-permission: social_listening.export.read
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated export jobs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ExportJob'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /workspaces/{workspaceId}/social-listening/exports/{exportId}:
+    get:
+      tags: [Social Listening Exports]
+      operationId: getSocialListeningExport
+      summary: Get export job or download reference
+      x-required-permission: social_listening.export.read
+      x-audit-event: social_listening.export.downloaded
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - name: exportId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Export job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '410': { $ref: '#/components/responses/Gone' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    KeywordId:
+      name: keywordId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SourceId:
+      name: sourceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MentionId:
+      name: mentionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AlertRuleId:
+      name: alertRuleId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AlertEventId:
+      name: alertEventId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Required for write operations in final implementation unless generated deterministically by the server.
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 160
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    KeywordIdQuery:
+      name: keywordId
+      in: query
+      schema:
+        type: string
+        format: uuid
+    SourceIdQuery:
+      name: sourceId
+      in: query
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorModel' }
+    Unauthorized:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorModel' }
+    Forbidden:
+      description: Authenticated user lacks required permission
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorModel' }
+    NotFound:
+      description: Resource not found or not accessible in workspace
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorModel' }
+    Conflict:
+      description: Conflict such as duplicate idempotency key or duplicate active keyword
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorModel' }
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorModel' }
+    RateLimited:
+      description: Source or provider is rate limited
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorModel' }
+    Gone:
+      description: Resource expired, usually export file reference
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorModel' }
+
+  schemas:
+    ErrorModel:
+      type: object
+      required: [code, message, traceId]
+      properties:
+        code:
+          type: string
+          examples: [WORKSPACE_NOT_FOUND, FORBIDDEN, VALIDATION_ERROR, DUPLICATE_RESOURCE, RATE_LIMITED]
+        message:
+          type: string
+        traceId:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+    PaginatedResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
+          type: object
+          required: [page, pageSize, total]
+          properties:
+            page: { type: integer, minimum: 1 }
+            pageSize: { type: integer, minimum: 1 }
+            total: { type: integer, minimum: 0 }
+
+    SourceType:
+      type: string
+      enum: [x, instagram, youtube, reviews, news, manual_import, other]
+    SocialConfigStatus:
+      type: string
+      enum: [active, paused, disabled]
+    TermsPolicyStatus:
+      type: string
+      enum: [approved, pending_review, rejected]
+    SourceHealthStatus:
+      type: string
+      enum: [healthy, degraded, rate_limited, failed]
+    KeywordType:
+      type: string
+      enum: [brand, product, campaign, competitor, hashtag, topic, custom]
+    MatchMode:
+      type: string
+      enum: [exact, contains, hashtag, phrase, regex_limited]
+    LanguageCode:
+      type: string
+      enum: [ar, en, mixed, unknown, other]
+    JobType:
+      type: string
+      enum: [ingestion, sentiment_scoring, trend_snapshot, alert_evaluation, export]
+    JobStatus:
+      type: string
+      enum: [queued, running, succeeded, failed, cancelled, skipped]
+    SentimentLabel:
+      type: string
+      enum: [positive, neutral, negative, mixed, unknown]
+    WindowGrain:
+      type: string
+      enum: [hour, day, week, month]
+    AlertRuleType:
+      type: string
+      enum: [negative_sentiment_spike, mention_volume_spike, positive_sentiment_spike, keyword_activity, custom_threshold]
+    MetricKey:
+      type: string
+      enum: [negative_count, positive_count, neutral_count, mixed_count, unknown_count, mention_count, average_sentiment_score, confidence_average]
+    ComparisonOperator:
+      type: string
+      enum: [gt, gte, lt, lte, eq]
+    Severity:
+      type: string
+      enum: [low, medium, high, critical]
+    AlertEventStatus:
+      type: string
+      enum: [open, acknowledged, dismissed]
+    ExportType:
+      type: string
+      enum: [mentions, sentiment_results, trend_snapshots, alerts, summary]
+    ExportFormat:
+      type: string
+      enum: [csv, json]
+    ExportStatus:
+      type: string
+      enum: [queued, running, succeeded, failed, expired]
+    VisibilityStatus:
+      type: string
+      enum: [visible, hidden_policy, deleted_source, redacted]
+
+    MonitoredKeyword:
+      type: object
+      required: [id, workspaceId, keyword, normalizedKeyword, keywordType, matchMode, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        keyword: { type: string }
+        normalizedKeyword: { type: string }
+        keywordType: { $ref: '#/components/schemas/KeywordType' }
+        languageHint: { $ref: '#/components/schemas/LanguageCode' }
+        matchMode: { $ref: '#/components/schemas/MatchMode' }
+        status: { $ref: '#/components/schemas/SocialConfigStatus' }
+        createdByUserId: { type: string, format: uuid }
+        updatedByUserId: { type: string, format: uuid, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        disabledAt: { type: string, format: date-time, nullable: true }
+
+    CreateMonitoredKeywordRequest:
+      type: object
+      required: [keyword, keywordType, matchMode]
+      additionalProperties: false
+      properties:
+        keyword:
+          type: string
+          minLength: 1
+          maxLength: 240
+        keywordType:
+          $ref: '#/components/schemas/KeywordType'
+        languageHint:
+          $ref: '#/components/schemas/LanguageCode'
+        matchMode:
+          $ref: '#/components/schemas/MatchMode'
+
+    UpdateMonitoredKeywordRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        keyword:
+          type: string
+          minLength: 1
+          maxLength: 240
+        keywordType:
+          $ref: '#/components/schemas/KeywordType'
+        languageHint:
+          $ref: '#/components/schemas/LanguageCode'
+        matchMode:
+          $ref: '#/components/schemas/MatchMode'
+        status:
+          $ref: '#/components/schemas/SocialConfigStatus'
+
+    MonitoredSource:
+      type: object
+      required: [id, workspaceId, sourceType, displayName, status, termsPolicyStatus, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        sourceType: { $ref: '#/components/schemas/SourceType' }
+        displayName: { type: string }
+        connectorCredentialId: { type: string, format: uuid, nullable: true }
+        status: { $ref: '#/components/schemas/SocialConfigStatus' }
+        termsPolicyStatus: { $ref: '#/components/schemas/TermsPolicyStatus' }
+        lastHealthStatus: { $ref: '#/components/schemas/SourceHealthStatus' }
+        lastCheckedAt: { type: string, format: date-time, nullable: true }
+        createdByUserId: { type: string, format: uuid }
+        updatedByUserId: { type: string, format: uuid, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateMonitoredSourceRequest:
+      type: object
+      required: [sourceType, displayName, termsPolicyStatus]
+      additionalProperties: false
+      properties:
+        sourceType:
+          $ref: '#/components/schemas/SourceType'
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 160
+        connectorCredentialId:
+          type: string
+          format: uuid
+        termsPolicyStatus:
+          $ref: '#/components/schemas/TermsPolicyStatus'
+
+    UpdateMonitoredSourceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 160
+        connectorCredentialId:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: '#/components/schemas/SocialConfigStatus'
+        termsPolicyStatus:
+          $ref: '#/components/schemas/TermsPolicyStatus'
+
+    SourceHealth:
+      type: object
+      required: [source, rateLimitStates, failureSummary]
+      properties:
+        source:
+          $ref: '#/components/schemas/MonitoredSource'
+        rateLimitStates:
+          type: array
+          items:
+            type: object
+            required: [providerKey, limitScope]
+            properties:
+              providerKey: { type: string }
+              limitScope: { type: string }
+              limitRemaining: { type: integer, nullable: true }
+              resetAt: { type: string, format: date-time, nullable: true }
+              backoffUntil: { type: string, format: date-time, nullable: true }
+              lastRateLimitedAt: { type: string, format: date-time, nullable: true }
+        failureSummary:
+          type: object
+          properties:
+            lastFailureAt: { type: string, format: date-time, nullable: true }
+            lastFailureType: { type: string, nullable: true }
+            recentFailureCount: { type: integer, minimum: 0 }
+
+    CreateIngestionJobRequest:
+      type: object
+      required: [sourceId]
+      additionalProperties: false
+      properties:
+        sourceId:
+          type: string
+          format: uuid
+        keywordId:
+          type: string
+          format: uuid
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        inputRef:
+          type: string
+          maxLength: 500
+
+    AnalysisJob:
+      type: object
+      required: [id, workspaceId, jobType, status, idempotencyKey, progressPercent, attemptCount, maxAttempts, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        jobType: { $ref: '#/components/schemas/JobType' }
+        status: { $ref: '#/components/schemas/JobStatus' }
+        idempotencyKey: { type: string }
+        requestedByUserId: { type: string, format: uuid, nullable: true }
+        monitoredSourceId: { type: string, format: uuid, nullable: true }
+        monitoredKeywordId: { type: string, format: uuid, nullable: true }
+        inputRef: { type: string, nullable: true }
+        progressPercent: { type: integer, minimum: 0, maximum: 100 }
+        attemptCount: { type: integer, minimum: 0 }
+        maxAttempts: { type: integer, minimum: 1 }
+        errorCode: { type: string, nullable: true }
+        errorMessage: { type: string, nullable: true }
+        startedAt: { type: string, format: date-time, nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    SocialMention:
+      type: object
+      required: [id, workspaceId, monitoredSourceId, sourceType, externalId, textExcerpt, textHash, language, ingestedAt, retentionPolicyKey, visibilityStatus]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        monitoredSourceId: { type: string, format: uuid }
+        ingestionJobId: { type: string, format: uuid, nullable: true }
+        sourceType: { $ref: '#/components/schemas/SourceType' }
+        externalId: { type: string }
+        externalUrl: { type: string, nullable: true }
+        authorHandleHash: { type: string, nullable: true }
+        textExcerpt: { type: string }
+        textHash: { type: string }
+        language: { $ref: '#/components/schemas/LanguageCode' }
+        publishedAt: { type: string, format: date-time, nullable: true }
+        ingestedAt: { type: string, format: date-time }
+        retentionPolicyKey: { type: string }
+        visibilityStatus: { $ref: '#/components/schemas/VisibilityStatus' }
+        latestSentiment:
+          $ref: '#/components/schemas/SentimentResult'
+
+    SentimentResult:
+      type: object
+      required: [id, workspaceId, socialMentionId, modelName, modelVersion, sentimentLabel, sentimentScore, confidenceScore, language, isBaseline, inputTextHash, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        socialMentionId: { type: string, format: uuid }
+        analysisJobId: { type: string, format: uuid, nullable: true }
+        providerConfigId: { type: string, format: uuid, nullable: true }
+        modelName: { type: string }
+        modelVersion: { type: string }
+        sentimentLabel: { $ref: '#/components/schemas/SentimentLabel' }
+        sentimentScore: { type: number, minimum: -1, maximum: 1 }
+        confidenceScore: { type: number, minimum: 0, maximum: 1 }
+        language: { $ref: '#/components/schemas/LanguageCode' }
+        isBaseline: { type: boolean }
+        explanationSummary: { type: string, nullable: true }
+        inputTextHash: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    TrendSnapshot:
+      type: object
+      required: [id, workspaceId, windowStart, windowEnd, windowGrain, mentionCount, positiveCount, neutralCount, negativeCount, mixedCount, unknownCount]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        monitoredKeywordId: { type: string, format: uuid, nullable: true }
+        monitoredSourceId: { type: string, format: uuid, nullable: true }
+        windowStart: { type: string, format: date-time }
+        windowEnd: { type: string, format: date-time }
+        windowGrain: { $ref: '#/components/schemas/WindowGrain' }
+        mentionCount: { type: integer, minimum: 0 }
+        positiveCount: { type: integer, minimum: 0 }
+        neutralCount: { type: integer, minimum: 0 }
+        negativeCount: { type: integer, minimum: 0 }
+        mixedCount: { type: integer, minimum: 0 }
+        unknownCount: { type: integer, minimum: 0 }
+        averageSentimentScore: { type: number, minimum: -1, maximum: 1, nullable: true }
+        confidenceAverage: { type: number, minimum: 0, maximum: 1, nullable: true }
+        topTerms:
+          type: array
+          items:
+            type: object
+            required: [term, count]
+            properties:
+              term: { type: string }
+              count: { type: integer, minimum: 0 }
+
+    DashboardSummary:
+      type: object
+      required: [workspaceId, windowStart, windowEnd, totals]
+      properties:
+        workspaceId: { type: string, format: uuid }
+        windowStart: { type: string, format: date-time }
+        windowEnd: { type: string, format: date-time }
+        totals:
+          type: object
+          required: [mentionCount, positiveCount, neutralCount, negativeCount, mixedCount, unknownCount]
+          properties:
+            mentionCount: { type: integer, minimum: 0 }
+            positiveCount: { type: integer, minimum: 0 }
+            neutralCount: { type: integer, minimum: 0 }
+            negativeCount: { type: integer, minimum: 0 }
+            mixedCount: { type: integer, minimum: 0 }
+            unknownCount: { type: integer, minimum: 0 }
+            averageSentimentScore: { type: number, minimum: -1, maximum: 1, nullable: true }
+        alerts:
+          type: object
+          properties:
+            openCount: { type: integer, minimum: 0 }
+            criticalCount: { type: integer, minimum: 0 }
+
+    CreateAlertRuleRequest:
+      type: object
+      required: [name, ruleType, metricKey, comparisonOperator, thresholdValue, windowGrain, severity]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        ruleType: { $ref: '#/components/schemas/AlertRuleType' }
+        monitoredKeywordId: { type: string, format: uuid }
+        monitoredSourceId: { type: string, format: uuid }
+        metricKey: { $ref: '#/components/schemas/MetricKey' }
+        comparisonOperator: { $ref: '#/components/schemas/ComparisonOperator' }
+        thresholdValue: { type: number }
+        windowGrain: { $ref: '#/components/schemas/WindowGrain' }
+        severity: { $ref: '#/components/schemas/Severity' }
+        cooldownMinutes: { type: integer, minimum: 0, default: 60 }
+
+    UpdateAlertRuleRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 160 }
+        metricKey: { $ref: '#/components/schemas/MetricKey' }
+        comparisonOperator: { $ref: '#/components/schemas/ComparisonOperator' }
+        thresholdValue: { type: number }
+        severity: { $ref: '#/components/schemas/Severity' }
+        status: { $ref: '#/components/schemas/SocialConfigStatus' }
+        cooldownMinutes: { type: integer, minimum: 0 }
+
+    AlertRule:
+      type: object
+      required: [id, workspaceId, name, ruleType, metricKey, comparisonOperator, thresholdValue, windowGrain, severity, status, cooldownMinutes, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        name: { type: string }
+        ruleType: { $ref: '#/components/schemas/AlertRuleType' }
+        monitoredKeywordId: { type: string, format: uuid, nullable: true }
+        monitoredSourceId: { type: string, format: uuid, nullable: true }
+        metricKey: { $ref: '#/components/schemas/MetricKey' }
+        comparisonOperator: { $ref: '#/components/schemas/ComparisonOperator' }
+        thresholdValue: { type: number }
+        windowGrain: { $ref: '#/components/schemas/WindowGrain' }
+        severity: { $ref: '#/components/schemas/Severity' }
+        status: { $ref: '#/components/schemas/SocialConfigStatus' }
+        cooldownMinutes: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    AlertEvent:
+      type: object
+      required: [id, workspaceId, alertRuleId, severity, metricKey, observedValue, thresholdValue, message, status, dedupeKey, triggeredAt, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        alertRuleId: { type: string, format: uuid }
+        triggeredSnapshotId: { type: string, format: uuid, nullable: true }
+        severity: { $ref: '#/components/schemas/Severity' }
+        metricKey: { $ref: '#/components/schemas/MetricKey' }
+        observedValue: { type: number }
+        thresholdValue: { type: number }
+        message: { type: string }
+        status: { $ref: '#/components/schemas/AlertEventStatus' }
+        dedupeKey: { type: string }
+        triggeredAt: { type: string, format: date-time }
+        acknowledgedByUserId: { type: string, format: uuid, nullable: true }
+        acknowledgedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateExportRequest:
+      type: object
+      required: [exportType, format, filters]
+      additionalProperties: false
+      properties:
+        exportType: { $ref: '#/components/schemas/ExportType' }
+        format: { $ref: '#/components/schemas/ExportFormat' }
+        filters:
+          type: object
+          additionalProperties: true
+
+    ExportJob:
+      type: object
+      required: [id, workspaceId, requestedByUserId, exportType, format, filterHash, filters, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        requestedByUserId: { type: string, format: uuid }
+        exportType: { $ref: '#/components/schemas/ExportType' }
+        format: { $ref: '#/components/schemas/ExportFormat' }
+        filterHash: { type: string }
+        filters:
+          type: object
+          additionalProperties: true
+        status: { $ref: '#/components/schemas/ExportStatus' }
+        fileRef: { type: string, nullable: true, description: Controlled storage reference; not a raw local path. }
+        expiresAt: { type: string, format: date-time, nullable: true }
+        rowCount: { type: integer, minimum: 0, nullable: true }
+        errorCode: { type: string, nullable: true }
+        errorMessage: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time, nullable: true }
