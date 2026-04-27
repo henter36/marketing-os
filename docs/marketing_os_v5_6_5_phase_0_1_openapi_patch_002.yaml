@@ -1,0 +1,796 @@
+openapi: 3.1.0
+info:
+  title: Marketing OS Phase 0/1 API Patch 002
+  version: 5.6.5-phase-0-1-patch-002
+  description: |
+    Narrow OpenAPI patch for the approved competitive-scope Phase 0/Core V1 additions.
+    This patch adds connector baseline, performance events, CRM-lite contacts, and notification delivery tracking only.
+    It does not open Extended V1 integrations such as Strapi, Medusa, Mattermost, Slack, Frappe CRM sync, or commerce connectors.
+
+x-patch-authority:
+  source: docs/marketing_os_v5_6_5_phase_0_1_competitive_patch_002.md
+  applies_after:
+    - docs/marketing_os_v5_6_5_phase_0_1_openapi.yaml
+    - docs/marketing_os_v5_6_5_phase_0_1_contract_patch_001.md
+  phase_scope: Phase 0/Core V1 only
+  forbidden_paths:
+    - /strapi/*
+    - /medusa/*
+    - /mattermost/*
+    - /slack/*
+    - /crm-sync/*
+    - /commerce/*
+    - /plugins/*
+    - /inbox/*
+    - /workflows/builder/*
+    - /attribution/advanced/*
+
+servers:
+  - url: https://api.example.com/v1
+  - url: http://localhost:3000/v1
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Connectors
+  - name: Webhooks
+  - name: Performance
+  - name: Contacts
+  - name: Notifications
+
+paths:
+  /workspaces/{workspaceId}/connectors:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Connectors]
+      summary: List connector metadata records
+      operationId: listConnectorsPatch002
+      x-permission: connector.read
+      responses:
+        '200':
+          description: Connectors returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Connectors]
+      summary: Create connector metadata only
+      operationId: createConnectorPatch002
+      x-permission: connector.write
+      x-audit-event: connector.created
+      x-extended-v1-integrations-opened: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConnectorRequest'
+      responses:
+        '201':
+          description: Connector metadata created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/connectors/{connectorId}/accounts:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ConnectorId'
+    get:
+      tags: [Connectors]
+      summary: List connector accounts
+      operationId: listConnectorAccountsPatch002
+      x-permission: connector.read
+      responses:
+        '200':
+          description: Connector accounts returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorAccountListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Connectors]
+      summary: Create connector account metadata
+      operationId: createConnectorAccountPatch002
+      x-permission: connector.write
+      x-audit-event: connector.account_created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConnectorAccountRequest'
+      responses:
+        '201':
+          description: Connector account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorAccountResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/connectors/{connectorId}/accounts/{connectorAccountId}/credentials:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ConnectorId'
+      - $ref: '#/components/parameters/ConnectorAccountId'
+    post:
+      tags: [Connectors]
+      summary: Store connector credential reference only
+      operationId: createConnectorCredentialReferencePatch002
+      x-permission: connector.rotate_secret
+      x-audit-event: connector.credential_reference_created
+      x-secret-storage-rule: secret_ref_only_no_raw_secret
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConnectorCredentialReferenceRequest'
+      responses:
+        '201':
+          description: Connector credential reference created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorCredentialReferenceResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/connectors/{connectorId}/sync-runs:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ConnectorId'
+    get:
+      tags: [Connectors]
+      summary: List connector sync runs
+      operationId: listConnectorSyncRunsPatch002
+      x-permission: connector.read
+      responses:
+        '200':
+          description: Connector sync runs returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorSyncRunListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/webhooks/{endpointKey}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - name: endpointKey
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [Webhooks]
+      summary: Receive webhook event into append-only log
+      operationId: receiveWebhookEventPatch002
+      x-permission: webhook.receive
+      x-audit-event: webhook.event_received
+      x-signature-validation-required: true
+      x-no-business-state-mutation-when-signature-invalid: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '202':
+          description: Webhook event accepted for validation/logging
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEventLogResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}/performance-events:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Performance]
+      summary: List performance events for campaign
+      operationId: listPerformanceEventsPatch002
+      x-permission: performance.read
+      responses:
+        '200':
+          description: Performance events returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceEventListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Performance]
+      summary: Create basic performance event
+      operationId: createPerformanceEventPatch002
+      x-permission: performance.event_create
+      x-audit-event: performance_event.created
+      x-advanced-attribution: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePerformanceEventRequest'
+      responses:
+        '201':
+          description: Performance event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceEventResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}/metric-snapshots:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Performance]
+      summary: List campaign metric snapshots
+      operationId: listCampaignMetricSnapshotsPatch002
+      x-permission: performance.read
+      responses:
+        '200':
+          description: Metric snapshots returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignMetricSnapshotListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Performance]
+      summary: Create immutable campaign metric snapshot with confidence score
+      operationId: createCampaignMetricSnapshotPatch002
+      x-permission: performance.snapshot_create
+      x-audit-event: campaign_metric_snapshot.created
+      x-append-only: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignMetricSnapshotRequest'
+      responses:
+        '201':
+          description: Metric snapshot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignMetricSnapshotResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/contacts:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Contacts]
+      summary: List CRM-lite contacts
+      operationId: listContactsPatch002
+      x-permission: contact.read
+      responses:
+        '200':
+          description: Contacts returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Contacts]
+      summary: Create CRM-lite contact
+      operationId: createContactPatch002
+      x-permission: contact.create
+      x-audit-event: contact.created
+      x-full-crm-opened: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactRequest'
+      responses:
+        '201':
+          description: Contact created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/contacts/{contactId}/consents:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/ContactId'
+    get:
+      tags: [Contacts]
+      summary: List contact consent history
+      operationId: listContactConsentsPatch002
+      x-permission: contact.read
+      responses:
+        '200':
+          description: Contact consent history returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactConsentListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Contacts]
+      summary: Append contact consent record
+      operationId: appendContactConsentPatch002
+      x-permission: contact.consent_update
+      x-audit-event: contact.consent_recorded
+      x-append-only: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactConsentRequest'
+      responses:
+        '201':
+          description: Contact consent appended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactConsentResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}/lead-captures:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Contacts]
+      summary: List lead captures for campaign
+      operationId: listLeadCapturesPatch002
+      x-permission: lead_capture.read
+      responses:
+        '200':
+          description: Lead captures returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadCaptureListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Contacts]
+      summary: Create lead capture for campaign
+      operationId: createLeadCapturePatch002
+      x-permission: lead_capture.create
+      x-audit-event: lead_capture.created
+      x-full-crm-opened: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLeadCaptureRequest'
+      responses:
+        '201':
+          description: Lead capture created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadCaptureResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/notification-rules:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Notifications]
+      summary: List notification rules
+      operationId: listNotificationRulesPatch002
+      x-permission: notification_rule.read
+      responses:
+        '200':
+          description: Notification rules returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationRuleListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [Notifications]
+      summary: Create notification rule
+      operationId: createNotificationRulePatch002
+      x-permission: notification_rule.write
+      x-audit-event: notification_rule.created
+      x-external-delivery-opened: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationRuleRequest'
+      responses:
+        '201':
+          description: Notification rule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationRuleResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/notification-deliveries:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [Notifications]
+      summary: List notification deliveries
+      operationId: listNotificationDeliveriesPatch002
+      x-permission: notification_delivery.read
+      responses:
+        '200':
+          description: Notification deliveries returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationDeliveryListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ConnectorId:
+      name: connectorId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ConnectorAccountId:
+      name: connectorAccountId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ContactId:
+      name: contactId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    ErrorResponse:
+      description: Standard ErrorModel response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+
+  schemas:
+    ErrorModel:
+      type: object
+      required: [code, message, user_action, correlation_id]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        user_action:
+          type: string
+        correlation_id:
+          type: string
+
+    Connector:
+      type: object
+      required: [connector_id, workspace_id, connector_key, connector_name, connector_type, connector_status, created_at, updated_at]
+      properties:
+        connector_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        connector_key: { type: string }
+        connector_name: { type: string }
+        connector_type: { type: string, enum: [generic, cms, crm, commerce, analytics, social, notification, storage, webhook] }
+        connector_status: { type: string, enum: [draft, active, disabled, archived] }
+        config_schema: { type: object, additionalProperties: true }
+        created_by_user_id: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    CreateConnectorRequest:
+      type: object
+      required: [connector_key, connector_name, connector_type]
+      properties:
+        connector_key: { type: string }
+        connector_name: { type: string }
+        connector_type: { type: string, enum: [generic, cms, crm, commerce, analytics, social, notification, storage, webhook] }
+        config_schema: { type: object, additionalProperties: true }
+    ConnectorResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Connector' }
+    ConnectorListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Connector' }
+
+    ConnectorAccount:
+      type: object
+      properties:
+        connector_account_id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        connector_id: { type: string, format: uuid }
+        external_account_ref: { type: string, nullable: true }
+        account_label: { type: string }
+        account_status: { type: string, enum: [active, disabled, reauth_required, archived] }
+    CreateConnectorAccountRequest:
+      type: object
+      required: [account_label]
+      properties:
+        external_account_ref: { type: string }
+        account_label: { type: string }
+    ConnectorAccountResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/ConnectorAccount' }
+    ConnectorAccountListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ConnectorAccount' }
+
+    CreateConnectorCredentialReferenceRequest:
+      type: object
+      required: [secret_ref]
+      properties:
+        secret_ref:
+          type: string
+          description: Secret-manager reference only. Raw access tokens or API keys are forbidden.
+    ConnectorCredentialReferenceResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            connector_credential_id: { type: string, format: uuid }
+            secret_ref: { type: string }
+            credential_status: { type: string }
+
+    WebhookEventLogResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            webhook_event_log_id: { type: string, format: uuid }
+            signature_valid: { type: boolean }
+            processing_status: { type: string }
+            received_at: { type: string, format: date-time }
+
+    ConnectorSyncRunListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    PerformanceEvent:
+      type: object
+      required: [performance_event_id, campaign_id, metric_name, metric_value, event_source, observed_at, ingested_at]
+      properties:
+        performance_event_id: { type: string, format: uuid }
+        campaign_id: { type: string, format: uuid }
+        publish_job_id: { type: string, format: uuid, nullable: true }
+        tracked_link_id: { type: string, format: uuid, nullable: true }
+        media_asset_version_id: { type: string, format: uuid, nullable: true }
+        metric_name: { type: string }
+        metric_value: { type: number, minimum: 0 }
+        event_source: { type: string }
+        source_ref: { type: string, nullable: true }
+        observed_at: { type: string, format: date-time }
+        ingested_at: { type: string, format: date-time }
+    CreatePerformanceEventRequest:
+      type: object
+      required: [metric_name, metric_value, event_source, observed_at]
+      properties:
+        publish_job_id: { type: string, format: uuid }
+        tracked_link_id: { type: string, format: uuid }
+        media_asset_version_id: { type: string, format: uuid }
+        metric_name: { type: string }
+        metric_value: { type: number, minimum: 0 }
+        event_source: { type: string }
+        source_ref: { type: string }
+        observed_at: { type: string, format: date-time }
+    PerformanceEventResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/PerformanceEvent' }
+    PerformanceEventListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/PerformanceEvent' }
+
+    CreateCampaignMetricSnapshotRequest:
+      type: object
+      required: [snapshot_period_start, snapshot_period_end, snapshot_payload, confidence_score, confidence_reason]
+      properties:
+        snapshot_period_start: { type: string, format: date-time }
+        snapshot_period_end: { type: string, format: date-time }
+        snapshot_payload: { type: object, additionalProperties: true }
+        confidence_score: { type: number, minimum: 0, maximum: 1 }
+        confidence_reason: { type: object, additionalProperties: true }
+    CampaignMetricSnapshotResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+    CampaignMetricSnapshotListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    Contact:
+      type: object
+      properties:
+        contact_id: { type: string, format: uuid }
+        display_name: { type: string, nullable: true }
+        contact_status: { type: string, enum: [active, suppressed, deleted] }
+    CreateContactRequest:
+      type: object
+      properties:
+        display_name: { type: string }
+        identifiers:
+          type: array
+          items:
+            type: object
+            required: [identifier_type, identifier_value_hash]
+            properties:
+              identifier_type: { type: string }
+              identifier_value_hash: { type: string, minLength: 64, maxLength: 64 }
+              identifier_label: { type: string }
+    ContactResponse:
+      type: object
+      properties:
+        data: { $ref: '#/components/schemas/Contact' }
+    ContactListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Contact' }
+
+    CreateContactConsentRequest:
+      type: object
+      required: [consent_type, consent_status, consent_source]
+      properties:
+        consent_type: { type: string }
+        consent_status: { type: string, enum: [granted, denied, revoked, unknown] }
+        consent_source: { type: string }
+        consent_evidence_ref: { type: string }
+    ContactConsentResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+    ContactConsentListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    CreateLeadCaptureRequest:
+      type: object
+      required: [captured_from, source_payload]
+      properties:
+        contact_id: { type: string, format: uuid }
+        captured_from: { type: string }
+        source_payload: { type: object, additionalProperties: true }
+        attribution_source: { type: string }
+        attribution_confidence: { type: number, minimum: 0, maximum: 1 }
+    LeadCaptureResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+    LeadCaptureListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    CreateNotificationRuleRequest:
+      type: object
+      required: [rule_name, trigger_event, channel]
+      properties:
+        rule_name: { type: string }
+        trigger_event: { type: string }
+        channel: { type: string, enum: [in_app, email, webhook_reserved] }
+    NotificationRuleResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+    NotificationRuleListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    NotificationDeliveryListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
