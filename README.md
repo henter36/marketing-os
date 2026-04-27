@@ -2,41 +2,71 @@
 
 Marketing OS is a Phase 0/1 execution repository for a governed AI-assisted marketing operating system.
 
-This repository is currently a **contract-first implementation package**, not yet a runnable production application.
+This repository is currently a **contract-first backend implementation package**, not yet a runnable production SaaS application.
 
 It contains:
 
 - Approved product and execution documents
 - Phase 0/1 ERD
-- PostgreSQL SQL DDL
-- SQL correction patch
-- OpenAPI contract
-- Sprint backlog
-- QA test suite
+- PostgreSQL SQL DDL and correction patch
+- OpenAPI contract and sprint patches
+- Sprint backlog and QA test suite
 - Codex implementation instructions
 - Clickable UI prototype
 - UI/API/permission mapping files
+- Sprint 0/1/2/3/4 implementation reports
 
 ---
 
 ## Executive Status
 
 ```text
-Current status: Ready for Codex Sprint 0 only
-Not ready for: Sprint 1, pilot, production, or full product build
+Current implementation status: Sprint 0/1/2/3/4 implemented and verified through strict CI gates.
+Current repository status: Phase 0/1 backend baseline with governed in-memory runtime behavior.
+Ready for: Hardening Sprint only.
+Not ready for: Sprint 5 feature expansion, pilot, production, commercial launch, or full SaaS build.
 ```
 
-Sprint 0 must establish the runnable technical baseline, including:
+### Hard decision
 
-- Backend framework baseline
-- PostgreSQL migration wiring
-- Tenant isolation
-- RBAC
-- ErrorModel
-- OpenAPI validation
-- P0 tests
+Do not start Sprint 5 until the hardening gates in `docs/hardening_sprint_after_sprint_4.md` are completed.
 
-Do not start Sprint 1 until Sprint 0 passes its quality gates.
+The next workstream must focus on:
+
+- Documentation and metadata alignment
+- Behavior-equivalence cleanup planning
+- PostgreSQL runtime persistence plan
+- Auth hardening plan
+- Audit append-only hardening plan
+- Safe Mode protected-write policy definition
+- Pilot readiness contract clarification
+
+---
+
+## Implemented Sprint Scope
+
+| Sprint | Status | Main Scope |
+|---|---|---|
+| Sprint 0 | Implemented | Application baseline, migration wiring, tenant isolation, RBAC, ErrorModel, OpenAPI validation, P0 tests |
+| Sprint 1 | Implemented | Workspace/member completion, brand, prompt/report templates, campaigns, campaign state transitions, brief versions |
+| Sprint 2 | Implemented | Cost budgets, cost guardrails, media jobs, media assets, media asset versions, usage meter, quota state, cost events |
+| Sprint 3 | Implemented | ReviewTask, ApprovalDecision, PublishJob, ManualPublishEvidence |
+| Sprint 4 | Implemented | ClientReportSnapshot, AuditLog read model, Safe Mode, OnboardingProgress, pilot readiness regressions |
+| Cleanup after Sprint 4 | Partially completed | Sprint 3/4 wrappers moved under `src`; root Sprint 0/1/2 base router/store still intentionally retained |
+
+---
+
+## Current Non-Production Constraints
+
+```text
+1. Runtime persistence remains in-memory.
+2. PostgreSQL schema migration is validated, but the application runtime is not yet PostgreSQL-backed.
+3. AuthGuard remains a test/header-based baseline and is not production authentication.
+4. Audit persistence is still implementation-surface behavior, not final append-only database enforcement.
+5. Safe Mode protected-write policy is not fully defined.
+6. PilotGate, AdminNotification, and SetupChecklistItem APIs are not approved in OpenAPI and must not be invented.
+7. Root `router.js` and `store.js` remain as the Sprint 0/1/2 base implementation until a dedicated behavior-equivalence cleanup is performed.
+```
 
 ---
 
@@ -67,16 +97,30 @@ docs/
   marketing_os_v5_6_5_phase_0_1_schema.sql
   marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
   marketing_os_v5_6_5_phase_0_1_openapi.yaml
+  marketing_os_v5_6_5_phase_0_1_openapi_sprint3_patch.yaml
   marketing_os_v5_6_5_phase_0_1_backlog.md
   marketing_os_v5_6_5_phase_0_1_qa_test_suite.md
   marketing_os_v5_6_5_codex_implementation_instructions.md
   marketing_os_v5_6_5_phase_0_1_contract_patch_001.md
 
-  ui_screen_inventory.md
-  ui_user_flows.md
-  ui_permission_matrix.md
-  ui_api_mapping.md
-  ui_codex_prompt.md
+  sprint_1_implementation_report.md
+  sprint_2_implementation_report.md
+  sprint_3_implementation_report.md
+  sprint_4_scope_plan.md
+  sprint_4_implementation_report.md
+  repository_cleanup_after_sprint_4.md
+  hardening_sprint_after_sprint_4.md
+
+src/
+  server.js
+  router.js
+  router_sprint3.js
+  store.js
+  store_sprint3.js
+  config.js
+  error-model.js
+  guards.js
+  rbac.js
 
 prototype/
   index.html
@@ -89,9 +133,7 @@ prototype/
 
 ## How to Read This Repository
 
-Read files in this order:
-
-### 1. Project governance
+### 1. Governance and product authority
 
 ```text
 docs/00_project_instructions.md
@@ -100,14 +142,7 @@ docs/02_v1_scope.md
 docs/03_decision_log.md
 ```
 
-Purpose:
-
-- Understand the product intent
-- Understand Phase 0/1 scope
-- Understand binding decisions
-- Avoid reopening already-settled scope decisions
-
-### 2. Execution structure
+### 2. Execution contracts
 
 ```text
 docs/04_backlog.md
@@ -115,17 +150,23 @@ docs/05_domain_map.md
 docs/06_erd.md
 docs/07_database_schema.sql
 docs/08_api_spec.md
+docs/marketing_os_v5_6_5_phase_0_1_openapi.yaml
+docs/marketing_os_v5_6_5_phase_0_1_openapi_sprint3_patch.yaml
 ```
 
-Purpose:
+### 3. Sprint reports
 
-- Understand backlog source
-- Understand domain boundaries
-- Understand database model
-- Understand SQL migration order
-- Understand OpenAPI as the frontend/backend contract
+```text
+docs/sprint_1_implementation_report.md
+docs/sprint_2_implementation_report.md
+docs/sprint_3_implementation_report.md
+docs/sprint_4_scope_plan.md
+docs/sprint_4_implementation_report.md
+docs/repository_cleanup_after_sprint_4.md
+docs/hardening_sprint_after_sprint_4.md
+```
 
-### 3. UX and workflow mapping
+### 4. UX and workflow mapping
 
 ```text
 docs/09_screen_map.md
@@ -136,54 +177,17 @@ docs/ui_permission_matrix.md
 docs/ui_api_mapping.md
 ```
 
-Purpose:
-
-- Understand screens
-- Understand user flows
-- Understand role-based access
-- Understand API-to-screen mapping
-- Validate UI without expanding scope
-
-### 4. Sprint execution and QA
+### 5. QA and risk control
 
 ```text
-docs/11_sprint_plan.md
 docs/12_qa_test_plan.md
 docs/13_risk_register.md
-docs/14_implementation_notes.md
-docs/15_integration_plan.md
 docs/16_traceability_matrix.md
-docs/17_change_log.md
 ```
-
-Purpose:
-
-- Understand sprint sequence
-- Understand QA gates
-- Understand major risks
-- Understand integration boundaries
-- Trace requirements to DB/API/UI/tests
-- Track contract changes
-
-### 5. Codex execution package
-
-```text
-docs/marketing_os_v5_6_5_codex_implementation_instructions.md
-docs/ui_codex_prompt.md
-```
-
-Purpose:
-
-- Give Codex strict implementation boundaries
-- Prevent scope drift
-- Prevent invented features
-- Enforce Sprint 0 first
 
 ---
 
 ## Authoritative Source Files
-
-The numbered files provide structure, but the following files are the detailed approved sources for implementation:
 
 | Area | Authoritative File |
 |---|---|
@@ -191,12 +195,14 @@ The numbered files provide structure, but the following files are the detailed a
 | Database schema | `docs/marketing_os_v5_6_5_phase_0_1_schema.sql` |
 | Schema patch | `docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql` |
 | API contract | `docs/marketing_os_v5_6_5_phase_0_1_openapi.yaml` |
+| Sprint 3 API patch | `docs/marketing_os_v5_6_5_phase_0_1_openapi_sprint3_patch.yaml` |
 | Backlog | `docs/marketing_os_v5_6_5_phase_0_1_backlog.md` |
 | QA suite | `docs/marketing_os_v5_6_5_phase_0_1_qa_test_suite.md` |
 | Codex instructions | `docs/marketing_os_v5_6_5_codex_implementation_instructions.md` |
 | Binding correction patch | `docs/marketing_os_v5_6_5_phase_0_1_contract_patch_001.md` |
+| Hardening gate | `docs/hardening_sprint_after_sprint_4.md` |
 
-If a numbered file conflicts with one of these detailed source files, stop and resolve the conflict before implementation.
+If any numbered file conflicts with the authoritative source files, stop and resolve the conflict before implementation.
 
 ---
 
@@ -209,48 +215,13 @@ Apply schema files in this exact order:
 2. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
 ```
 
-The wrapper file is:
-
-```text
-docs/07_database_schema.sql
-```
-
 Do not silently edit historical SQL to change business rules. Use a new numbered patch file for future corrections.
-
----
-
-## Clickable Prototype
-
-A static clickable UI prototype exists here:
-
-```text
-prototype/index.html
-```
-
-Open it directly in a browser.
-
-The prototype demonstrates:
-
-- Workspace context
-- Role-based navigation
-- Permission-protected screens
-- Campaign and brief flow
-- Media job flow
-- Asset version immutability
-- Review and approval flow
-- Manual publish evidence flow
-- Report snapshots
-- Usage/cost separation
-- Audit visibility
-- Safe mode/onboarding
-
-The prototype is a UX reference only. It is not production application code.
 
 ---
 
 ## Phase 0/1 Forbidden Scope
 
-Do not implement the following in Phase 0/1:
+Do not implement the following in Phase 0/1 unless an approved OpenAPI/backlog/schema change explicitly moves it into scope:
 
 ```text
 Auto-publishing
@@ -260,9 +231,10 @@ Advanced attribution
 BillingProvider
 ProviderUsageLog
 External workflow automation as source of truth
+Unapproved PilotGate API
+Unapproved AdminNotification API
+Unapproved SetupChecklistItem API
 ```
-
-Any attempt to introduce these into backend, frontend, API, DB, or UI prototype must be treated as scope drift.
 
 ---
 
@@ -284,50 +256,14 @@ Any attempt to introduce these into backend, frontend, API, DB, or UI prototype 
 13. AuditLog is append-only and not business state.
 14. Frontend must not invent endpoints outside OpenAPI.
 15. Missing requirements must be reported as gaps, not implemented by assumption.
-```
-
----
-
-## Codex Sprint 0 Start Command
-
-Use this prompt when starting implementation:
-
-```text
-Inspect repository henter36/marketing-os and implement Sprint 0 only.
-
-Before writing code:
-1. Read README.md.
-2. Read docs/00_project_instructions.md through docs/17_change_log.md.
-3. Read the authoritative Phase 0/1 source files.
-4. Report current repository structure.
-5. Confirm whether a backend framework already exists.
-6. Identify package manager.
-7. Propose minimal Sprint 0 implementation plan.
-
-Then implement only Sprint 0:
-- application baseline
-- database migration wiring
-- environment configuration
-- AuthGuard baseline
-- WorkspaceContextGuard
-- MembershipCheck
-- PermissionGuard
-- unified ErrorModel
-- RBAC seed data
-- Sprint 0 endpoints from OpenAPI
-- tests for migration, tenant isolation, RBAC, ErrorModel, ApprovalDecision trigger, ManualPublishEvidence protection
-
-Do not implement Sprint 1+.
-Do not add deferred features.
-Do not create unapproved entities.
-Do not trust workspace_id from body.
+16. Sprint 5 must not begin before hardening gates are closed.
 ```
 
 ---
 
 ## Required Quality Gates
 
-After Sprint 0 implementation, the repository must support equivalent commands:
+The repository must continue to support:
 
 ```bash
 npm run db:migrate
@@ -338,16 +274,19 @@ npm run test:integration
 npm run verify
 ```
 
-If another package manager is used, adapt the commands but preserve the gates.
+Strict gate:
 
-Sprint 1 is blocked until Sprint 0 gates pass.
+```bash
+npm run verify:strict
+```
 
 ---
 
 ## Current Decision
 
 ```text
-GO: Codex Sprint 0 after owner approval.
-NO-GO: Sprint 1 until Sprint 0 tests pass.
-NO-GO: Pilot until all P0 QA tests pass.
+GO: Hardening Sprint after Sprint 4.
+NO-GO: Sprint 5 feature expansion until hardening gates are complete.
+NO-GO: Pilot until PostgreSQL runtime persistence, production authentication, audit hardening, and pilot readiness contract are resolved.
+NO-GO: Production.
 ```
