@@ -9,10 +9,16 @@
   "scripts": {
     "start": "node src/server.js",
     "db:migrate": "node scripts/db-migrate.js",
+    "db:migrate:local": "node scripts/db-migrate.js",
+    "db:migrate:strict": "node scripts/db-migrate.js --strict",
     "db:seed": "node scripts/db-seed.js",
     "openapi:lint": "node scripts/openapi-lint.js",
+    "openapi:lint:local": "node scripts/openapi-lint.js",
+    "openapi:lint:strict": "node scripts/openapi-lint.js --strict",
     "test": "node --test test/*.test.js",
     "test:integration": "node --test test/integration/*.test.js",
-    "verify": "node scripts/verify-sprint0.js && npm run openapi:lint && npm test && npm run test:integration && npm run db:seed && npm run db:migrate"
+    "verify:local": "node scripts/verify-sprint0.js && npm run openapi:lint:local && npm test && npm run test:integration && npm run db:seed && npm run db:migrate:local",
+    "verify:strict": "node scripts/verify-sprint0.js && npm run openapi:lint:strict && npm test && npm run test:integration && npm run db:seed && npm run db:migrate:strict",
+    "verify": "npm run verify:strict"
   }
 }
