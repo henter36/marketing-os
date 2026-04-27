@@ -1,0 +1,62 @@
+name: Sprint 0 Strict Verification
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  verify-sprint-0:
+    name: Verify Sprint 0 Gates
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: marketing_os
+          POSTGRES_PASSWORD: marketing_os
+          POSTGRES_DB: marketing_os
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U marketing_os -d marketing_os"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      DATABASE_URL: postgres://marketing_os:marketing_os@localhost:5432/marketing_os
+      STRICT_GATES: "true"
+      CI: "true"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify required contract files exist
+        run: |
+          test -f docs/marketing_os_v5_6_5_phase_0_1_schema.sql
+          test -f docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
+          test -f docs/marketing_os_v5_6_5_phase_0_1_openapi.yaml
+          test -f docs/marketing_os_v5_6_5_phase_0_1_qa_test_suite.md
+          test -f docs/18_sprint_0_execution_lock.md
+          test -f docs/20_sprint_0_report_template.md
+
+      - name: Run strict Sprint 0 verification
+        run: npm run verify:strict
