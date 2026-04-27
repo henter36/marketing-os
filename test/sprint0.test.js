@@ -6,6 +6,14 @@ const {
   protectManualPublishEvidenceUpdate,
   validateApprovalDecision
 } = require("../src/integrity");
+const { migrations } = require("../scripts/db-migrate");
+
+test("migration wiring preserves approved SQL order", () => {
+  assert.deepEqual(migrations, [
+    "docs/marketing_os_v5_6_5_phase_0_1_schema.sql",
+    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql"
+  ]);
+});
 
 test("RBAC seed includes Sprint 0 required roles and OpenAPI permissions", () => {
   const roleCodes = roles.map((role) => role.role_code);
