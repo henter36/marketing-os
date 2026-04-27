@@ -6,13 +6,25 @@ const {
   protectManualPublishEvidenceUpdate,
   validateApprovalDecision
 } = require("../src/integrity");
-const { migrations } = require("../scripts/db-migrate");
+const { loadConfig } = require("../src/config");
+const { migrations, run: runMigrations } = require("../scripts/db-migrate");
+
+test("environment configuration exposes Sprint 0 runtime settings", () => {
+  const config = loadConfig({ NODE_ENV: "test", PORT: "4010", DATABASE_URL: "postgres://example" });
+  assert.equal(config.nodeEnv, "test");
+  assert.equal(config.port, 4010);
+  assert.equal(config.databaseUrl, "postgres://example");
+});
 
 test("migration wiring preserves approved SQL order", () => {
   assert.deepEqual(migrations, [
     "docs/marketing_os_v5_6_5_phase_0_1_schema.sql",
     "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql"
   ]);
+});
+
+test("strict migration gate fails when approved SQL files are unavailable", () => {
+  assert.equal(runMigrations({ strict: true }), 1);
 });
 
 test("RBAC seed includes Sprint 0 required roles and OpenAPI permissions", () => {
