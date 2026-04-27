@@ -37,7 +37,8 @@ function createApp(options = {}) {
     const id = correlationId(req);
     try {
       const body = await readBody(req);
-      sendJson(res, 200, routeSprint3(req, path, body, store).body);
+      const result = routeSprint3(req, path, body, store);
+      sendJson(res, result.status || 200, result.body);
     } catch (error) {
       const appError = error instanceof AppError ? error : new AppError(500, "INTERNAL_ERROR", "Unexpected server error.", "Retry or contact support.");
       sendJson(res, appError.status, errorBody(appError, id));
