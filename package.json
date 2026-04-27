@@ -13,6 +13,6 @@
     "openapi:lint": "node scripts/openapi-lint.js",
     "test": "node --test test/*.test.js",
     "test:integration": "node --test test/integration/*.test.js",
-    "verify": "npm run openapi:lint && npm test && npm run test:integration && npm run db:seed && npm run db:migrate"
+    "verify": "node scripts/verify-sprint0.js && npm run openapi:lint && npm test && npm run test:integration && npm run db:seed && npm run db:migrate"
   }
 }
