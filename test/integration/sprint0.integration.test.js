@@ -62,7 +62,7 @@ test("tenant isolation denies cross-workspace media asset reads by entity id", a
       userId: "user-creator-a"
     });
     assert.equal(response.status, 404);
-    assert.equal(response.body.code, "NOT_FOUND");
+    assert.equal(response.body.code, "MEDIA_ASSET_NOT_FOUND");
   } finally {
     server.close();
   }
