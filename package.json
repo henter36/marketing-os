@@ -11,6 +11,7 @@
     "db:migrate": "node scripts/db-migrate.js",
     "db:migrate:local": "node scripts/db-migrate.js",
     "db:migrate:strict": "node scripts/db-migrate.js --strict",
+    "db:migrate:retry": "node scripts/db-migrate-retry.js",
     "db:seed": "node scripts/db-seed.js",
     "openapi:lint": "node scripts/openapi-lint.js",
     "openapi:lint:local": "node scripts/openapi-lint.js",

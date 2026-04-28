@@ -90,5 +90,8 @@ jobs:
       - name: Run strict database migration
         run: npm run db:migrate:strict
 
+      - name: Run migration retry verification
+        run: npm run db:migrate:retry
+
       - name: Run full strict verification aggregate
         run: npm run verify:strict
