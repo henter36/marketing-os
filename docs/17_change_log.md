@@ -33,6 +33,7 @@ This document records major documentation and contract changes for Marketing OS.
 | 2026-04-28 | Patch 002 noted as existing but pending reconciliation before activation | Patch 002 docs, QA suite, reconciliation notes | Patch 002 must not be added to migration order or treated as implemented until naming, QA, and migration idempotency are reconciled |
 | 2026-04-28 | DB-backed Slice 0 post-merge verification documented | `docs/db_backed_slice_0_post_merge_verification_report.md` | Confirmed PR #25 merged and passed main strict verification while DB-backed runtime/full persistence, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-28 | pg adapter planning documented | `docs/pg_adapter_planning.md` | Planned replacement/supersession path for the Slice 0 `psql`/spawn adapter while pg implementation, Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
+| 2026-04-28 | pg adapter implemented for DB-backed Slice 0 repositories | `src/db.js`, Slice 0 repositories/tests, `docs/pg_adapter_implementation_report.md` | Replaced the Slice 0 `psql`/spawn query adapter with node-postgres for Workspace/Membership/RBAC read-path verification only; full DB-backed persistence, Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
 
 ## Change Governance
 
