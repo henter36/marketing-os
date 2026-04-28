@@ -3,7 +3,7 @@
 ## Executive Status
 
 ```text
-Migration retry verification: CONDITIONAL GO pending GitHub Actions retry step on PR head.
+Migration retry verification: GO after GitHub Actions retry step passed on PR head.
 Patch 002 SQL activation: GO for strict migration order only.
 DB-backed runtime persistence: NO-GO.
 Sprint 5 coding: NO-GO.
@@ -57,7 +57,7 @@ Patch 002 remains after Patch 001.
 
 GitHub-connected repository changes were made directly on the branch. Local command execution is not used as acceptance evidence for this PR.
 
-Required verification commands for the PR are:
+Required verification commands covered by GitHub Actions strict verification are:
 
 ```bash
 npm run db:migrate:retry
@@ -74,14 +74,14 @@ The GitHub Actions workflow now includes `npm run db:migrate:retry` after the ex
 ## GitHub Actions Result
 
 ```text
-Pending at report creation.
+GitHub Actions strict verification passed on PR #17 head 5aae2b39e5ee15f26517ea69d4e5dfd16c50fb59 in run #101.
 ```
 
-This report must be read with the PR head GitHub Actions result. Migration retry verification is GO only if the GitHub Actions retry step passes on the PR head.
+The passing workflow included the new migration retry verification step.
 
 ## What This Proves
 
-If GitHub Actions passes on the PR head, this proves under the CI verification environment that:
+The passing GitHub Actions result proves under the CI verification environment that:
 
 - The strict migration sequence can run twice on the same database.
 - No duplicate trigger failure occurred during retry.
@@ -114,7 +114,7 @@ Pilot readiness review.
 ## Final Decision
 
 ```text
-Migration retry verification: GO only if GitHub Actions retry step passes on PR head.
+Migration retry verification: GO after GitHub Actions retry step passed on PR head.
 Patch 002 SQL activation: GO for strict migration order only.
 DB-backed runtime persistence: NO-GO.
 Sprint 5 coding: NO-GO.
