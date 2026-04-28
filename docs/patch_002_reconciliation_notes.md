@@ -58,6 +58,14 @@ Patch 002 requires a QA addendum before implementation.
 
 Pending QA coverage must include connector credential secrecy, invalid webhook behavior, performance metric isolation and validation, immutable metric snapshots, CRM-lite tenant isolation and append-only consent, lead capture workspace validation, and notification delivery isolation/failure behavior.
 
+A temporary Patch 002 pending QA addendum exists at:
+
+```text
+docs/patch_002_pending_qa_addendum.md
+```
+
+The canonical QA suite file `docs/marketing_os_v5_6_5_phase_0_1_qa_test_suite.md` was not modified in this connector pass because safe append was unavailable and full-file replacement of the large QA suite is unsafe. The temporary addendum must be reconciled into canonical QA coverage before Patch 002 activation.
+
 ## Decision
 
 ```text
