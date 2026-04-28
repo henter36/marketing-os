@@ -1,0 +1,1096 @@
+openapi: 3.1.0
+info:
+  title: Marketing OS V5.6.5 Phase 0/1 OpenAPI Patch 002
+  version: 0.2.0-pending
+  description: |
+    Pending OpenAPI contract patch for selected competitive features.
+    This patch is not active implementation authority until reconciled with SQL, QA, RBAC, audit logs, and sprint planning.
+
+x-patch-status: pending-not-yet-activated
+x-explicit-exclusions:
+  - full_marketplace_operations
+  - creator_payments
+  - escrow
+  - commissions
+  - contract_automation
+  - autonomous_social_engagement_bots
+  - direct_social_publishing_without_human_approval
+  - automated_paid_campaign_execution
+  - full_ai_video_rendering
+  - batch_ai_video_generation
+
+paths:
+  /briefs/{briefVersionId}/keyword-suggestions:
+    post:
+      summary: Generate keyword suggestions for a campaign brief
+      operationId: generateBriefKeywordSuggestions
+      x-required-permission: brief.ai_suggest
+      x-audit-event: brief_suggestion.generated
+      parameters:
+        - $ref: '#/components/parameters/BriefVersionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BriefSuggestionRequest'
+      responses:
+        '202':
+          description: Suggestion generation accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BriefSuggestionResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /briefs/{briefVersionId}/audience-insight-snapshots:
+    post:
+      summary: Create an audience or account insight snapshot for a brief
+      operationId: createAudienceInsightSnapshot
+      x-required-permission: brief.ai_suggest
+      x-audit-event: audience_insight_snapshot.created
+      parameters:
+        - $ref: '#/components/parameters/BriefVersionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AudienceInsightSnapshotCreate'
+      responses:
+        '201':
+          description: Audience insight snapshot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudienceInsightSnapshot'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /briefs/{briefVersionId}/suggestions:
+    get:
+      summary: List brief suggestions
+      operationId: listBriefSuggestions
+      x-required-permission: brief.view
+      parameters:
+        - $ref: '#/components/parameters/BriefVersionId'
+      responses:
+        '200':
+          description: Brief suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BriefSuggestion'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /briefs/{briefVersionId}/suggestions/{suggestionId}/accept:
+    post:
+      summary: Accept a brief suggestion without automatically rewriting the brief
+      operationId: acceptBriefSuggestion
+      x-required-permission: brief.suggestion.accept
+      x-audit-event: brief_suggestion.accepted
+      parameters:
+        - $ref: '#/components/parameters/BriefVersionId'
+        - $ref: '#/components/parameters/SuggestionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Suggestion accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BriefSuggestion'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /briefs/{briefVersionId}/suggestions/{suggestionId}/reject:
+    post:
+      summary: Reject a brief suggestion
+      operationId: rejectBriefSuggestion
+      x-required-permission: brief.suggestion.reject
+      x-audit-event: brief_suggestion.rejected
+      parameters:
+        - $ref: '#/components/parameters/BriefVersionId'
+        - $ref: '#/components/parameters/SuggestionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Suggestion rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BriefSuggestion'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /campaigns/{campaignId}/tracking-links:
+    post:
+      summary: Create a campaign tracking link
+      operationId: createTrackingLink
+      x-required-permission: tracking_link.create
+      x-audit-event: tracking_link.created
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrackingLinkCreate'
+      responses:
+        '201':
+          description: Tracking link created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackingLink'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    get:
+      summary: List campaign tracking links
+      operationId: listTrackingLinks
+      x-required-permission: tracking_link.view
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: Tracking links
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TrackingLink'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /events/click:
+    post:
+      summary: Ingest a click event
+      operationId: ingestClickEvent
+      x-required-permission: tracking_event.ingest
+      x-audit-event: click_event.ingested
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClickEventIngest'
+      responses:
+        '202':
+          description: Click event accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestAccepted'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /events/conversion:
+    post:
+      summary: Ingest a conversion event with idempotency
+      operationId: ingestConversionEvent
+      x-required-permission: tracking_event.ingest
+      x-audit-event: conversion_event.ingested
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversionEventIngest'
+      responses:
+        '202':
+          description: Conversion event accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestAccepted'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /creators:
+    post:
+      summary: Create a creator profile
+      operationId: createCreatorProfile
+      x-required-permission: creator.create
+      x-audit-event: creator_profile.created
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatorProfileCreate'
+      responses:
+        '201':
+          description: Creator profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatorProfile'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    get:
+      summary: List creator profiles
+      operationId: listCreatorProfiles
+      x-required-permission: creator.view
+      responses:
+        '200':
+          description: Creator profiles
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CreatorProfile'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /creators/{creatorId}:
+    get:
+      summary: Get a creator profile
+      operationId: getCreatorProfile
+      x-required-permission: creator.view
+      parameters:
+        - $ref: '#/components/parameters/CreatorId'
+      responses:
+        '200':
+          description: Creator profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatorProfile'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    patch:
+      summary: Update a creator profile
+      operationId: updateCreatorProfile
+      x-required-permission: creator.edit
+      x-audit-event: creator_profile.updated
+      parameters:
+        - $ref: '#/components/parameters/CreatorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatorProfileUpdate'
+      responses:
+        '200':
+          description: Creator profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatorProfile'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /campaigns/{campaignId}/creator-matches:
+    post:
+      summary: Generate advisory creator matches for a campaign
+      operationId: generateCreatorMatches
+      x-required-permission: creator.match
+      x-audit-event: creator_match.generated
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatorMatchRequest'
+      responses:
+        '202':
+          description: Creator matching accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CreatorCampaignMatch'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /campaigns/{campaignId}/creator-outreach-drafts:
+    post:
+      summary: Generate a human-reviewable creator outreach draft
+      operationId: generateCreatorOutreachDraft
+      x-required-permission: creator.outreach.generate
+      x-audit-event: creator_outreach_draft.generated
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatorOutreachDraftRequest'
+      responses:
+        '202':
+          description: Outreach draft generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatorOutreachDraft'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /creator-collaborations:
+    post:
+      summary: Create a creator collaboration record without payment or contract effects
+      operationId: createCreatorCollaboration
+      x-required-permission: creator.collaboration.create
+      x-audit-event: creator_collaboration.created
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatorCollaborationCreate'
+      responses:
+        '201':
+          description: Creator collaboration created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatorCollaboration'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /creator-collaborations/{collaborationId}/status:
+    patch:
+      summary: Update creator collaboration status
+      operationId: updateCreatorCollaborationStatus
+      x-required-permission: creator.collaboration.update_status
+      x-audit-event: creator_collaboration.status_changed
+      parameters:
+        - $ref: '#/components/parameters/CollaborationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateRequest'
+      responses:
+        '200':
+          description: Creator collaboration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatorCollaboration'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /content/{mediaAssetVersionId}/channel-variants:
+    post:
+      summary: Create a channel-specific content variant
+      operationId: createChannelVariant
+      x-required-permission: content.variant.create
+      x-audit-event: channel_variant.created
+      parameters:
+        - $ref: '#/components/parameters/MediaAssetVersionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelVariantCreate'
+      responses:
+        '201':
+          description: Channel variant created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelVariant'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /publish-intents:
+    post:
+      summary: Create a publish intent that does not execute publishing
+      operationId: createPublishIntent
+      x-required-permission: publish.intent.create
+      x-audit-event: publish_intent.created
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishIntentCreate'
+      responses:
+        '201':
+          description: Publish intent created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishIntent'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /publish-intents/{publishIntentId}/approve:
+    post:
+      summary: Approve a publish intent without autonomous social publishing
+      operationId: approvePublishIntent
+      x-required-permission: publish.intent.approve
+      x-audit-event: publish_intent.approved
+      parameters:
+        - $ref: '#/components/parameters/PublishIntentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Publish intent approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishIntent'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /campaigns/{campaignId}/video-scripts:
+    post:
+      summary: Generate a video script planning artifact
+      operationId: generateVideoScript
+      x-required-permission: video_planning.generate
+      x-audit-event: video_script.generated
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoPlanningRequest'
+      responses:
+        '202':
+          description: Video script generation accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoScript'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /campaigns/{campaignId}/storyboards:
+    post:
+      summary: Generate a storyboard planning artifact
+      operationId: generateStoryboard
+      x-required-permission: video_planning.generate
+      x-audit-event: storyboard.generated
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoPlanningRequest'
+      responses:
+        '202':
+          description: Storyboard generation accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Storyboard'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+components:
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 180
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BriefVersionId:
+      name: briefVersionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SuggestionId:
+      name: suggestionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CreatorId:
+      name: creatorId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CollaborationId:
+      name: collaborationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MediaAssetVersionId:
+      name: mediaAssetVersionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PublishIntentId:
+      name: publishIntentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    ErrorResponse:
+      description: Error response using canonical ErrorModel semantics
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+
+  schemas:
+    ErrorModel:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+
+    AiMetadata:
+      type: object
+      required: [model_name, model_version, prompt_version]
+      properties:
+        model_name:
+          type: string
+        model_version:
+          type: string
+        prompt_version:
+          type: string
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    BriefSuggestionRequest:
+      type: object
+      required: [suggestion_type, input_context]
+      properties:
+        suggestion_type:
+          type: string
+          enum: [keyword, brief_refinement, messaging_angle, brand_fit, audience_insight]
+        input_context:
+          type: object
+          additionalProperties: true
+
+    BriefSuggestionResponse:
+      type: object
+      required: [status, suggestion]
+      properties:
+        status:
+          type: string
+          enum: [accepted_for_processing]
+        suggestion:
+          $ref: '#/components/schemas/BriefSuggestion'
+
+    BriefSuggestion:
+      type: object
+      required: [brief_suggestion_id, brief_version_id, suggestion_type, suggestion_status, suggestion_payload, ai_metadata]
+      properties:
+        brief_suggestion_id:
+          type: string
+          format: uuid
+        brief_version_id:
+          type: string
+          format: uuid
+        suggestion_type:
+          type: string
+        suggestion_status:
+          type: string
+          enum: [generated, accepted, rejected, ignored]
+        suggestion_payload:
+          type: object
+          additionalProperties: true
+        ai_metadata:
+          $ref: '#/components/schemas/AiMetadata'
+
+    AudienceInsightSnapshotCreate:
+      type: object
+      required: [source_type, freshness_at, insight_payload]
+      properties:
+        source_type:
+          type: string
+        source_reference:
+          type: string
+        freshness_at:
+          type: string
+          format: date-time
+        insight_payload:
+          type: object
+          additionalProperties: true
+        ai_metadata:
+          $ref: '#/components/schemas/AiMetadata'
+
+    AudienceInsightSnapshot:
+      allOf:
+        - $ref: '#/components/schemas/AudienceInsightSnapshotCreate'
+        - type: object
+          required: [audience_insight_snapshot_id]
+          properties:
+            audience_insight_snapshot_id:
+              type: string
+              format: uuid
+
+    TrackingLinkCreate:
+      type: object
+      required: [destination_url, short_path]
+      properties:
+        tracking_domain_id:
+          type: string
+          format: uuid
+        campaign_utm_template_id:
+          type: string
+          format: uuid
+        destination_url:
+          type: string
+          format: uri
+        short_path:
+          type: string
+        attribution_payload:
+          type: object
+          additionalProperties: true
+
+    TrackingLink:
+      allOf:
+        - $ref: '#/components/schemas/TrackingLinkCreate'
+        - type: object
+          required: [tracking_link_id, campaign_id, link_status]
+          properties:
+            tracking_link_id:
+              type: string
+              format: uuid
+            campaign_id:
+              type: string
+              format: uuid
+            link_status:
+              type: string
+              enum: [active, disabled, expired]
+
+    ClickEventIngest:
+      type: object
+      required: [tracking_link_id, occurred_at]
+      properties:
+        tracking_link_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        visitor_hash:
+          type: string
+        request_id:
+          type: string
+        event_payload:
+          type: object
+          additionalProperties: true
+
+    ConversionEventIngest:
+      type: object
+      required: [campaign_id, occurred_at, conversion_type]
+      properties:
+        tracking_link_id:
+          type: string
+          format: uuid
+        campaign_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        conversion_type:
+          type: string
+        conversion_value:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        external_reference:
+          type: string
+        event_payload:
+          type: object
+          additionalProperties: true
+
+    IngestAccepted:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [accepted]
+
+    CreatorProfileCreate:
+      type: object
+      required: [display_name]
+      properties:
+        display_name:
+          type: string
+        primary_locale:
+          type: string
+        country_code:
+          type: string
+        niche_tags:
+          type: array
+          items:
+            type: string
+        profile_payload:
+          type: object
+          additionalProperties: true
+
+    CreatorProfileUpdate:
+      type: object
+      properties:
+        display_name:
+          type: string
+        creator_status:
+          type: string
+          enum: [draft, active, inactive, archived]
+        primary_locale:
+          type: string
+        country_code:
+          type: string
+        niche_tags:
+          type: array
+          items:
+            type: string
+        profile_payload:
+          type: object
+          additionalProperties: true
+
+    CreatorProfile:
+      allOf:
+        - $ref: '#/components/schemas/CreatorProfileCreate'
+        - type: object
+          required: [creator_profile_id, creator_status]
+          properties:
+            creator_profile_id:
+              type: string
+              format: uuid
+            creator_status:
+              type: string
+              enum: [draft, active, inactive, archived]
+
+    CreatorMatchRequest:
+      type: object
+      properties:
+        brief_version_id:
+          type: string
+          format: uuid
+        filters:
+          type: object
+          additionalProperties: true
+
+    CreatorCampaignMatch:
+      type: object
+      required: [creator_campaign_match_id, campaign_id, creator_profile_id, match_status]
+      properties:
+        creator_campaign_match_id:
+          type: string
+          format: uuid
+        campaign_id:
+          type: string
+          format: uuid
+        creator_profile_id:
+          type: string
+          format: uuid
+        match_status:
+          type: string
+          enum: [generated, shortlisted, rejected, archived]
+        fit_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        match_reason:
+          type: object
+          additionalProperties: true
+        ai_metadata:
+          $ref: '#/components/schemas/AiMetadata'
+        x-advisory-only:
+          type: boolean
+          const: true
+
+    CreatorOutreachDraftRequest:
+      type: object
+      required: [creator_profile_id]
+      properties:
+        creator_profile_id:
+          type: string
+          format: uuid
+        creator_campaign_match_id:
+          type: string
+          format: uuid
+        tone:
+          type: string
+        input_context:
+          type: object
+          additionalProperties: true
+
+    CreatorOutreachDraft:
+      type: object
+      required: [creator_outreach_draft_id, campaign_id, creator_profile_id, draft_status, draft_payload, ai_metadata]
+      properties:
+        creator_outreach_draft_id:
+          type: string
+          format: uuid
+        campaign_id:
+          type: string
+          format: uuid
+        creator_profile_id:
+          type: string
+          format: uuid
+        draft_status:
+          type: string
+          enum: [generated, approved, rejected, sent_manually, archived]
+        draft_payload:
+          type: object
+          additionalProperties: true
+        ai_metadata:
+          $ref: '#/components/schemas/AiMetadata'
+        x-human-review-required:
+          type: boolean
+          const: true
+
+    CreatorCollaborationCreate:
+      type: object
+      required: [campaign_id, creator_profile_id]
+      properties:
+        campaign_id:
+          type: string
+          format: uuid
+        creator_profile_id:
+          type: string
+          format: uuid
+        creator_campaign_match_id:
+          type: string
+          format: uuid
+        creator_outreach_draft_id:
+          type: string
+          format: uuid
+        collaboration_payload:
+          type: object
+          additionalProperties: true
+
+    CreatorCollaboration:
+      allOf:
+        - $ref: '#/components/schemas/CreatorCollaborationCreate'
+        - type: object
+          required: [creator_collaboration_id, collaboration_status]
+          properties:
+            creator_collaboration_id:
+              type: string
+              format: uuid
+            collaboration_status:
+              type: string
+              enum: [draft, outreach_planned, outreach_sent_manually, interested, not_interested, shortlisted, approved, completed, canceled]
+            x-no-payment-effect:
+              type: boolean
+              const: true
+            x-no-contract-effect:
+              type: boolean
+              const: true
+
+    StatusUpdateRequest:
+      type: object
+      required: [to_status]
+      properties:
+        to_status:
+          type: string
+        reason:
+          type: string
+
+    ChannelVariantCreate:
+      type: object
+      required: [campaign_id, channel, variant_payload, content_hash]
+      properties:
+        campaign_id:
+          type: string
+          format: uuid
+        channel:
+          type: string
+        variant_payload:
+          type: object
+          additionalProperties: true
+        content_hash:
+          type: string
+          minLength: 64
+          maxLength: 64
+
+    ChannelVariant:
+      allOf:
+        - $ref: '#/components/schemas/ChannelVariantCreate'
+        - type: object
+          required: [channel_variant_id, media_asset_version_id]
+          properties:
+            channel_variant_id:
+              type: string
+              format: uuid
+            media_asset_version_id:
+              type: string
+              format: uuid
+
+    PublishIntentCreate:
+      type: object
+      required: [campaign_id, channel_variant_id, media_asset_version_id]
+      properties:
+        campaign_id:
+          type: string
+          format: uuid
+        channel_variant_id:
+          type: string
+          format: uuid
+        media_asset_version_id:
+          type: string
+          format: uuid
+
+    PublishIntent:
+      allOf:
+        - $ref: '#/components/schemas/PublishIntentCreate'
+        - type: object
+          required: [publish_intent_id, intent_status]
+          properties:
+            publish_intent_id:
+              type: string
+              format: uuid
+            intent_status:
+              type: string
+              enum: [draft, ready_for_review, approved, rejected, canceled]
+            publish_job_id:
+              type: string
+              format: uuid
+            x-does-not-execute-publishing:
+              type: boolean
+              const: true
+
+    VideoPlanningRequest:
+      type: object
+      required: [brief_version_id, output_type, input_context]
+      properties:
+        brief_version_id:
+          type: string
+          format: uuid
+        output_type:
+          type: string
+          enum: [video_script, storyboard]
+        input_context:
+          type: object
+          additionalProperties: true
+
+    VideoScript:
+      type: object
+      required: [video_script_id, campaign_id, script_status, script_payload]
+      properties:
+        video_script_id:
+          type: string
+          format: uuid
+        campaign_id:
+          type: string
+          format: uuid
+        script_status:
+          type: string
+          enum: [draft, generated, in_review, approved, rejected, archived]
+        script_payload:
+          type: object
+          additionalProperties: true
+        ai_metadata:
+          $ref: '#/components/schemas/AiMetadata'
+        x-no-video-rendering:
+          type: boolean
+          const: true
+
+    Storyboard:
+      type: object
+      required: [storyboard_id, campaign_id, storyboard_status, storyboard_payload]
+      properties:
+        storyboard_id:
+          type: string
+          format: uuid
+        campaign_id:
+          type: string
+          format: uuid
+        storyboard_status:
+          type: string
+          enum: [draft, generated, in_review, approved, rejected, archived]
+        storyboard_payload:
+          type: object
+          additionalProperties: true
+        ai_metadata:
+          $ref: '#/components/schemas/AiMetadata'
+        x-no-video-rendering:
+          type: boolean
+          const: true
