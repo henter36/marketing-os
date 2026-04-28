@@ -46,7 +46,8 @@ class RbacRepository {
             AND wm.member_status = 'active'
           ORDER BY p.permission_code
         `,
-        [workspaceId, userId]
+        [workspaceId, userId],
+        { workspaceId }
       );
 
       return rows.map((row) => row.permission_code);
