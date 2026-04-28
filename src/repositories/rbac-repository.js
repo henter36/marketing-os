@@ -13,7 +13,7 @@ class RbacRepository {
     try {
       const roleFilter = roleId ? "r.role_id = $2" : "r.role_code = $2";
       const roleValue = roleId || roleName;
-      const rows = this.pool.query(
+      const rows = await this.pool.query(
         `
           SELECT p.permission_code
           FROM roles r
@@ -23,7 +23,8 @@ class RbacRepository {
             AND ${roleFilter}
           ORDER BY p.permission_code
         `,
-        [workspaceId, roleValue]
+        [workspaceId, roleValue],
+        { workspaceId }
       );
 
       return rows.map((row) => row.permission_code);
@@ -34,7 +35,7 @@ class RbacRepository {
 
   async resolveUserPermissions({ workspaceId, userId }) {
     try {
-      const rows = this.pool.query(
+      const rows = await this.pool.query(
         `
           SELECT DISTINCT p.permission_code
           FROM workspace_members wm
