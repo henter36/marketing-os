@@ -54,7 +54,23 @@ const permissions = [
   "operations.read",
   "operations.safe_mode",
   "onboarding.read",
-  "onboarding.write"
+  "onboarding.write",
+  "connector.read",
+  "connector.write",
+  "connector.rotate_secret",
+  "webhook.receive",
+  "performance.read",
+  "performance.event_create",
+  "performance.snapshot_create",
+  "contact.read",
+  "contact.create",
+  "contact.update",
+  "contact.consent_update",
+  "lead_capture.read",
+  "lead_capture.create",
+  "notification_rule.read",
+  "notification_rule.write",
+  "notification_delivery.read"
 ].map((permission_code) => ({
   permission_code,
   permission_name: permission_code,
@@ -65,7 +81,7 @@ const rolePermissions = {
   owner: permissions.map((permission) => permission.permission_code),
   admin: permissions
     .map((permission) => permission.permission_code)
-    .filter((code) => !["usage.record", "cost.record"].includes(code)),
+    .filter((code) => !["usage.record", "cost.record", "webhook.receive"].includes(code)),
   creator: [
     "workspace.read",
     "rbac.read",
@@ -84,9 +100,34 @@ const rolePermissions = {
     "media_asset.create",
     "media_asset.version_create",
     "review.read",
-    "review.assign"
+    "review.assign",
+    "connector.read",
+    "performance.read",
+    "performance.event_create",
+    "performance.snapshot_create",
+    "contact.read",
+    "contact.create",
+    "contact.update",
+    "contact.consent_update",
+    "lead_capture.read",
+    "lead_capture.create",
+    "notification_rule.read",
+    "notification_delivery.read"
   ],
-  reviewer: ["workspace.read", "rbac.read", "campaign.read", "brief.read", "media_asset.read", "review.read", "approval.decide"],
+  reviewer: [
+    "workspace.read",
+    "rbac.read",
+    "campaign.read",
+    "brief.read",
+    "media_asset.read",
+    "review.read",
+    "approval.decide",
+    "performance.read",
+    "contact.read",
+    "lead_capture.read",
+    "notification_rule.read",
+    "notification_delivery.read"
+  ],
   publisher: [
     "workspace.read",
     "rbac.read",
@@ -99,7 +140,16 @@ const rolePermissions = {
     "manual_evidence.submit",
     "manual_evidence.invalidate",
     "tracked_link.read",
-    "tracked_link.create"
+    "tracked_link.create",
+    "connector.read",
+    "performance.read",
+    "performance.event_create",
+    "contact.read",
+    "contact.create",
+    "lead_capture.read",
+    "lead_capture.create",
+    "notification_rule.read",
+    "notification_delivery.read"
   ],
   billing_admin: [
     "workspace.read",
@@ -110,7 +160,8 @@ const rolePermissions = {
     "cost_budget.read",
     "cost_budget.write",
     "cost_guardrail.read",
-    "cost_guardrail.write"
+    "cost_guardrail.write",
+    "performance.read"
   ],
   viewer: [
     "workspace.read",
@@ -129,7 +180,13 @@ const rolePermissions = {
     "usage.read",
     "cost.read",
     "operations.read",
-    "onboarding.read"
+    "onboarding.read",
+    "connector.read",
+    "performance.read",
+    "contact.read",
+    "lead_capture.read",
+    "notification_rule.read",
+    "notification_delivery.read"
   ]
 };
 
