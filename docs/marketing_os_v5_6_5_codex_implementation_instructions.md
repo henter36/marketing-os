@@ -1,28 +1,54 @@
-# Marketing OS V5.6.5 — Codex Implementation Prompt & Repository Execution Instructions
+# Marketing OS V5.6.5 - Codex Implementation Instructions
 
 > **Document type:** Codex execution instructions / implementation guardrails  
 > **Scope:** Phase 0/1 only  
 > **Repository:** `henter36/marketing-os`  
-> **Status:** Binding Sprint 0 execution instruction after owner approval  
-> **Last hardening update:** Patch 001 is mandatory and binding
+> **Status:** Post-Sprint 4 verified baseline  
+> **Latest verified main commit:** `8e7e4b1`  
+> **GitHub Actions strict verification:** Passed on main  
+> **Pilot:** NO-GO  
+> **Production:** NO-GO
 
 ---
 
 ## 1. Executive Instruction
 
-Codex must implement **Marketing OS Phase 0/1 only**.
+Codex must implement Marketing OS Phase 0/1 only, and only inside an explicitly approved sprint or reconciliation branch.
+
+The repository is no longer Sprint 0-only. The verified baseline includes Sprint 0, Sprint 1, Sprint 2, Sprint 3, Sprint 4, and repository cleanup after Sprint 4.
+
+Future work must begin with a scoped planning branch before code changes. Sprint 5 coding is not allowed without an approved Sprint 5 plan.
 
 Codex must not infer product scope, add features, rename entities, introduce new domains, or implement deferred functionality.
 
-Codex must treat this repository as a **contract-first execution package**, not as a free-form product brief.
-
-If any approved files conflict, Codex must stop and report the conflict instead of guessing.
+If approved files conflict, Codex must stop and report the conflict instead of guessing.
 
 ---
 
-## 2. Mandatory Approved Sources
+## 2. Verified Historical Evidence
 
-Codex must read and obey these files before writing code:
+Treat these reports as completed historical evidence:
+
+```text
+docs/sprint_0_implementation_report.md
+docs/sprint_1_implementation_report.md
+docs/sprint_2_implementation_report.md
+docs/sprint_3_implementation_report.md
+docs/sprint_4_implementation_report.md
+docs/repository_cleanup_after_sprint_4.md
+```
+
+The current status summary is:
+
+```text
+docs/project_status_after_sprint_4.md
+```
+
+---
+
+## 3. Mandatory Approved Sources
+
+Codex must read and obey these files before future implementation planning or code changes:
 
 ```text
 README.md
@@ -64,42 +90,112 @@ docs/ui_api_mapping.md
 docs/ui_codex_prompt.md
 ```
 
-Patch 001 is not optional. It supersedes conflicting behavior in the original SQL/OpenAPI/Backlog/QA/Codex wording.
+Patch 001 remains mandatory and binding.
 
 ---
 
-## 3. Mandatory SQL Migration Order
+## 4. Current Migration Order
 
-Codex must apply SQL in this exact order:
+The active SQL migration order is still:
 
 ```text
 1. docs/marketing_os_v5_6_5_phase_0_1_schema.sql
 2. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
 ```
 
-`docs/07_database_schema.sql` is a wrapper/index file. If the selected migration runner does not support `\i`, Codex must configure the migration runner to execute the two SQL files directly in the order above.
+`docs/07_database_schema.sql` is a wrapper/index file. If a migration runner does not support `\i`, configure the runner to execute the two SQL files directly in the order above.
 
-Codex must not silently merge, rewrite, or weaken Patch 001.
+Codex must not add Patch 002 to migration order until Patch 002 reconciliation is complete.
 
 ---
 
-## 4. Patch 001 Binding Corrections
+## 5. Patch 002 Status
 
-Patch 001 resolves two blocking contract conflicts:
+Patch 002 files exist:
 
-### 4.1 ApprovalDecision / MediaAssetVersion
+```text
+docs/marketing_os_v5_6_5_phase_0_1_competitive_patch_002.md
+docs/marketing_os_v5_6_5_phase_0_1_contract_patch_002_competitive_features.md
+docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql
+docs/marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml
+```
+
+Patch 002 is not fully activated and must not be claimed as implemented.
+
+Before activation, Patch 002 requires:
+
+```text
+1. Naming consistency review.
+2. QA addendum review and implementation planning.
+3. Migration idempotency review.
+```
+
+Known reconciliation concerns:
+
+```text
+The contract may reference connector_credential_refs while SQL uses connector_credentials.
+Patch wording references notifications, but SQL has notification_rules and notification_deliveries without a standalone notifications table.
+Patch 002 CREATE TRIGGER statements may need DROP TRIGGER IF EXISTS before activation.
+```
+
+Decision:
+
+```text
+NO-GO: Patch 002 activation until reconciliation is complete.
+GO: Patch 002 reconciliation planning only.
+```
+
+---
+
+## 6. Current Architecture Note
+
+Current Sprint 4 entrypoints:
+
+```text
+src/router.js
+src/store.js
+```
+
+Sprint 3 layer:
+
+```text
+src/router_sprint3.js
+src/store_sprint3.js
+```
+
+Retained Sprint 0/1/2 base implementation:
+
+```text
+router.js
+store.js
+```
+
+Removed by repository cleanup after Sprint 4:
+
+```text
+router_sprint4.js
+store_sprint4.js
+```
+
+---
+
+## 7. Patch 001 Binding Corrections
+
+Patch 001 resolves two blocking contract conflicts.
+
+### ApprovalDecision / MediaAssetVersion
 
 Correct behavior:
 
 ```text
-1. ApprovalDecision must validate ReviewTask ↔ MediaAssetVersion match.
+1. ApprovalDecision must validate ReviewTask to MediaAssetVersion match.
 2. If decision=approved, approved_content_hash is required.
 3. approved_content_hash must equal MediaAssetVersion.content_hash.
 4. After valid approved decision insert, DB trigger sets MediaAssetVersion.version_status=approved.
 5. The version does not need to be approved before the decision.
 ```
 
-### 4.2 ManualPublishEvidence invalidate
+### ManualPublishEvidence invalidate
 
 Correct behavior:
 
@@ -114,7 +210,7 @@ Correct behavior:
 
 ---
 
-## 5. Non-Negotiable Rules
+## 8. Non-Negotiable Rules
 
 ```text
 1. Section 52 relationship contract is the only relationship authority.
@@ -139,154 +235,23 @@ Correct behavior:
 
 ---
 
-## 6. Required Implementation Order
+## 9. Allowed Future Work Pattern
 
-Codex must implement in this order:
-
-```text
-1. Repository structure and dependency baseline
-2. Database migration using approved SQL + Patch 001
-3. Environment configuration
-4. AuthGuard placeholder/baseline
-5. WorkspaceContextGuard
-6. MembershipCheck
-7. PermissionGuard
-8. Unified ErrorModel
-9. RBAC seed data
-10. Sprint 0 API endpoints only
-11. Sprint 0 tests
-12. OpenAPI validation
-13. Final Sprint 0 implementation report
-```
-
-Do not skip foundational guardrails to implement business endpoints earlier.
-
----
-
-## 7. Recommended Stack Boundary
-
-Unless the repository already defines a different stack, Codex may use:
+Future work must follow this sequence:
 
 ```text
-Backend: Node.js / NestJS or equivalent TypeScript API framework
-Database: PostgreSQL
-Validation: Zod or class-validator
-OpenAPI: generated/maintained from docs OpenAPI contract
-Testing: Jest + Supertest
-DB tests: Jest integration or pgTAP
-Linting: ESLint
-Formatting: Prettier
-```
-
-If the repository already has a framework, Codex must follow the existing structure and not replace it.
-
----
-
-## 8. Sprint 0 Implementation Prompt
-
-```text
-You are implementing Marketing OS V5.6.5 Phase 0/1 in repository henter36/marketing-os.
-
-Task: Implement Sprint 0 only.
-
-Before writing code:
-1. Read README.md.
-2. Read docs/00_project_instructions.md through docs/20_sprint_0_report_template.md.
-3. Read all mandatory approved sources listed in Codex instructions.
-4. Report the current repository structure.
-5. Confirm whether a backend framework exists.
-6. Identify package manager.
-7. Propose the minimal Sprint 0 implementation plan.
-
-Sprint 0 includes:
-- application baseline
-- database migration wiring for schema.sql + schema_patch_001.sql
-- environment configuration
-- unified ErrorModel
-- AuthGuard baseline
-- WorkspaceContextGuard
-- MembershipCheck
-- PermissionGuard
-- RBAC seed data
-- basic workspace/member/roles/permissions endpoints required by OpenAPI
-- tests for migration, tenant isolation, RBAC, ErrorModel, ApprovalDecision trigger, ManualPublishEvidence protection
-
-Hard rules:
-- Do not implement Sprint 1+ features.
-- Do not add new product domains.
-- Do not trust workspace_id from request body.
-- Do not bypass workspace membership checks.
-- Do not rename approved entities.
-- Do not create GenerationJob, Asset, or Approval entities.
-- Do not implement auto-publishing, paid execution, AI agents, or advanced attribution.
-
-Output required:
-- code changes
-- migration wiring
-- seed wiring
-- test coverage
-- README/local run instructions
-- Sprint 0 implementation report using docs/20_sprint_0_report_template.md
+1. Create a scoped planning branch.
+2. Re-read README, current status, sprint reports, contracts, OpenAPI, QA suite, and change log.
+3. Produce an explicit plan and gap list.
+4. Implement only the approved scope after plan approval.
+5. Preserve AuthGuard, WorkspaceContextGuard, MembershipCheck, PermissionGuard, ErrorModel, tenant isolation, and RBAC behavior.
+6. Run strict verification before readiness decisions.
+7. Update the appropriate implementation report and change log.
 ```
 
 ---
 
-## 9. Sprint 1+ Rule
-
-Codex must not implement Sprint 1, Sprint 2, Sprint 3, or Sprint 4 until Sprint 0 has:
-
-```text
-1. working application baseline
-2. successful database migration
-3. passing tenant isolation tests
-4. passing RBAC tests
-5. passing ErrorModel tests
-6. OpenAPI validation
-7. Sprint 0 report completed
-8. explicit readiness decision for Sprint 1
-```
-
----
-
-## 10. Backend Modules Allowed Later by Sprint
-
-Approved module families:
-
-```text
-identity
-workspaces
-rbac
-subscriptions
-brand
-templates
-campaigns
-briefs
-media-jobs
-media-assets
-review
-approval
-publish
-reports
-usage
-cost
-audit
-operations
-```
-
-Forbidden modules in Phase 0/1:
-
-```text
-agents
-paid-execution
-auto-publishing
-advanced-attribution
-billing-provider
-provider-usage-log
-```
-
----
-
-## 11. Guards
+## 10. Guards
 
 All workspace-scoped endpoints must use:
 
@@ -308,7 +273,7 @@ PermissionGuard checks required permission declared by endpoint metadata.
 
 ---
 
-## 12. Error Model
+## 11. Error Model
 
 Every error must return:
 
@@ -321,56 +286,18 @@ Every error must return:
 }
 ```
 
-Common error codes:
-
-```text
-AUTH_REQUIRED
-WORKSPACE_ACCESS_DENIED
-TENANT_CONTEXT_MISSING
-TENANT_CONTEXT_MISMATCH
-PERMISSION_DENIED
-VALIDATION_FAILED
-NOT_FOUND
-CONFLICT
-IDEMPOTENCY_KEY_REQUIRED
-IDEMPOTENCY_CONFLICT
-APPROVAL_HASH_REQUIRED
-APPROVAL_HASH_MISMATCH
-APPROVAL_NOT_APPROVED
-ASSET_VERSION_MISMATCH
-USAGE_OUTPUT_NOT_CONFIRMED
-EVIDENCE_HASH_MISMATCH
-EVIDENCE_APPEND_ONLY
-IMMUTABLE_FIELD_UPDATE
-SAFE_MODE_ACTIVE
-```
-
 ---
 
-## 13. Sprint 0 Required Commands
-
-Codex must add or document commands equivalent to:
-
-```bash
-npm install
-npm run db:migrate
-npm run db:seed
-npm run openapi:lint
-npm test
-npm run test:integration
-npm run verify
-```
-
-If the repository uses pnpm/yarn, Codex must adapt commands to the selected package manager.
-
----
-
-## 14. Final Execution Gate
+## 12. Final Execution Gate
 
 ```text
-GO: Codex Sprint 0 after owner approval.
-NO-GO: Sprint 1 until Sprint 0 tests pass.
-NO-GO: Pilot until all P0 QA tests pass.
+GO: Sprint 0 through Sprint 4 completed and passed.
+GO: Repository cleanup after Sprint 4 completed and merged.
+GO: Patch 002 reconciliation planning only.
+NO-GO: Patch 002 activation until reconciliation is complete.
+NO-GO: Sprint 5 coding without approved scoped plan.
+NO-GO: Pilot.
+NO-GO: Production.
 ```
 
 Codex must not hide failed tests or unresolved gaps.

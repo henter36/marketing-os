@@ -2,269 +2,194 @@
 
 Marketing OS is a Phase 0/1 execution repository for a governed AI-assisted marketing operating system.
 
-This repository is currently a **contract-first implementation package**, not yet a runnable production application.
+This repository remains a contract-first implementation package. It now contains a verified backend baseline through Sprint 4, but it is not approved for Pilot or Production.
 
-It contains:
-
-- Approved product and execution documents
-- Phase 0/1 ERD
-- PostgreSQL SQL DDL
-- SQL correction patch
-- OpenAPI contract
-- Sprint backlog
-- QA test suite
-- Codex implementation instructions
-- Clickable UI prototype
-- UI/API/permission mapping files
-
----
-
-## Executive Status
+## Verified Status
 
 ```text
-Current status: Ready for Codex Sprint 0 only
-Not ready for: Sprint 1, pilot, production, or full product build
+Sprint 0: Passed
+Sprint 1: Passed
+Sprint 2: Passed
+Sprint 3: Passed
+Sprint 4: Passed
+Repository cleanup after Sprint 4: Passed
+Latest verified main commit: 8e7e4b1
+GitHub Actions strict verification: Passed on main
+Pilot: NO-GO
+Production: NO-GO
 ```
 
-Sprint 0 must establish the runnable technical baseline, including:
+The latest verified main commit is `8e7e4b1dfc9c25ee2517b163a5f1762dffcea7e7`.
 
-- Backend framework baseline
-- PostgreSQL migration wiring
-- Tenant isolation
-- RBAC
-- ErrorModel
-- OpenAPI validation
-- P0 tests
-
-Do not start Sprint 1 until Sprint 0 passes its quality gates.
-
----
-
-## Repository Structure
+## Current Repository Structure
 
 ```text
+.github/workflows/
+  sprint0-verify.yml
+
 docs/
-  00_project_instructions.md
-  01_master_document.md
-  02_v1_scope.md
-  03_decision_log.md
-  04_backlog.md
-  05_domain_map.md
-  06_erd.md
-  07_database_schema.sql
-  08_api_spec.md
-  09_screen_map.md
-  10_user_flows.md
-  11_sprint_plan.md
-  12_qa_test_plan.md
-  13_risk_register.md
-  14_implementation_notes.md
-  15_integration_plan.md
-  16_traceability_matrix.md
-  17_change_log.md
-
-  marketing_os_v5_6_5_phase_0_1_erd.md
-  marketing_os_v5_6_5_phase_0_1_schema.sql
-  marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
-  marketing_os_v5_6_5_phase_0_1_openapi.yaml
-  marketing_os_v5_6_5_phase_0_1_backlog.md
-  marketing_os_v5_6_5_phase_0_1_qa_test_suite.md
+  00_project_instructions.md through 20_sprint_0_report_template.md
+  sprint_0_implementation_report.md
+  sprint_1_implementation_report.md
+  sprint_2_implementation_report.md
+  sprint_3_implementation_report.md
+  sprint_4_implementation_report.md
+  repository_cleanup_after_sprint_4.md
+  marketing_os_v5_6_5_phase_0_1_*.md/sql/yaml
   marketing_os_v5_6_5_codex_implementation_instructions.md
-  marketing_os_v5_6_5_phase_0_1_contract_patch_001.md
-
-  ui_screen_inventory.md
-  ui_user_flows.md
-  ui_permission_matrix.md
-  ui_api_mapping.md
-  ui_codex_prompt.md
+  patch_002_pending_qa_addendum.md
+  ui_*.md
 
 prototype/
-  index.html
-  styles.css
-  app.js
+  Static clickable prototype reference.
+
+scripts/
+  Migration, seed, OpenAPI lint, and verification scripts.
+
+src/
+  Sprint 4 backend entrypoints and supporting guards, error model, config, server, router, and store layers.
+
+test/
+  Node test suites for migrations, tenant isolation, RBAC, ErrorModel, Sprint 1-4 behavior, OpenAPI alignment, and regression checks.
+
+root files
   README.md
+  package.json
+  package-lock.json
+  .env.example
+  router.js
+  store.js
 ```
 
----
+## Architecture Note
 
-## How to Read This Repository
-
-Read files in this order:
-
-### 1. Project governance
+Current router/store layering after Sprint 4 cleanup:
 
 ```text
-docs/00_project_instructions.md
-docs/01_master_document.md
-docs/02_v1_scope.md
-docs/03_decision_log.md
+src/router.js
+src/store.js
 ```
 
-Purpose:
-
-- Understand the product intent
-- Understand Phase 0/1 scope
-- Understand binding decisions
-- Avoid reopening already-settled scope decisions
-
-### 2. Execution structure
+These are the current Sprint 4 entrypoints.
 
 ```text
-docs/04_backlog.md
-docs/05_domain_map.md
-docs/06_erd.md
-docs/07_database_schema.sql
-docs/08_api_spec.md
+src/router_sprint3.js
+src/store_sprint3.js
 ```
 
-Purpose:
-
-- Understand backlog source
-- Understand domain boundaries
-- Understand database model
-- Understand SQL migration order
-- Understand OpenAPI as the frontend/backend contract
-
-### 3. UX and workflow mapping
+These remain as the Sprint 3 layer.
 
 ```text
-docs/09_screen_map.md
-docs/10_user_flows.md
-docs/ui_screen_inventory.md
-docs/ui_user_flows.md
-docs/ui_permission_matrix.md
-docs/ui_api_mapping.md
+router.js
+store.js
 ```
 
-Purpose:
-
-- Understand screens
-- Understand user flows
-- Understand role-based access
-- Understand API-to-screen mapping
-- Validate UI without expanding scope
-
-### 4. Sprint execution and QA
+These root files remain as the retained Sprint 0/1/2 base implementation.
 
 ```text
-docs/11_sprint_plan.md
-docs/12_qa_test_plan.md
-docs/13_risk_register.md
-docs/14_implementation_notes.md
-docs/15_integration_plan.md
-docs/16_traceability_matrix.md
-docs/17_change_log.md
+router_sprint4.js
+store_sprint4.js
 ```
 
-Purpose:
+These were removed by the repository cleanup after Sprint 4.
 
-- Understand sprint sequence
-- Understand QA gates
-- Understand major risks
-- Understand integration boundaries
-- Trace requirements to DB/API/UI/tests
-- Track contract changes
+## Authoritative Evidence
 
-### 5. Codex execution package
+Completed implementation evidence lives in:
 
 ```text
-docs/marketing_os_v5_6_5_codex_implementation_instructions.md
-docs/ui_codex_prompt.md
+docs/sprint_0_implementation_report.md
+docs/sprint_1_implementation_report.md
+docs/sprint_2_implementation_report.md
+docs/sprint_3_implementation_report.md
+docs/sprint_4_implementation_report.md
+docs/repository_cleanup_after_sprint_4.md
 ```
 
-Purpose:
+The current post-Sprint 4 status summary lives in:
 
-- Give Codex strict implementation boundaries
-- Prevent scope drift
-- Prevent invented features
-- Enforce Sprint 0 first
+```text
+docs/project_status_after_sprint_4.md
+```
 
----
+## Authoritative Contracts
 
-## Authoritative Source Files
-
-The numbered files provide structure, but the following files are the detailed approved sources for implementation:
+The following remain the implementation authority for Phase 0/1 work:
 
 | Area | Authoritative File |
 |---|---|
 | ERD | `docs/marketing_os_v5_6_5_phase_0_1_erd.md` |
 | Database schema | `docs/marketing_os_v5_6_5_phase_0_1_schema.sql` |
-| Schema patch | `docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql` |
+| Schema patch 001 | `docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql` |
 | API contract | `docs/marketing_os_v5_6_5_phase_0_1_openapi.yaml` |
 | Backlog | `docs/marketing_os_v5_6_5_phase_0_1_backlog.md` |
 | QA suite | `docs/marketing_os_v5_6_5_phase_0_1_qa_test_suite.md` |
 | Codex instructions | `docs/marketing_os_v5_6_5_codex_implementation_instructions.md` |
-| Binding correction patch | `docs/marketing_os_v5_6_5_phase_0_1_contract_patch_001.md` |
+| Contract patch 001 | `docs/marketing_os_v5_6_5_phase_0_1_contract_patch_001.md` |
 
-If a numbered file conflicts with one of these detailed source files, stop and resolve the conflict before implementation.
-
----
+If a numbered file conflicts with one of these source files, stop and resolve the conflict before implementation.
 
 ## Database Migration Order
 
-Apply schema files in this exact order:
+The active migration order remains:
 
 ```text
 1. docs/marketing_os_v5_6_5_phase_0_1_schema.sql
 2. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
 ```
 
-The wrapper file is:
+Do not add Patch 002 to the migration order until Patch 002 reconciliation is complete.
+
+## Patch 002 Status
+
+Patch 002 files exist in the repository:
 
 ```text
-docs/07_database_schema.sql
+docs/marketing_os_v5_6_5_phase_0_1_competitive_patch_002.md
+docs/marketing_os_v5_6_5_phase_0_1_contract_patch_002_competitive_features.md
+docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql
+docs/marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml
 ```
 
-Do not silently edit historical SQL to change business rules. Use a new numbered patch file for future corrections.
+Patch 002 is not fully activated and must not be treated as implemented. It requires contract naming reconciliation, QA coverage reconciliation, and migration idempotency review before activation.
 
----
-
-## Clickable Prototype
-
-A static clickable UI prototype exists here:
+Current Patch 002 reconciliation notes live in:
 
 ```text
-prototype/index.html
+docs/patch_002_reconciliation_notes.md
 ```
 
-Open it directly in a browser.
-
-The prototype demonstrates:
-
-- Workspace context
-- Role-based navigation
-- Permission-protected screens
-- Campaign and brief flow
-- Media job flow
-- Asset version immutability
-- Review and approval flow
-- Manual publish evidence flow
-- Report snapshots
-- Usage/cost separation
-- Audit visibility
-- Safe mode/onboarding
-
-The prototype is a UX reference only. It is not production application code.
-
----
-
-## Phase 0/1 Forbidden Scope
-
-Do not implement the following in Phase 0/1:
+The temporary Patch 002 pending QA addendum lives in:
 
 ```text
-Auto-publishing
-Paid execution
-AI agents
-Advanced attribution
-BillingProvider
-ProviderUsageLog
-External workflow automation as source of truth
+docs/patch_002_pending_qa_addendum.md
 ```
 
-Any attempt to introduce these into backend, frontend, API, DB, or UI prototype must be treated as scope drift.
+The canonical QA suite file was not modified in this connector pass because safe append was unavailable and full-file replacement of the large QA suite is unsafe. The temporary addendum must be reconciled into canonical QA coverage before Patch 002 activation.
 
----
+## Next Allowed Steps
+
+```text
+Patch 002 reconciliation only.
+Sprint 5 planning only after documentation reconciliation.
+Optional second cleanup for root router.js/store.js only as a separate branch.
+```
+
+## Forbidden Next Steps
+
+```text
+No Sprint 5 coding without an approved plan.
+No Patch 002 implementation until reconciled.
+No Pilot.
+No Production.
+No frontend.
+No auto-publishing.
+No paid execution.
+No AI agents.
+No advanced attribution.
+No BillingProvider.
+No ProviderUsageLog.
+```
 
 ## Non-Negotiable Implementation Rules
 
@@ -284,70 +209,4 @@ Any attempt to introduce these into backend, frontend, API, DB, or UI prototype 
 13. AuditLog is append-only and not business state.
 14. Frontend must not invent endpoints outside OpenAPI.
 15. Missing requirements must be reported as gaps, not implemented by assumption.
-```
-
----
-
-## Codex Sprint 0 Start Command
-
-Use this prompt when starting implementation:
-
-```text
-Inspect repository henter36/marketing-os and implement Sprint 0 only.
-
-Before writing code:
-1. Read README.md.
-2. Read docs/00_project_instructions.md through docs/17_change_log.md.
-3. Read the authoritative Phase 0/1 source files.
-4. Report current repository structure.
-5. Confirm whether a backend framework already exists.
-6. Identify package manager.
-7. Propose minimal Sprint 0 implementation plan.
-
-Then implement only Sprint 0:
-- application baseline
-- database migration wiring
-- environment configuration
-- AuthGuard baseline
-- WorkspaceContextGuard
-- MembershipCheck
-- PermissionGuard
-- unified ErrorModel
-- RBAC seed data
-- Sprint 0 endpoints from OpenAPI
-- tests for migration, tenant isolation, RBAC, ErrorModel, ApprovalDecision trigger, ManualPublishEvidence protection
-
-Do not implement Sprint 1+.
-Do not add deferred features.
-Do not create unapproved entities.
-Do not trust workspace_id from body.
-```
-
----
-
-## Required Quality Gates
-
-After Sprint 0 implementation, the repository must support equivalent commands:
-
-```bash
-npm run db:migrate
-npm run db:seed
-npm run openapi:lint
-npm test
-npm run test:integration
-npm run verify
-```
-
-If another package manager is used, adapt the commands but preserve the gates.
-
-Sprint 1 is blocked until Sprint 0 gates pass.
-
----
-
-## Current Decision
-
-```text
-GO: Codex Sprint 0 after owner approval.
-NO-GO: Sprint 1 until Sprint 0 tests pass.
-NO-GO: Pilot until all P0 QA tests pass.
 ```
