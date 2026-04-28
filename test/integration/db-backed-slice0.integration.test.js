@@ -3,7 +3,7 @@ const { spawnSync } = require("child_process");
 const path = require("path");
 const { before, test } = require("node:test");
 
-const { createPool, closePool } = require("../../src/db");
+const { createPool } = require("../../src/db");
 const { errorBody, AppError } = require("../../src/error-model");
 const { createRepositories, WorkspaceRepository } = require("../../src/repositories");
 
@@ -152,7 +152,13 @@ test("DB-backed repository failures map to ErrorModel without raw SQL details", 
 });
 
 test("DB-backed Slice 0 pool can be closed for test isolation", { skip: !hasDatabaseUrl }, () => {
-  closePool();
+  const closablePool = createPool({ requireDatabaseUrl: true });
+  closablePool.close();
+
+  assert.throws(
+    () => closablePool.query("SELECT 1 AS value"),
+    (error) => error.code === "DATABASE_QUERY_FAILED"
+  );
 });
 
 function runStrictMigrations() {
