@@ -2,7 +2,7 @@
 
 ## Executive Status
 
-- DB-backed Repository Slice 0 implementation: CONDITIONAL GO pending PR GitHub Actions verification.
+- DB-backed Repository Slice 0 implementation: GO for review after GitHub Actions strict verification passed.
 - Scope: Workspace/Membership/RBAC read path only.
 - DB-backed full persistence: NO-GO.
 - Sprint 5 coding: NO-GO.
@@ -44,6 +44,7 @@ Slice 0 adds a narrow DB-backed read repository boundary for identity, workspace
 - No credentials are hard-coded.
 - A close function is exposed so tests can close the DB adapter.
 - The adapter does not create a pool per request.
+- Workspace-context reads set `app.current_workspace_id` for RLS defense in depth while retaining explicit repository-level workspace filters.
 - This is not a production DB runtime claim and does not activate full DB-backed persistence.
 
 ## Runtime Default
@@ -104,21 +105,22 @@ The Slice 0 test fixture seeds only deterministic identity, workspace, membershi
 
 ## Commands Run
 
-Required verification commands for this PR:
+GitHub Actions strict verification run 120 passed and covered:
 
-- `npm run db:migrate:strict`
-- `npm run db:migrate:retry`
-- `npm run db:seed`
 - `npm test`
 - `npm run test:integration`
-- `npm run openapi:lint:strict`
+- `npm run db:seed`
+- `npm run db:migrate:strict`
+- `npm run db:migrate:retry`
 - `npm run verify:strict`
 
-Local full-checkout execution was not used as acceptance evidence for this connector-authored branch. GitHub Actions strict verification is expected to run after PR creation and remains the authoritative gate.
+The workflow also ran strict OpenAPI lint before tests. Local full-checkout execution was not used as acceptance evidence for this connector-authored branch; GitHub Actions strict verification is the authoritative gate.
 
 ## GitHub Actions Result
 
-Pending at report creation time.
+- Initial run 119 failed at `npm run test:integration` because the Slice 0 ErrorModel assertion checked `recovery` instead of the existing `user_action` field.
+- The test assertion was corrected without changing runtime scope.
+- Run 120 passed: Sprint 0 Strict Verification / Verify Sprint 0 Gates.
 
 ## Remaining Blockers
 
@@ -131,7 +133,7 @@ Pending at report creation time.
 
 ## Readiness Decision
 
-- DB-backed Repository Slice 0 implementation: CONDITIONAL GO pending GitHub Actions strict verification.
+- DB-backed Repository Slice 0 implementation: GO for review.
 - DB-backed full persistence: NO-GO.
 - Sprint 5 coding: NO-GO.
 - Pilot: NO-GO.
