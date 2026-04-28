@@ -3,7 +3,7 @@
 ## Executive Status
 
 ```text
-Patch 002 contract hardening: CONDITIONAL GO pending GitHub Actions strict verification.
+Patch 002 contract hardening: GO.
 Patch 002 runtime implementation: NO-GO until reviewed in a later approved PR.
 Patch 002 activation: NO-GO.
 Sprint 5 coding: NO-GO.
@@ -156,9 +156,9 @@ ProviderUsageLog
 
 ## Commands Run
 
-Local commands were not run against a checkout because this branch was edited through the GitHub connector and the available shell did not have `git` installed. Verification is expected through GitHub Actions on the PR head.
+Local commands were not run against a checkout because this branch was edited through the GitHub connector and the available shell did not have `git` installed. Verification ran through GitHub Actions on the PR head.
 
-Required verification commands for CI:
+Required verification commands covered by strict verification:
 
 ```bash
 npm test
@@ -172,13 +172,14 @@ npm run verify:strict
 ## GitHub Actions Result
 
 ```text
-Pending at initial report creation. Update this section after GitHub Actions strict verification runs on the PR head.
+GitHub Actions strict verification passed on PR #9 initial head f2b22a312d83674c77f3bd7b4a713d10cfc8000f.
+Final report-update head verification is required after this report update.
 ```
 
 ## Readiness Decision
 
 ```text
-Patch 002 contract hardening: CONDITIONAL GO pending GitHub Actions strict verification.
+Patch 002 contract hardening: GO after final PR head strict verification passes.
 Patch 002 runtime implementation: NO-GO until reviewed.
 Patch 002 activation: NO-GO.
 ```
