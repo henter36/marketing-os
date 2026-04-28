@@ -187,23 +187,22 @@ function seedSlice0Data(activePool) {
     DELETE FROM customer_accounts
     WHERE customer_account_id IN ('${ids.customerAccountA}', '${ids.customerAccountB}');
 
-    INSERT INTO customer_accounts (customer_account_id, account_name, account_slug, account_status)
+    INSERT INTO customer_accounts (customer_account_id, account_name, billing_email, account_status)
     VALUES
-      ('${ids.customerAccountA}', 'Slice 0 Account A', 'slice0-account-a', 'active'),
-      ('${ids.customerAccountB}', 'Slice 0 Account B', 'slice0-account-b', 'active')
-    ON CONFLICT (account_slug) DO UPDATE
+      ('${ids.customerAccountA}', 'Slice 0 Account A', 'slice0-account-a@example.test', 'active'),
+      ('${ids.customerAccountB}', 'Slice 0 Account B', 'slice0-account-b@example.test', 'active')
+    ON CONFLICT (billing_email) DO UPDATE
       SET account_name = EXCLUDED.account_name,
           account_status = EXCLUDED.account_status;
 
-    INSERT INTO users (user_id, email, display_name, auth_subject, user_status)
+    INSERT INTO users (user_id, email, full_name, user_status)
     VALUES
-      ('${ids.ownerA}', 'slice0-owner-a@example.test', 'Slice 0 Owner A', 'slice0-owner-a', 'active'),
-      ('${ids.viewerA}', 'slice0-viewer-a@example.test', 'Slice 0 Viewer A', 'slice0-viewer-a', 'active'),
-      ('${ids.ownerB}', 'slice0-owner-b@example.test', 'Slice 0 Owner B', 'slice0-owner-b', 'active'),
-      ('${ids.outsider}', 'slice0-outsider@example.test', 'Slice 0 Outsider', 'slice0-outsider', 'active')
+      ('${ids.ownerA}', 'slice0-owner-a@example.test', 'Slice 0 Owner A', 'active'),
+      ('${ids.viewerA}', 'slice0-viewer-a@example.test', 'Slice 0 Viewer A', 'active'),
+      ('${ids.ownerB}', 'slice0-owner-b@example.test', 'Slice 0 Owner B', 'active'),
+      ('${ids.outsider}', 'slice0-outsider@example.test', 'Slice 0 Outsider', 'active')
     ON CONFLICT (email) DO UPDATE
-      SET display_name = EXCLUDED.display_name,
-          auth_subject = EXCLUDED.auth_subject,
+      SET full_name = EXCLUDED.full_name,
           user_status = EXCLUDED.user_status;
 
     INSERT INTO roles (role_code, role_name, role_scope)
@@ -215,14 +214,14 @@ function seedSlice0Data(activePool) {
       SET role_name = EXCLUDED.role_name,
           role_scope = EXCLUDED.role_scope;
 
-    INSERT INTO permissions (permission_code, permission_name, permission_domain)
+    INSERT INTO permissions (permission_code, permission_name, domain)
     VALUES
       ('workspace.read', 'Read workspace', 'workspace'),
       ('workspace.manage', 'Manage workspace', 'workspace'),
       ('rbac.read', 'Read RBAC', 'rbac')
     ON CONFLICT (permission_code) DO UPDATE
       SET permission_name = EXCLUDED.permission_name,
-          permission_domain = EXCLUDED.permission_domain;
+          domain = EXCLUDED.domain;
 
     INSERT INTO role_permissions (role_id, permission_id)
     SELECT r.role_id, p.permission_id
