@@ -37,6 +37,7 @@ docs/
   repository_cleanup_after_sprint_4.md
   marketing_os_v5_6_5_phase_0_1_*.md/sql/yaml
   marketing_os_v5_6_5_codex_implementation_instructions.md
+  patch_002_pending_qa_addendum.md
   ui_*.md
 
 prototype/
@@ -157,6 +158,14 @@ Current Patch 002 reconciliation notes live in:
 ```text
 docs/patch_002_reconciliation_notes.md
 ```
+
+The temporary Patch 002 pending QA addendum lives in:
+
+```text
+docs/patch_002_pending_qa_addendum.md
+```
+
+The canonical QA suite file was not modified in this connector pass because safe append was unavailable and full-file replacement of the large QA suite is unsafe. The temporary addendum must be reconciled into canonical QA coverage before Patch 002 activation.
 
 ## Next Allowed Steps
 
