@@ -336,18 +336,29 @@ CREATE INDEX IF NOT EXISTS idx_notification_deliveries_status ON notification_de
 -- 6) TRIGGERS / IMMUTABILITY
 -- =========================================================
 
+DROP TRIGGER IF EXISTS trg_connectors_updated_at ON connectors;
 CREATE TRIGGER trg_connectors_updated_at BEFORE UPDATE ON connectors FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+DROP TRIGGER IF EXISTS trg_connector_accounts_updated_at ON connector_accounts;
 CREATE TRIGGER trg_connector_accounts_updated_at BEFORE UPDATE ON connector_accounts FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+DROP TRIGGER IF EXISTS trg_webhook_endpoints_updated_at ON webhook_endpoints;
 CREATE TRIGGER trg_webhook_endpoints_updated_at BEFORE UPDATE ON webhook_endpoints FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+DROP TRIGGER IF EXISTS trg_contacts_updated_at ON contacts;
 CREATE TRIGGER trg_contacts_updated_at BEFORE UPDATE ON contacts FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+DROP TRIGGER IF EXISTS trg_notification_rules_updated_at ON notification_rules;
 CREATE TRIGGER trg_notification_rules_updated_at BEFORE UPDATE ON notification_rules FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_webhook_event_logs_append_only ON webhook_event_logs;
 CREATE TRIGGER trg_webhook_event_logs_append_only BEFORE UPDATE OR DELETE ON webhook_event_logs FOR EACH ROW EXECUTE FUNCTION prevent_update_delete();
+DROP TRIGGER IF EXISTS trg_performance_events_append_only ON performance_events;
 CREATE TRIGGER trg_performance_events_append_only BEFORE UPDATE OR DELETE ON performance_events FOR EACH ROW EXECUTE FUNCTION prevent_update_delete();
+DROP TRIGGER IF EXISTS trg_campaign_metric_snapshots_append_only ON campaign_metric_snapshots;
 CREATE TRIGGER trg_campaign_metric_snapshots_append_only BEFORE UPDATE OR DELETE ON campaign_metric_snapshots FOR EACH ROW EXECUTE FUNCTION prevent_update_delete();
+DROP TRIGGER IF EXISTS trg_metric_confidence_scores_append_only ON metric_confidence_scores;
 CREATE TRIGGER trg_metric_confidence_scores_append_only BEFORE UPDATE OR DELETE ON metric_confidence_scores FOR EACH ROW EXECUTE FUNCTION prevent_update_delete();
+DROP TRIGGER IF EXISTS trg_contact_consents_append_only ON contact_consents;
 CREATE TRIGGER trg_contact_consents_append_only BEFORE UPDATE OR DELETE ON contact_consents FOR EACH ROW EXECUTE FUNCTION prevent_update_delete();
 
+DROP TRIGGER IF EXISTS trg_connector_credentials_immutable ON connector_credentials;
 CREATE TRIGGER trg_connector_credentials_immutable
 BEFORE UPDATE ON connector_credentials
 FOR EACH ROW EXECUTE FUNCTION prevent_column_update('workspace_id','connector_account_id','secret_ref','created_at');
