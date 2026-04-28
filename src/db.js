@@ -1,4 +1,4 @@
-const { spawnSync } = require("child_process");
+const { Pool } = require("pg");
 const { loadConfig } = require("./config");
 
 let singletonPool = null;
@@ -19,36 +19,104 @@ class DatabaseQueryError extends Error {
   }
 }
 
-class PsqlPool {
+class PgPoolAdapter {
   constructor({ databaseUrl }) {
+    this.adapterName = "pg";
     this.databaseUrl = databaseUrl;
     this.closed = false;
+    this.pool = databaseUrl
+      ? new Pool({
+          connectionString: databaseUrl,
+        })
+      : null;
   }
 
-  query(sql, params = [], options = {}) {
-    this.assertOpen();
-    const compiledSql = compileSql(sql, params);
-    const output = this.runPsql(withWorkspaceContext(wrapSelect(compiledSql), options.workspaceId));
-    const trimmed = output.trim();
+  async query(sql, params = [], options = {}) {
+    const values = normalizeParams(params);
 
-    if (!trimmed) {
-      return [];
+    if (options.workspaceId) {
+      return this.withTransaction(
+        async (client) => {
+          const result = await runQuery(client, sql, values);
+          return result.rows;
+        },
+        { workspaceId: options.workspaceId }
+      );
     }
 
+    const result = await runQuery(this.getQueryable(), sql, values);
+    return result.rows;
+  }
+
+  async exec(sql, params = [], options = {}) {
+    const values = normalizeParams(params);
+
+    if (options.workspaceId) {
+      await this.withTransaction(
+        async (client) => {
+          await runQuery(client, sql, values);
+        },
+        { workspaceId: options.workspaceId }
+      );
+      return;
+    }
+
+    await runQuery(this.getQueryable(), sql, values);
+  }
+
+  async withTransaction(callback, options = {}) {
+    this.assertOpen();
+    this.assertConfigured();
+
+    let client;
     try {
-      return JSON.parse(trimmed);
+      client = await this.pool.connect();
+      await runQuery(client, "BEGIN", []);
+
+      if (options.workspaceId) {
+        await setWorkspaceContext(client, options.workspaceId);
+      }
+
+      const result = await callback(createTransactionClient(client));
+      await runQuery(client, "COMMIT", []);
+      return result;
     } catch (error) {
-      throw new DatabaseQueryError();
+      if (client) {
+        try {
+          await client.query("ROLLBACK");
+        } catch (rollbackError) {
+          // Preserve the original sanitized database error.
+        }
+      }
+
+      throw mapDatabaseError(error);
+    } finally {
+      if (client) {
+        client.release();
+      }
     }
   }
 
-  exec(sql) {
-    this.assertOpen();
-    this.runPsql(sql);
+  async close() {
+    if (this.closed) {
+      return;
+    }
+
+    this.closed = true;
+
+    if (this.pool) {
+      try {
+        await this.pool.end();
+      } catch (error) {
+        throw new DatabaseQueryError("Database pool failed to close.");
+      }
+    }
   }
 
-  close() {
-    this.closed = true;
+  getQueryable() {
+    this.assertOpen();
+    this.assertConfigured();
+    return this.pool;
   }
 
   assertOpen() {
@@ -57,22 +125,10 @@ class PsqlPool {
     }
   }
 
-  runPsql(sql) {
-    if (!this.databaseUrl) {
+  assertConfigured() {
+    if (!this.pool) {
       throw new DatabaseConfigurationError();
     }
-
-    const result = spawnSync(
-      "psql",
-      [this.databaseUrl, "-X", "-v", "ON_ERROR_STOP=1", "-A", "-t", "-q", "-c", sql],
-      { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 }
-    );
-
-    if (result.error || result.status !== 0) {
-      throw new DatabaseQueryError();
-    }
-
-    return result.stdout || "";
   }
 }
 
@@ -84,7 +140,7 @@ function createPool(options = {}) {
     throw new DatabaseConfigurationError();
   }
 
-  return new PsqlPool({ databaseUrl });
+  return new PgPoolAdapter({ databaseUrl });
 }
 
 function getPool(options = {}) {
@@ -95,68 +151,74 @@ function getPool(options = {}) {
   return singletonPool;
 }
 
-function closePool() {
+async function closePool() {
   if (singletonPool) {
-    singletonPool.close();
+    await singletonPool.close();
     singletonPool = null;
   }
 }
 
-function compileSql(sql, params) {
-  const values = Array.isArray(params) ? params : [];
-  return sql.replace(/\$(\d+)/g, (_, indexText) => {
-    const index = Number(indexText) - 1;
-
-    if (index < 0 || index >= values.length) {
-      throw new DatabaseQueryError();
-    }
-
-    return quoteSqlLiteral(values[index]);
-  });
+async function query(sql, params = [], options = {}) {
+  return getPool(options.poolOptions || {}).query(sql, params, options);
 }
 
-function quoteSqlLiteral(value) {
-  if (value === null || value === undefined) {
-    return "NULL";
+async function exec(sql, params = [], options = {}) {
+  return getPool(options.poolOptions || {}).exec(sql, params, options);
+}
+
+async function withTransaction(callback, options = {}) {
+  return getPool(options.poolOptions || {}).withTransaction(callback, options);
+}
+
+async function setWorkspaceContext(client, workspaceId) {
+  if (!workspaceId) {
+    return;
   }
 
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) {
-      throw new DatabaseQueryError();
-    }
+  await runQuery(client, "SELECT set_config($1, $2, true)", ["app.current_workspace_id", String(workspaceId)]);
+}
 
-    return String(value);
+function createTransactionClient(client) {
+  return {
+    query(sql, params = []) {
+      return client.query(sql, normalizeParams(params));
+    },
+  };
+}
+
+async function runQuery(queryable, sql, params) {
+  try {
+    return await queryable.query(sql, params);
+  } catch (error) {
+    throw mapDatabaseError(error);
   }
+}
 
-  if (typeof value === "boolean") {
-    return value ? "TRUE" : "FALSE";
-  }
-
-  if (typeof value !== "string") {
+function normalizeParams(params) {
+  if (!Array.isArray(params)) {
     throw new DatabaseQueryError();
   }
 
-  return `'${value.replace(/'/g, "''")}'`;
+  return params;
 }
 
-function wrapSelect(sql) {
-  const withoutTrailingSemicolon = sql.trim().replace(/;+$/, "");
-  return `WITH __slice0_query AS (${withoutTrailingSemicolon}) SELECT COALESCE(json_agg(row_to_json(__slice0_query)), '[]'::json) FROM __slice0_query`;
-}
-
-function withWorkspaceContext(sql, workspaceId) {
-  if (!workspaceId) {
-    return sql;
+function mapDatabaseError(error) {
+  if (error instanceof DatabaseConfigurationError || error instanceof DatabaseQueryError) {
+    return error;
   }
 
-  return `SET app.current_workspace_id = ${quoteSqlLiteral(workspaceId)}; ${sql}; RESET app.current_workspace_id`;
+  return new DatabaseQueryError();
 }
 
 module.exports = {
   DatabaseConfigurationError,
   DatabaseQueryError,
-  PsqlPool,
+  PgPoolAdapter,
   closePool,
   createPool,
+  exec,
   getPool,
+  query,
+  setWorkspaceContext,
+  withTransaction,
 };
