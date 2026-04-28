@@ -7,7 +7,7 @@ class MembershipRepository {
 
   async getMembership({ workspaceId, userId }) {
     try {
-      const rows = this.pool.query(
+      const rows = await this.pool.query(
         `
           SELECT
             wm.workspace_member_id,
