@@ -2,7 +2,7 @@
 
 Marketing OS is a Phase 0/1 execution repository for a governed AI-assisted marketing operating system.
 
-This repository remains a contract-first implementation package. It now contains a verified backend baseline through Sprint 4, but it is not approved for Pilot or Production.
+This repository remains a contract-first implementation package. It contains a verified backend baseline through Sprint 4 with limited Patch 002 runtime baseline and strict migration activation, but it is not approved for Pilot or Production.
 
 ## Verified Status
 
@@ -13,13 +13,21 @@ Sprint 2: Passed
 Sprint 3: Passed
 Sprint 4: Passed
 Repository cleanup after Sprint 4: Passed
-Latest verified main commit: 8e7e4b1
+Patch 002 runtime baseline: Passed as in-memory runtime
+Patch 002 SQL migration activation: Passed for strict migration order
+Migration retry verification: Passed under CI
+InPactAI fit-gap study: Merged as documentation only
+DB-backed Repository Architecture Contract: Passed
+DB-backed Repository Slice 0 Plan: Passed
+Latest verified main commit: 4ae6af2
 GitHub Actions strict verification: Passed on main
+DB-backed full persistence: NO-GO
+Sprint 5 coding: NO-GO
 Pilot: NO-GO
 Production: NO-GO
 ```
 
-The latest verified main commit is `8e7e4b1dfc9c25ee2517b163a5f1762dffcea7e7`.
+The latest verified main commit is `4ae6af2e888c207aa0acfff2406c37ce116f3da4`.
 
 ## Current Repository Structure
 
@@ -35,9 +43,14 @@ docs/
   sprint_3_implementation_report.md
   sprint_4_implementation_report.md
   repository_cleanup_after_sprint_4.md
+  patch_002_runtime_implementation_report.md
+  patch_002_activation_report.md
+  migration_retry_verification_report.md
+  db_backed_repository_architecture_contract.md
+  db_backed_repository_slice_0_plan.md
+  inpactai_*.md
   marketing_os_v5_6_5_phase_0_1_*.md/sql/yaml
   marketing_os_v5_6_5_codex_implementation_instructions.md
-  patch_002_pending_qa_addendum.md
   ui_*.md
 
 prototype/
@@ -47,10 +60,10 @@ scripts/
   Migration, seed, OpenAPI lint, and verification scripts.
 
 src/
-  Sprint 4 backend entrypoints and supporting guards, error model, config, server, router, and store layers.
+  Current Sprint 4 plus Patch 002 in-memory backend entrypoints and supporting guards, error model, config, server, router, and store layers.
 
 test/
-  Node test suites for migrations, tenant isolation, RBAC, ErrorModel, Sprint 1-4 behavior, OpenAPI alignment, and regression checks.
+  Node test suites for migrations, tenant isolation, RBAC, ErrorModel, Sprint 1-4 behavior, Patch 002 runtime behavior, OpenAPI alignment, and regression checks.
 
 root files
   README.md
@@ -70,7 +83,7 @@ src/router.js
 src/store.js
 ```
 
-These are the current Sprint 4 entrypoints.
+These are the current Sprint 4 plus Patch 002 in-memory runtime entrypoints.
 
 ```text
 src/router_sprint3.js
@@ -93,9 +106,11 @@ store_sprint4.js
 
 These were removed by the repository cleanup after Sprint 4.
 
+No DB-backed runtime repository layer exists yet. The current runtime still uses the in-memory store.
+
 ## Authoritative Evidence
 
-Completed implementation evidence lives in:
+Completed implementation and verification evidence lives in:
 
 ```text
 docs/sprint_0_implementation_report.md
@@ -104,6 +119,13 @@ docs/sprint_2_implementation_report.md
 docs/sprint_3_implementation_report.md
 docs/sprint_4_implementation_report.md
 docs/repository_cleanup_after_sprint_4.md
+docs/patch_002_runtime_implementation_report.md
+docs/patch_002_activation_report.md
+docs/migration_retry_verification_report.md
+docs/inpactai_feature_extraction_and_marketing_os_fit_gap.md
+docs/inpactai_near_term_feature_candidates.md
+docs/db_backed_repository_architecture_contract.md
+docs/db_backed_repository_slice_0_plan.md
 ```
 
 The current post-Sprint 4 status summary lives in:
@@ -121,65 +143,83 @@ The following remain the implementation authority for Phase 0/1 work:
 | ERD | `docs/marketing_os_v5_6_5_phase_0_1_erd.md` |
 | Database schema | `docs/marketing_os_v5_6_5_phase_0_1_schema.sql` |
 | Schema patch 001 | `docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql` |
+| Schema patch 002 | `docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql` |
 | API contract | `docs/marketing_os_v5_6_5_phase_0_1_openapi.yaml` |
+| OpenAPI patch 002 | `docs/marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml` |
 | Backlog | `docs/marketing_os_v5_6_5_phase_0_1_backlog.md` |
 | QA suite | `docs/marketing_os_v5_6_5_phase_0_1_qa_test_suite.md` |
 | Codex instructions | `docs/marketing_os_v5_6_5_codex_implementation_instructions.md` |
 | Contract patch 001 | `docs/marketing_os_v5_6_5_phase_0_1_contract_patch_001.md` |
+| DB-backed architecture contract | `docs/db_backed_repository_architecture_contract.md` |
+| DB-backed Slice 0 plan | `docs/db_backed_repository_slice_0_plan.md` |
 
 If a numbered file conflicts with one of these source files, stop and resolve the conflict before implementation.
 
 ## Database Migration Order
 
-The active migration order remains:
+The active strict migration order is:
 
 ```text
 1. docs/marketing_os_v5_6_5_phase_0_1_schema.sql
 2. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
+3. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql
 ```
 
-Do not add Patch 002 to the migration order until Patch 002 reconciliation is complete.
+Patch 002 is active in strict migration order only. Migration retry verification is included in GitHub Actions and runs the strict migration sequence twice against the same database.
+
+This does not imply DB-backed runtime persistence, Pilot readiness, or Production readiness.
 
 ## Patch 002 Status
 
-Patch 002 files exist in the repository:
+Patch 002 runtime baseline is present on main for the limited connector, performance, contact, consent, lead capture, notification rule, and notification delivery baseline. It uses the existing in-memory runtime/store pattern.
+
+Patch 002 SQL migration is included in strict migration order after the base schema and Patch 001. Migration retry verification passed under CI.
+
+Patch 002 does not mean:
 
 ```text
-docs/marketing_os_v5_6_5_phase_0_1_competitive_patch_002.md
-docs/marketing_os_v5_6_5_phase_0_1_contract_patch_002_competitive_features.md
-docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql
-docs/marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml
+External provider execution.
+Live sync execution.
+Advanced attribution.
+Auto-publishing.
+Paid execution.
+AI agents.
+BillingProvider.
+ProviderUsageLog.
+Pilot readiness.
+Production readiness.
+DB-backed runtime persistence.
 ```
 
-Patch 002 is not fully activated and must not be treated as implemented. It requires contract naming reconciliation, QA coverage reconciliation, and migration idempotency review before activation.
+Patch 002 competitive expansion remains NO-GO and must be handled as a separate future expansion track, preferably Patch 003 or a separately named competitive expansion track.
 
-Current Patch 002 reconciliation notes live in:
+## DB-backed Repository Status
 
 ```text
-docs/patch_002_reconciliation_notes.md
+DB-backed Repository Architecture Contract: Passed
+DB-backed Repository Slice 0 Plan: Passed
+DB-backed full persistence: NO-GO
+DB-backed Slice 0 implementation: CONDITIONAL GO only after status reconciliation, limited to Workspace/Membership/RBAC read path
 ```
 
-The temporary Patch 002 pending QA addendum lives in:
+The first allowed DB-backed implementation track is Workspace/Membership/RBAC read path only. Campaign, Brief, Brand, Media, Approval, Publish, Evidence, Report, Patch 002, and write-path persistence remain out of scope for Slice 0.
 
-```text
-docs/patch_002_pending_qa_addendum.md
-```
+## InPactAI Status
 
-The canonical QA suite file was not modified in this connector pass because safe append was unavailable and full-file replacement of the large QA suite is unsafe. The temporary addendum must be reconciled into canonical QA coverage before Patch 002 activation.
+The InPactAI fit-gap study and near-term candidates are documentation only. They do not approve InPactAI implementation, Creator Marketplace implementation, ERD changes, SQL changes, OpenAPI changes, QA changes, runtime changes, or direct code adoption.
 
 ## Next Allowed Steps
 
 ```text
-Patch 002 reconciliation only.
-Sprint 5 planning only after documentation reconciliation.
-Optional second cleanup for root router.js/store.js only as a separate branch.
+DB-backed Repository Slice 0 implementation planning/implementation may proceed after this reconciliation, limited to Workspace/Membership/RBAC read path.
+DB-backed full persistence remains NO-GO.
+Sprint 5 planning remains deferred until the DB-backed persistence path is reviewed.
 ```
 
 ## Forbidden Next Steps
 
 ```text
-No Sprint 5 coding without an approved plan.
-No Patch 002 implementation until reconciled.
+No Sprint 5 coding.
 No Pilot.
 No Production.
 No frontend.
@@ -189,6 +229,8 @@ No AI agents.
 No advanced attribution.
 No BillingProvider.
 No ProviderUsageLog.
+No Creator Marketplace implementation.
+No InPactAI implementation.
 ```
 
 ## Non-Negotiable Implementation Rules
