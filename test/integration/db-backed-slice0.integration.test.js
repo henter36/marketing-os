@@ -144,7 +144,7 @@ test("DB-backed repository failures map to ErrorModel without raw SQL details", 
       assert.equal(body.code, "INTERNAL_ERROR");
       assert.equal(body.correlation_id, "slice0-correlation");
       assert.doesNotMatch(body.message, /select|workspace_id|postgres|DATABASE_URL|ECONNREFUSED|psql|connection/i);
-      assert.doesNotMatch(body.recovery, /select|workspace_id|postgres|DATABASE_URL|ECONNREFUSED|psql|connection/i);
+      assert.doesNotMatch(body.user_action, /select|workspace_id|postgres|DATABASE_URL|ECONNREFUSED|psql|connection/i);
 
       return true;
     }
