@@ -25,10 +25,10 @@ class PsqlPool {
     this.closed = false;
   }
 
-  query(sql, params = []) {
+  query(sql, params = [], options = {}) {
     this.assertOpen();
     const compiledSql = compileSql(sql, params);
-    const output = this.runPsql(wrapSelect(compiledSql));
+    const output = this.runPsql(withWorkspaceContext(wrapSelect(compiledSql), options.workspaceId));
     const trimmed = output.trim();
 
     if (!trimmed) {
@@ -142,6 +142,14 @@ function quoteSqlLiteral(value) {
 function wrapSelect(sql) {
   const withoutTrailingSemicolon = sql.trim().replace(/;+$/, "");
   return `WITH __slice0_query AS (${withoutTrailingSemicolon}) SELECT COALESCE(json_agg(row_to_json(__slice0_query)), '[]'::json) FROM __slice0_query`;
+}
+
+function withWorkspaceContext(sql, workspaceId) {
+  if (!workspaceId) {
+    return sql;
+  }
+
+  return `SET app.current_workspace_id = ${quoteSqlLiteral(workspaceId)}; ${sql}; RESET app.current_workspace_id`;
 }
 
 module.exports = {
