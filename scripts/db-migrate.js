@@ -5,7 +5,8 @@ const path = require("path");
 const defaultRoot = path.resolve(__dirname, "..");
 const migrations = [
   "docs/marketing_os_v5_6_5_phase_0_1_schema.sql",
-  "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql"
+  "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql",
+  "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql"
 ];
 
 function validateMigrationFiles(root = defaultRoot) {
