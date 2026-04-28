@@ -1,8 +1,8 @@
 {
   "name": "marketing-os",
-  "version": "0.0.0-sprint-0",
+  "version": "0.0.0-phase-0-1-sprint-4-patch-002",
   "private": true,
-  "description": "Marketing OS Sprint 0 runnable backend baseline.",
+  "description": "Marketing OS Phase 0/1 backend baseline through Sprint 4 with limited Patch 002 runtime baseline and strict migration activation.",
   "engines": {
     "node": ">=20"
   },
