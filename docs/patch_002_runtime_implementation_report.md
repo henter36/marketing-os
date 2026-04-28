@@ -171,22 +171,27 @@ Patch 002 remains not activated.
 
 ## Commands Run
 
-Pending local/GitHub verification at initial report creation:
+GitHub Actions strict verification run #87 on PR #11 executed and passed:
 
+- `node scripts/verify-sprint0.js`
+- `npm run openapi:lint:strict`
 - `npm test`
 - `npm run test:integration`
-- `npm run openapi:lint:strict`
 - `npm run db:seed`
 - `npm run db:migrate:strict`
 - `npm run verify:strict`
 
+Local command execution was not used as acceptance evidence because this task was performed against the GitHub-connected repository branch.
+
 ## GitHub Actions Result
 
-Pending until the Pull Request is opened and GitHub Actions strict verification runs on the PR head.
+Passed: `Sprint 0 Strict Verification` run #87 completed successfully on PR #11 head `d3dbb3b462b53c002433ef249da0c7bc771c0ab6` before this report update.
+
+A final GitHub Actions run is expected after this report-update commit; it must pass before merge.
 
 ## Readiness Decision
 
-- Patch 002 runtime implementation: CONDITIONAL GO pending required local/GitHub verification.
+- Patch 002 runtime implementation: CONDITIONAL GO pending final GitHub Actions verification after this report update.
 - Patch 002 activation: NO-GO.
 - Sprint 5 coding: NO-GO.
 - Pilot: NO-GO.
