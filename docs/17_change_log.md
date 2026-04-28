@@ -31,6 +31,7 @@ This document records major documentation and contract changes for Marketing OS.
 | 2026-04-28 | Repository cleanup after Sprint 4 completed and merged | `docs/repository_cleanup_after_sprint_4.md`, router/store layering | Consolidated Sprint 4 entrypoints to `src/router.js` and `src/store.js`, retained Sprint 3 and Sprint 0/1/2 layers, removed Sprint 4 root wrappers |
 | 2026-04-28 | README/Codex documentation reconciliation performed | `README.md`, `docs/marketing_os_v5_6_5_codex_implementation_instructions.md`, `docs/project_status_after_sprint_4.md` | Updated repository status from Sprint 0-only to post-Sprint 4 verified state |
 | 2026-04-28 | Patch 002 noted as existing but pending reconciliation before activation | Patch 002 docs, QA suite, reconciliation notes | Patch 002 must not be added to migration order or treated as implemented until naming, QA, and migration idempotency are reconciled |
+| 2026-04-28 | DB-backed Slice 0 post-merge verification documented | `docs/db_backed_slice_0_post_merge_verification_report.md` | Confirmed PR #25 merged and passed main strict verification while DB-backed runtime/full persistence, Sprint 5, Pilot, and Production remain NO-GO |
 
 ## Change Governance
 
