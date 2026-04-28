@@ -35,14 +35,13 @@ jobs:
       DATABASE_URL: postgres://marketing_os:marketing_os@localhost:5432/marketing_os
       STRICT_GATES: "true"
       CI: "true"
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24"
           cache: "npm"
