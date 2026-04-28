@@ -21,5 +21,8 @@
     "verify:local": "node scripts/verify-sprint0.js && npm run openapi:lint:local && npm test && npm run test:integration && npm run db:seed && npm run db:migrate:local",
     "verify:strict": "node scripts/verify-sprint0.js && npm run openapi:lint:strict && npm test && npm run test:integration && npm run db:seed && npm run db:migrate:strict",
     "verify": "npm run verify:strict"
+  },
+  "dependencies": {
+    "pg": "^8.20.0"
   }
 }
