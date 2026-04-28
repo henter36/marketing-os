@@ -7,7 +7,7 @@ class WorkspaceRepository {
 
   async getWorkspaceById({ workspaceId }) {
     try {
-      const rows = this.pool.query(
+      const rows = await this.pool.query(
         `
           SELECT
             workspace_id,
