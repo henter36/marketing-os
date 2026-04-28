@@ -6,6 +6,10 @@ info:
     Narrow OpenAPI patch for the approved competitive-scope Phase 0/Core V1 additions.
     This patch adds connector baseline, performance events, CRM-lite contacts, and notification delivery tracking only.
     It does not open Extended V1 integrations such as Strapi, Medusa, Mattermost, Slack, Frappe CRM sync, or commerce connectors.
+    Connector credentials are modeled as ConnectorCredential records that store secret_ref only and never raw secret material.
+    Webhook receive validates signatures and invalid signatures must not mutate business state.
+    Sync runs are read-only metadata/history; no live external sync execution is opened by this patch.
+    Notification endpoints model notification_rules and notification_deliveries only; no Slack, Mattermost, email provider, or standalone notifications API is opened.
 
 x-patch-authority:
   source: docs/marketing_os_v5_6_5_phase_0_1_competitive_patch_002.md
@@ -127,24 +131,24 @@ paths:
       - $ref: '#/components/parameters/ConnectorAccountId'
     post:
       tags: [Connectors]
-      summary: Store connector credential reference only
-      operationId: createConnectorCredentialReferencePatch002
+      summary: Create ConnectorCredential secret reference only
+      operationId: createConnectorCredentialPatch002
       x-permission: connector.rotate_secret
-      x-audit-event: connector.credential_reference_created
+      x-audit-event: connector.credential_created
       x-secret-storage-rule: secret_ref_only_no_raw_secret
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateConnectorCredentialReferenceRequest'
+              $ref: '#/components/schemas/CreateConnectorCredentialRequest'
       responses:
         '201':
-          description: Connector credential reference created
+          description: ConnectorCredential created without raw secret echo
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConnectorCredentialReferenceResponse'
+                $ref: '#/components/schemas/ConnectorCredentialResponse'
         default:
           $ref: '#/components/responses/ErrorResponse'
 
@@ -154,9 +158,10 @@ paths:
       - $ref: '#/components/parameters/ConnectorId'
     get:
       tags: [Connectors]
-      summary: List connector sync runs
+      summary: List connector sync-run metadata/history only
       operationId: listConnectorSyncRunsPatch002
       x-permission: connector.read
+      x-live-sync-execution-opened: false
       responses:
         '200':
           description: Connector sync runs returned
@@ -177,12 +182,15 @@ paths:
           type: string
     post:
       tags: [Webhooks]
-      summary: Receive webhook event into append-only log
+      summary: Receive webhook event into append-only log after signature validation
       operationId: receiveWebhookEventPatch002
       x-permission: webhook.receive
       x-audit-event: webhook.event_received
       x-signature-validation-required: true
       x-no-business-state-mutation-when-signature-invalid: true
+      description: |
+        Receives a webhook payload for validation and event logging only. Invalid signatures must not mutate business state.
+        Event logging must remain append-only and must not imply external provider execution.
       requestBody:
         required: true
         content:
@@ -220,7 +228,7 @@ paths:
           $ref: '#/components/responses/ErrorResponse'
     post:
       tags: [Performance]
-      summary: Create basic performance event
+      summary: Create basic append-only performance event
       operationId: createPerformanceEventPatch002
       x-permission: performance.event_create
       x-audit-event: performance_event.created
@@ -266,6 +274,7 @@ paths:
       x-permission: performance.snapshot_create
       x-audit-event: campaign_metric_snapshot.created
       x-append-only: true
+      x-advanced-attribution: false
       requestBody:
         required: true
         content:
@@ -412,6 +421,7 @@ paths:
       summary: List notification rules
       operationId: listNotificationRulesPatch002
       x-permission: notification_rule.read
+      x-external-provider-delivery-opened: false
       responses:
         '200':
           description: Notification rules returned
@@ -423,7 +433,7 @@ paths:
           $ref: '#/components/responses/ErrorResponse'
     post:
       tags: [Notifications]
-      summary: Create notification rule
+      summary: Create notification rule metadata only
       operationId: createNotificationRulePatch002
       x-permission: notification_rule.write
       x-audit-event: notification_rule.created
@@ -449,9 +459,10 @@ paths:
       - $ref: '#/components/parameters/WorkspaceId'
     get:
       tags: [Notifications]
-      summary: List notification deliveries
+      summary: List notification delivery tracking records
       operationId: listNotificationDeliveriesPatch002
       x-permission: notification_delivery.read
+      x-external-provider-delivery-opened: false
       responses:
         '200':
           description: Notification deliveries returned
@@ -589,22 +600,25 @@ components:
           type: array
           items: { $ref: '#/components/schemas/ConnectorAccount' }
 
-    CreateConnectorCredentialReferenceRequest:
+    CreateConnectorCredentialRequest:
       type: object
       required: [secret_ref]
+      additionalProperties: false
       properties:
         secret_ref:
           type: string
-          description: Secret-manager reference only. Raw access tokens or API keys are forbidden.
-    ConnectorCredentialReferenceResponse:
+          description: Secret-manager reference only. Raw access tokens, API keys, passwords, refresh tokens, signing secrets, and provider tokens are forbidden.
+    ConnectorCredential:
+      type: object
+      required: [connector_credential_id, credential_status]
+      properties:
+        connector_credential_id: { type: string, format: uuid }
+        credential_status: { type: string }
+    ConnectorCredentialResponse:
       type: object
       properties:
         data:
-          type: object
-          properties:
-            connector_credential_id: { type: string, format: uuid }
-            secret_ref: { type: string }
-            credential_status: { type: string }
+          $ref: '#/components/schemas/ConnectorCredential'
 
     WebhookEventLogResponse:
       type: object
