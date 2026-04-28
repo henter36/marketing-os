@@ -28,7 +28,8 @@ class MembershipRepository {
             AND wm.member_status = 'active'
           LIMIT 1
         `,
-        [workspaceId, userId]
+        [workspaceId, userId],
+        { workspaceId }
       );
 
       return rows[0] || null;
