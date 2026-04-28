@@ -1,7 +1,7 @@
 const assert = require("assert");
 const { spawnSync } = require("child_process");
 const path = require("path");
-const { before, test } = require("node:test");
+const { after, before, test } = require("node:test");
 
 const { createPool } = require("../../src/db");
 const { errorBody, AppError } = require("../../src/error-model");
@@ -24,15 +24,21 @@ const ids = {
 let pool;
 let repositories;
 
-before(() => {
+before(async () => {
   if (!hasDatabaseUrl) {
     return;
   }
 
   runStrictMigrations();
   pool = createPool({ requireDatabaseUrl: true });
-  seedSlice0Data(pool);
+  await seedSlice0Data(pool);
   repositories = createRepositories({ pool });
+});
+
+after(async () => {
+  if (pool) {
+    await pool.close();
+  }
 });
 
 test("DB-backed Slice 0 requires DATABASE_URL when strict mode asks for it", () => {
@@ -40,6 +46,13 @@ test("DB-backed Slice 0 requires DATABASE_URL when strict mode asks for it", () 
     () => createPool({ env: {}, requireDatabaseUrl: true }),
     (error) => error.code === "DATABASE_URL_REQUIRED"
   );
+});
+
+test("DB-backed Slice 0 repository reads use pg adapter", { skip: !hasDatabaseUrl }, async () => {
+  assert.equal(pool.adapterName, "pg");
+
+  const workspace = await repositories.workspaces.getWorkspaceById({ workspaceId: ids.workspaceA });
+  assert.equal(workspace.workspace_id, ids.workspaceA);
 });
 
 test("WorkspaceRepository reads an existing workspace", { skip: !hasDatabaseUrl }, async () => {
@@ -149,13 +162,15 @@ test("DB-backed repository failures map to ErrorModel without raw SQL details", 
       return true;
     }
   );
+
+  await brokenPool.close();
 });
 
-test("DB-backed Slice 0 pool can be closed for test isolation", { skip: !hasDatabaseUrl }, () => {
+test("DB-backed Slice 0 pool can be closed for test isolation", { skip: !hasDatabaseUrl }, async () => {
   const closablePool = createPool({ requireDatabaseUrl: true });
-  closablePool.close();
+  await closablePool.close();
 
-  assert.throws(
+  await assert.rejects(
     () => closablePool.query("SELECT 1 AS value"),
     (error) => error.code === "DATABASE_QUERY_FAILED"
   );
@@ -172,39 +187,57 @@ function runStrictMigrations() {
   assert.equal(result.status, 0, result.stderr || result.stdout);
 }
 
-function seedSlice0Data(activePool) {
-  activePool.exec(`
-    DELETE FROM workspace_members
-    WHERE workspace_id IN ('${ids.workspaceA}', '${ids.workspaceB}')
-       OR user_id IN ('${ids.ownerA}', '${ids.viewerA}', '${ids.ownerB}', '${ids.outsider}');
+async function seedSlice0Data(activePool) {
+  await activePool.exec(
+    `
+      DELETE FROM workspace_members
+      WHERE workspace_id IN ($1, $2)
+         OR user_id IN ($3, $4, $5, $6)
+    `,
+    [ids.workspaceA, ids.workspaceB, ids.ownerA, ids.viewerA, ids.ownerB, ids.outsider]
+  );
 
-    DELETE FROM workspaces
-    WHERE workspace_id IN ('${ids.workspaceA}', '${ids.workspaceB}');
+  await activePool.exec("DELETE FROM workspaces WHERE workspace_id IN ($1, $2)", [ids.workspaceA, ids.workspaceB]);
+  await activePool.exec("DELETE FROM users WHERE user_id IN ($1, $2, $3, $4)", [
+    ids.ownerA,
+    ids.viewerA,
+    ids.ownerB,
+    ids.outsider,
+  ]);
+  await activePool.exec("DELETE FROM customer_accounts WHERE customer_account_id IN ($1, $2)", [
+    ids.customerAccountA,
+    ids.customerAccountB,
+  ]);
 
-    DELETE FROM users
-    WHERE user_id IN ('${ids.ownerA}', '${ids.viewerA}', '${ids.ownerB}', '${ids.outsider}');
+  await activePool.exec(
+    `
+      INSERT INTO customer_accounts (customer_account_id, account_name, billing_email, account_status)
+      VALUES
+        ($1, 'Slice 0 Account A', 'slice0-account-a@example.test', 'active'),
+        ($2, 'Slice 0 Account B', 'slice0-account-b@example.test', 'active')
+      ON CONFLICT (billing_email) DO UPDATE
+        SET account_name = EXCLUDED.account_name,
+            account_status = EXCLUDED.account_status
+    `,
+    [ids.customerAccountA, ids.customerAccountB]
+  );
 
-    DELETE FROM customer_accounts
-    WHERE customer_account_id IN ('${ids.customerAccountA}', '${ids.customerAccountB}');
+  await activePool.exec(
+    `
+      INSERT INTO users (user_id, email, full_name, user_status)
+      VALUES
+        ($1, 'slice0-owner-a@example.test', 'Slice 0 Owner A', 'active'),
+        ($2, 'slice0-viewer-a@example.test', 'Slice 0 Viewer A', 'active'),
+        ($3, 'slice0-owner-b@example.test', 'Slice 0 Owner B', 'active'),
+        ($4, 'slice0-outsider@example.test', 'Slice 0 Outsider', 'active')
+      ON CONFLICT (email) DO UPDATE
+        SET full_name = EXCLUDED.full_name,
+            user_status = EXCLUDED.user_status
+    `,
+    [ids.ownerA, ids.viewerA, ids.ownerB, ids.outsider]
+  );
 
-    INSERT INTO customer_accounts (customer_account_id, account_name, billing_email, account_status)
-    VALUES
-      ('${ids.customerAccountA}', 'Slice 0 Account A', 'slice0-account-a@example.test', 'active'),
-      ('${ids.customerAccountB}', 'Slice 0 Account B', 'slice0-account-b@example.test', 'active')
-    ON CONFLICT (billing_email) DO UPDATE
-      SET account_name = EXCLUDED.account_name,
-          account_status = EXCLUDED.account_status;
-
-    INSERT INTO users (user_id, email, full_name, user_status)
-    VALUES
-      ('${ids.ownerA}', 'slice0-owner-a@example.test', 'Slice 0 Owner A', 'active'),
-      ('${ids.viewerA}', 'slice0-viewer-a@example.test', 'Slice 0 Viewer A', 'active'),
-      ('${ids.ownerB}', 'slice0-owner-b@example.test', 'Slice 0 Owner B', 'active'),
-      ('${ids.outsider}', 'slice0-outsider@example.test', 'Slice 0 Outsider', 'active')
-    ON CONFLICT (email) DO UPDATE
-      SET full_name = EXCLUDED.full_name,
-          user_status = EXCLUDED.user_status;
-
+  await activePool.exec(`
     INSERT INTO roles (role_code, role_name, role_scope)
     VALUES
       ('owner', 'Owner', 'workspace'),
@@ -212,8 +245,10 @@ function seedSlice0Data(activePool) {
       ('slice0_empty', 'Slice 0 Empty', 'workspace')
     ON CONFLICT (role_code) DO UPDATE
       SET role_name = EXCLUDED.role_name,
-          role_scope = EXCLUDED.role_scope;
+          role_scope = EXCLUDED.role_scope
+  `);
 
+  await activePool.exec(`
     INSERT INTO permissions (permission_code, permission_name, domain)
     VALUES
       ('workspace.read', 'Read workspace', 'workspace'),
@@ -221,70 +256,96 @@ function seedSlice0Data(activePool) {
       ('rbac.read', 'Read RBAC', 'rbac')
     ON CONFLICT (permission_code) DO UPDATE
       SET permission_name = EXCLUDED.permission_name,
-          domain = EXCLUDED.domain;
+          domain = EXCLUDED.domain
+  `);
 
+  await activePool.exec(`
     INSERT INTO role_permissions (role_id, permission_id)
     SELECT r.role_id, p.permission_id
     FROM roles r
     JOIN permissions p ON p.permission_code IN ('workspace.read', 'workspace.manage', 'rbac.read')
     WHERE r.role_code = 'owner'
-    ON CONFLICT (role_id, permission_id) DO NOTHING;
+    ON CONFLICT (role_id, permission_id) DO NOTHING
+  `);
 
+  await activePool.exec(`
     INSERT INTO role_permissions (role_id, permission_id)
     SELECT r.role_id, p.permission_id
     FROM roles r
     JOIN permissions p ON p.permission_code = 'workspace.read'
     WHERE r.role_code = 'viewer'
-    ON CONFLICT (role_id, permission_id) DO NOTHING;
-
-    DELETE FROM role_permissions
-    WHERE role_id = (SELECT role_id FROM roles WHERE role_code = 'slice0_empty');
-
-    INSERT INTO workspaces (
-      workspace_id,
-      customer_account_id,
-      workspace_name,
-      workspace_slug,
-      workspace_status,
-      default_locale,
-      timezone,
-      created_by_user_id
-    )
-    VALUES
-      ('${ids.workspaceA}', '${ids.customerAccountA}', 'Slice 0 Workspace A', 'slice0-workspace-a', 'active', 'en-US', 'UTC', '${ids.ownerA}'),
-      ('${ids.workspaceB}', '${ids.customerAccountB}', 'Slice 0 Workspace B', 'slice0-workspace-b', 'active', 'en-US', 'UTC', '${ids.ownerB}')
-    ON CONFLICT (customer_account_id, workspace_slug) DO UPDATE
-      SET workspace_name = EXCLUDED.workspace_name,
-          workspace_status = EXCLUDED.workspace_status,
-          default_locale = EXCLUDED.default_locale,
-          timezone = EXCLUDED.timezone,
-          created_by_user_id = EXCLUDED.created_by_user_id;
-
-    INSERT INTO workspace_members (workspace_id, user_id, role_id, member_status, invited_by_user_id)
-    SELECT '${ids.workspaceA}', '${ids.ownerA}', r.role_id, 'active', '${ids.ownerA}'
-    FROM roles r
-    WHERE r.role_code = 'owner'
-    ON CONFLICT (workspace_id, user_id) DO UPDATE
-      SET role_id = EXCLUDED.role_id,
-          member_status = EXCLUDED.member_status,
-          invited_by_user_id = EXCLUDED.invited_by_user_id;
-
-    INSERT INTO workspace_members (workspace_id, user_id, role_id, member_status, invited_by_user_id)
-    SELECT '${ids.workspaceA}', '${ids.viewerA}', r.role_id, 'active', '${ids.ownerA}'
-    FROM roles r
-    WHERE r.role_code = 'viewer'
-    ON CONFLICT (workspace_id, user_id) DO UPDATE
-      SET role_id = EXCLUDED.role_id,
-          member_status = EXCLUDED.member_status,
-          invited_by_user_id = EXCLUDED.invited_by_user_id;
-
-    INSERT INTO workspace_members (workspace_id, user_id, role_id, member_status, invited_by_user_id)
-    SELECT '${ids.workspaceB}', '${ids.ownerB}', r.role_id, 'active', '${ids.ownerB}'
-    FROM roles r
-    WHERE r.role_code = 'owner'
-    ON CONFLICT (workspace_id, user_id) DO UPDATE
-      SET role_id = EXCLUDED.role_id,
-          member_status = EXCLUDED.member_status,
-          invited_by_user_id = EXCLUDED.invited_by_user_id;
+    ON CONFLICT (role_id, permission_id) DO NOTHING
   `);
+
+  await activePool.exec(`
+    DELETE FROM role_permissions
+    WHERE role_id = (SELECT role_id FROM roles WHERE role_code = 'slice0_empty')
+  `);
+
+  await activePool.exec(
+    `
+      INSERT INTO workspaces (
+        workspace_id,
+        customer_account_id,
+        workspace_name,
+        workspace_slug,
+        workspace_status,
+        default_locale,
+        timezone,
+        created_by_user_id
+      )
+      VALUES
+        ($1, $3, 'Slice 0 Workspace A', 'slice0-workspace-a', 'active', 'en-US', 'UTC', $5),
+        ($2, $4, 'Slice 0 Workspace B', 'slice0-workspace-b', 'active', 'en-US', 'UTC', $6)
+      ON CONFLICT (customer_account_id, workspace_slug) DO UPDATE
+        SET workspace_name = EXCLUDED.workspace_name,
+            workspace_status = EXCLUDED.workspace_status,
+            default_locale = EXCLUDED.default_locale,
+            timezone = EXCLUDED.timezone,
+            created_by_user_id = EXCLUDED.created_by_user_id
+    `,
+    [ids.workspaceA, ids.workspaceB, ids.customerAccountA, ids.customerAccountB, ids.ownerA, ids.ownerB]
+  );
+
+  await activePool.exec(
+    `
+      INSERT INTO workspace_members (workspace_id, user_id, role_id, member_status, invited_by_user_id)
+      SELECT $1, $2, r.role_id, 'active', $2
+      FROM roles r
+      WHERE r.role_code = 'owner'
+      ON CONFLICT (workspace_id, user_id) DO UPDATE
+        SET role_id = EXCLUDED.role_id,
+            member_status = EXCLUDED.member_status,
+            invited_by_user_id = EXCLUDED.invited_by_user_id
+    `,
+    [ids.workspaceA, ids.ownerA]
+  );
+
+  await activePool.exec(
+    `
+      INSERT INTO workspace_members (workspace_id, user_id, role_id, member_status, invited_by_user_id)
+      SELECT $1, $2, r.role_id, 'active', $3
+      FROM roles r
+      WHERE r.role_code = 'viewer'
+      ON CONFLICT (workspace_id, user_id) DO UPDATE
+        SET role_id = EXCLUDED.role_id,
+            member_status = EXCLUDED.member_status,
+            invited_by_user_id = EXCLUDED.invited_by_user_id
+    `,
+    [ids.workspaceA, ids.viewerA, ids.ownerA]
+  );
+
+  await activePool.exec(
+    `
+      INSERT INTO workspace_members (workspace_id, user_id, role_id, member_status, invited_by_user_id)
+      SELECT $1, $2, r.role_id, 'active', $2
+      FROM roles r
+      WHERE r.role_code = 'owner'
+      ON CONFLICT (workspace_id, user_id) DO UPDATE
+        SET role_id = EXCLUDED.role_id,
+            member_status = EXCLUDED.member_status,
+            invited_by_user_id = EXCLUDED.invited_by_user_id
+    `,
+    [ids.workspaceB, ids.ownerB]
+  );
 }
