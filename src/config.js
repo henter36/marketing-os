@@ -1,3 +1,13 @@
+const brandRuntimeModes = ["in_memory", "repository"];
+
+class ConfigurationError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.name = "ConfigurationError";
+    this.code = code;
+  }
+}
+
 function loadConfig(env = process.env) {
   return {
     nodeEnv: env.NODE_ENV || "development",
@@ -7,11 +17,14 @@ function loadConfig(env = process.env) {
   };
 }
 
-function resolveBrandRuntimeMode(env) {
+function resolveBrandRuntimeMode(env = {}) {
   const explicitMode = env.BRAND_RUNTIME_MODE;
-  if (explicitMode) {
-    if (!["in_memory", "repository"].includes(explicitMode)) {
-      return "in_memory";
+  if (explicitMode !== undefined && explicitMode !== "") {
+    if (!brandRuntimeModes.includes(explicitMode)) {
+      throw new ConfigurationError(
+        "INVALID_BRAND_RUNTIME_MODE",
+        "Invalid BRAND_RUNTIME_MODE. Allowed values: in_memory, repository."
+      );
     }
     return explicitMode;
   }
@@ -19,4 +32,4 @@ function resolveBrandRuntimeMode(env) {
   return env.ENABLE_DB_BACKED_BRAND_ROUTES === "true" ? "repository" : "in_memory";
 }
 
-module.exports = { loadConfig, resolveBrandRuntimeMode };
+module.exports = { ConfigurationError, loadConfig, resolveBrandRuntimeMode };
