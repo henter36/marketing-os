@@ -37,6 +37,7 @@ This document records major documentation and contract changes for Marketing OS.
 | 2026-04-28 | pg adapter post-merge verification documented | `docs/pg_adapter_post_merge_verification_report.md` | Confirmed PR #28 merged and passed main strict verification while pg remains limited to Slice 0 and full DB-backed persistence, Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-28 | Runtime/SQL parity planning documented | `docs/runtime_sql_parity_planning.md` | Planned parity matrix, gap register, test plan, and Slice 1 candidate selection before implementation while Runtime/SQL parity implementation, Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-29 | Runtime/SQL parity matrix artifacts added | `docs/runtime_sql_parity_matrix.md`, `docs/runtime_sql_parity_gap_register.md`, `docs/runtime_sql_parity_test_plan.md`, `docs/db_backed_slice_1_candidate_selection.md` | Added documentation-only parity matrix, gap register, test plan, and Slice 1 candidate recommendation while Runtime/SQL parity implementation, Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
+| 2026-04-29 | DB-backed Slice 1 BrandProfile / BrandVoiceRule planning documented | `docs/db_backed_slice_1_brand_planning.md` | Added documentation-only planning for the BrandProfile / BrandVoiceRule candidate slice; Slice 1 implementation, DB-backed full persistence, Campaign/Brief/Patch 002 persistence, Sprint 5, Pilot, and Production remain NO-GO |
 
 ## Change Governance
 
