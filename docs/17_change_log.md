@@ -36,6 +36,7 @@ This document records major documentation and contract changes for Marketing OS.
 | 2026-04-28 | pg adapter implemented for DB-backed Slice 0 repositories | `src/db.js`, Slice 0 repositories/tests, `docs/pg_adapter_implementation_report.md` | Replaced the Slice 0 `psql`/spawn query adapter with node-postgres for Workspace/Membership/RBAC read-path verification only; full DB-backed persistence, Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-28 | pg adapter post-merge verification documented | `docs/pg_adapter_post_merge_verification_report.md` | Confirmed PR #28 merged and passed main strict verification while pg remains limited to Slice 0 and full DB-backed persistence, Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-28 | Runtime/SQL parity planning documented | `docs/runtime_sql_parity_planning.md` | Planned parity matrix, gap register, test plan, and Slice 1 candidate selection before implementation while Runtime/SQL parity implementation, Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
+| 2026-04-29 | Runtime/SQL parity matrix artifacts added | `docs/runtime_sql_parity_matrix.md`, `docs/runtime_sql_parity_gap_register.md`, `docs/runtime_sql_parity_test_plan.md`, `docs/db_backed_slice_1_candidate_selection.md` | Added documentation-only parity matrix, gap register, test plan, and Slice 1 candidate recommendation while Runtime/SQL parity implementation, Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
 
 ## Change Governance
 
