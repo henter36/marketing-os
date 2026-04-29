@@ -51,6 +51,7 @@ This document records major documentation and contract changes for Marketing OS.
 | 2026-04-29 | Status reconciled after DB-backed Brand Slice 1 | `README.md`, `docs/project_status_after_sprint_4.md`, `docs/current_repository_status_after_pr_33.md`, `docs/current_repository_status_after_brand_slice_1.md`, `docs/17_change_log.md` | Updated current-state documentation to show repository-only Brand Slice 1 as merged and verified while HTTP/runtime route switching, SQL/OpenAPI changes, DB-backed full persistence, Patch 002 persistence, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-29 | Brand Runtime Switch post-merge verification documented | `docs/brand_runtime_switch_post_merge_verification_report.md`, `docs/17_change_log.md` | Confirmed PR #48 merged and verified after PR #49 main state; Brand runtime switch is gated Brand-only mode with in-memory default while config hardening implementation, DB-backed full persistence, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-29 | Config validation hardening implemented | `src/config.js`, `test/config.test.js`, `docs/config_validation_hardening_implementation_report.md`, `docs/17_change_log.md` | Invalid explicit `BRAND_RUNTIME_MODE` now throws a safe configuration error while missing mode still defaults to in-memory and repository mode remains explicit; no route, SQL, OpenAPI, package, workflow, migration runner, or persistence behavior changes are authorized |
+| 2026-04-29 | Config validation hardening post-merge verification documented | `docs/config_validation_hardening_post_merge_verification_report.md`, `docs/17_change_log.md` | Confirmed PR #51 merged to main and strict verification passed; config validation hardening is merged and verified while DB-backed full persistence, Sprint 5, Pilot, and Production remain NO-GO |
 
 ## Change Governance
 
@@ -76,12 +77,12 @@ GO: repository-only Brand Slice 1 is implemented for BrandProfile / BrandVoiceRu
 GO: Brand Slice 1 Runtime Switch is implemented as gated Brand-only repository mode.
 GO: Brand Runtime Switch Post-Merge Verification is documented.
 GO: Config Validation Hardening Planning is merged as documentation only.
-GO: Config validation hardening is implemented for invalid explicit BRAND_RUNTIME_MODE only.
+GO: Config validation hardening is implemented and post-merge verified for invalid explicit BRAND_RUNTIME_MODE only.
 CONDITIONAL GO: deferred architecture / logic remediation planning is documented for later use after current repairs and a dedicated audit.
 CONDITIONAL GO: conversation-derived proposal consolidation is documented for planning and scope-control only.
 CONDITIONAL GO: future technical and business ideas are documented as future fit/gap only.
 CONDITIONAL GO: AI and Campaign Canvas proposals are documented as future fit/gap only.
-NO-GO: Runtime changes beyond config validation hardening.
+NO-GO: Runtime changes beyond verified config validation hardening.
 NO-GO: HTTP/runtime product routes are DB-backed by default.
 NO-GO: repository mode without explicit configuration.
 NO-GO: public Brand get/update routes.
