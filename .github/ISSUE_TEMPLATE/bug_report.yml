@@ -1,0 +1,66 @@
+name: Bug Report
+description: Report a reproducible defect without authorizing implementation.
+title: "Bug: "
+labels:
+  - bug
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A bug report captures a defect for triage. It does not authorize implementation.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Provide exact steps, request payloads, commands, or screenshots where relevant.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      options:
+        - P0 - security, tenant isolation, financial, legal, trust, or data-loss risk
+        - P1 - core workflow failure
+        - P2 - non-critical defect
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: affected_area
+    attributes:
+      label: Affected area
+      description: List docs, routes, domains, contracts, tests, or operational surfaces if known.
+  - type: checkboxes
+    id: authorization
+    attributes:
+      label: Authorization acknowledgement
+      options:
+        - label: I understand this issue does not authorize implementation.
+          required: true
+        - label: Any fix PR must define approved scope, allowed files, forbidden files, and verification gates.
+          required: true
