@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Parking Lot / broad idea
+    url: https://github.com/henter36/marketing-os/issues/new?template=proposal.yml
+    about: Use a Proposal issue only when the idea is concrete enough for triage; otherwise keep it in Parking Lot documentation.
