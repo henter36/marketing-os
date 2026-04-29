@@ -40,36 +40,31 @@ class BrandVoiceRuleRepository {
   async create({ workspaceId, brandProfileId, input }) {
     try {
       validateBrandVoiceRuleInput(input);
+      await this.requireParentBrandProfile({ workspaceId, brandProfileId });
 
-      return await this.pool.withTransaction(
-        async (client) => {
-          await requireParentBrandProfileWithClient(client, { workspaceId, brandProfileId });
-
-          const inserted = await client.query(
-            `
-              INSERT INTO brand_voice_rules (
-                workspace_id,
-                brand_profile_id,
-                rule_type,
-                rule_text,
-                severity
-              )
-              VALUES ($1, $2, $3, $4, $5)
-              RETURNING
-                brand_voice_rule_id,
-                brand_profile_id,
-                workspace_id,
-                rule_type,
-                rule_text,
-                severity
-            `,
-            [workspaceId, brandProfileId, input.rule_type, input.rule_text, input.severity]
-          );
-
-          return toPublicBrandVoiceRule(inserted.rows[0]);
-        },
+      const inserted = await this.pool.query(
+        `
+          INSERT INTO brand_voice_rules (
+            workspace_id,
+            brand_profile_id,
+            rule_type,
+            rule_text,
+            severity
+          )
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING
+            brand_voice_rule_id,
+            brand_profile_id,
+            workspace_id,
+            rule_type,
+            rule_text,
+            severity
+        `,
+        [workspaceId, brandProfileId, input.rule_type, input.rule_text, input.severity],
         { workspaceId }
       );
+
+      return toPublicBrandVoiceRule(inserted[0]);
     } catch (error) {
       throw toRepositoryError(error);
     }
@@ -101,23 +96,6 @@ class BrandVoiceRuleRepository {
     }
 
     return rows[0];
-  }
-}
-
-async function requireParentBrandProfileWithClient(client, { workspaceId, brandProfileId }) {
-  const parent = await client.query(
-    `
-      SELECT brand_profile_id
-      FROM brand_profiles
-      WHERE workspace_id = $1
-        AND brand_profile_id = $2
-      LIMIT 1
-    `,
-    [workspaceId, brandProfileId]
-  );
-
-  if (parent.rows.length === 0) {
-    throw brandProfileNotFoundError();
   }
 }
 
