@@ -2,7 +2,7 @@
 
 Marketing OS is a Phase 0/1 execution repository for a governed AI-assisted marketing operating system.
 
-This repository remains a contract-first implementation package. It contains a verified backend baseline through Sprint 4 with limited Patch 002 runtime baseline and strict migration activation, but it is not approved for Pilot or Production.
+This repository remains a contract-first implementation package. It contains a verified backend baseline through Sprint 4, a limited Patch 002 in-memory runtime baseline with strict SQL migration activation, DB-backed Slice 0 repository verification for Workspace/Membership/RBAC read paths, and the Brand Runtime/SQL Mapping Addendum from PR #33. It is not approved for Pilot or Production.
 
 ## Verified Status
 
@@ -13,21 +13,29 @@ Sprint 2: Passed
 Sprint 3: Passed
 Sprint 4: Passed
 Repository cleanup after Sprint 4: Passed
-Patch 002 runtime baseline: Passed as in-memory runtime
+Patch 002 runtime baseline: Passed as limited in-memory runtime
 Patch 002 SQL migration activation: Passed for strict migration order
 Migration retry verification: Passed under CI
 InPactAI fit-gap study: Merged as documentation only
 DB-backed Repository Architecture Contract: Passed
 DB-backed Repository Slice 0 Plan: Passed
-Latest verified main commit: 4ae6af2
-GitHub Actions strict verification: Passed on main
+DB-backed Repository Slice 0 Implementation: Passed as Workspace/Membership/RBAC repository read-path verification only
+pg Adapter Implementation: Passed for DB-backed Slice 0 only
+Runtime/SQL Parity Planning: Passed as documentation only
+Runtime/SQL Parity Matrix artifacts: Passed as documentation only
+DB-backed Slice 1 BrandProfile / BrandVoiceRule Planning: Passed as documentation only
+Brand Runtime/SQL Mapping Addendum: Passed and merged as documentation only in PR #33
+Latest merged main commit: 57df33c
+PR #24 / Patch 003 competitive feature contract reconciliation: Draft / NO-GO / not part of main
+Current HTTP/runtime product routes: In-memory unless explicitly switched by a future approved PR
 DB-backed full persistence: NO-GO
+Brand Slice 1 implementation: NO-GO until reviewed and separately approved
 Sprint 5 coding: NO-GO
 Pilot: NO-GO
 Production: NO-GO
 ```
 
-The latest verified main commit is `4ae6af2e888c207aa0acfff2406c37ce116f3da4`.
+The latest merged main commit after PR #33 is `57df33ca3af74ae38494e6959b1e56b23bed83b8`.
 
 ## Current Repository Structure
 
@@ -37,17 +45,23 @@ The latest verified main commit is `4ae6af2e888c207aa0acfff2406c37ce116f3da4`.
 
 docs/
   00_project_instructions.md through 20_sprint_0_report_template.md
-  sprint_0_implementation_report.md
-  sprint_1_implementation_report.md
-  sprint_2_implementation_report.md
-  sprint_3_implementation_report.md
-  sprint_4_implementation_report.md
+  sprint_0_implementation_report.md through sprint_4_implementation_report.md
   repository_cleanup_after_sprint_4.md
   patch_002_runtime_implementation_report.md
   patch_002_activation_report.md
   migration_retry_verification_report.md
   db_backed_repository_architecture_contract.md
   db_backed_repository_slice_0_plan.md
+  db_backed_repository_slice_0_implementation_report.md
+  db_backed_slice_0_post_merge_verification_report.md
+  pg_adapter_planning.md
+  pg_adapter_implementation_report.md
+  pg_adapter_post_merge_verification_report.md
+  runtime_sql_parity_*.md
+  db_backed_slice_1_candidate_selection.md
+  db_backed_slice_1_brand_planning.md
+  brand_runtime_sql_mapping_addendum.md
+  current_repository_status_after_pr_33.md
   inpactai_*.md
   marketing_os_v5_6_5_phase_0_1_*.md/sql/yaml
   marketing_os_v5_6_5_codex_implementation_instructions.md
@@ -60,10 +74,10 @@ scripts/
   Migration, seed, OpenAPI lint, and verification scripts.
 
 src/
-  Current Sprint 4 plus Patch 002 in-memory backend entrypoints and supporting guards, error model, config, server, router, and store layers.
+  Current Sprint 4 plus Patch 002 in-memory backend entrypoints, pg Slice 0 adapter, Workspace/Membership/RBAC repositories, guards, error model, config, server, router, and store layers.
 
 test/
-  Node test suites for migrations, tenant isolation, RBAC, ErrorModel, Sprint 1-4 behavior, Patch 002 runtime behavior, OpenAPI alignment, and regression checks.
+  Node test suites for migrations, tenant isolation, RBAC, ErrorModel, Sprint 1-4 behavior, Patch 002 runtime behavior, DB-backed Slice 0 repository verification, OpenAPI alignment, and regression checks.
 
 root files
   README.md
@@ -83,7 +97,14 @@ src/router.js
 src/store.js
 ```
 
-These are the current Sprint 4 plus Patch 002 in-memory runtime entrypoints.
+These are the current Sprint 4 plus Patch 002 in-memory HTTP/runtime product entrypoints. Product-domain routes still run on the in-memory store unless explicitly switched by a future approved PR.
+
+```text
+src/repositories/
+src/db.js
+```
+
+These provide DB-backed Slice 0 verification only. Slice 0 covers Workspace/Membership/RBAC repository read paths and pg adapter behavior. It does not make Campaign, Brief, Brand, Media, Approval, Publish, Evidence, Report, Patch 002, Usage/Cost, Audit, or other product domains DB-backed.
 
 ```text
 src/router_sprint3.js
@@ -106,8 +127,6 @@ store_sprint4.js
 
 These were removed by the repository cleanup after Sprint 4.
 
-No DB-backed runtime repository layer exists yet. The current runtime still uses the in-memory store.
-
 ## Authoritative Evidence
 
 Completed implementation and verification evidence lives in:
@@ -122,10 +141,21 @@ docs/repository_cleanup_after_sprint_4.md
 docs/patch_002_runtime_implementation_report.md
 docs/patch_002_activation_report.md
 docs/migration_retry_verification_report.md
-docs/inpactai_feature_extraction_and_marketing_os_fit_gap.md
-docs/inpactai_near_term_feature_candidates.md
 docs/db_backed_repository_architecture_contract.md
 docs/db_backed_repository_slice_0_plan.md
+docs/db_backed_repository_slice_0_implementation_report.md
+docs/db_backed_slice_0_post_merge_verification_report.md
+docs/pg_adapter_planning.md
+docs/pg_adapter_implementation_report.md
+docs/pg_adapter_post_merge_verification_report.md
+docs/runtime_sql_parity_planning.md
+docs/runtime_sql_parity_matrix.md
+docs/runtime_sql_parity_gap_register.md
+docs/runtime_sql_parity_test_plan.md
+docs/db_backed_slice_1_candidate_selection.md
+docs/db_backed_slice_1_brand_planning.md
+docs/brand_runtime_sql_mapping_addendum.md
+docs/current_repository_status_after_pr_33.md
 ```
 
 The current post-Sprint 4 status summary lives in:
@@ -152,6 +182,7 @@ The following remain the implementation authority for Phase 0/1 work:
 | Contract patch 001 | `docs/marketing_os_v5_6_5_phase_0_1_contract_patch_001.md` |
 | DB-backed architecture contract | `docs/db_backed_repository_architecture_contract.md` |
 | DB-backed Slice 0 plan | `docs/db_backed_repository_slice_0_plan.md` |
+| Brand runtime/SQL mapping addendum | `docs/brand_runtime_sql_mapping_addendum.md` |
 
 If a numbered file conflicts with one of these source files, stop and resolve the conflict before implementation.
 
@@ -167,7 +198,7 @@ The active strict migration order is:
 
 Patch 002 is active in strict migration order only. Migration retry verification is included in GitHub Actions and runs the strict migration sequence twice against the same database.
 
-This does not imply DB-backed runtime persistence, Pilot readiness, or Production readiness.
+This does not imply DB-backed product-route persistence, Pilot readiness, or Production readiness.
 
 ## Patch 002 Status
 
@@ -178,6 +209,7 @@ Patch 002 SQL migration is included in strict migration order after the base sch
 Patch 002 does not mean:
 
 ```text
+Patch 002 DB persistence.
 External provider execution.
 Live sync execution.
 Advanced attribution.
@@ -188,33 +220,54 @@ BillingProvider.
 ProviderUsageLog.
 Pilot readiness.
 Production readiness.
-DB-backed runtime persistence.
+DB-backed full persistence.
 ```
 
-Patch 002 competitive expansion remains NO-GO and must be handled as a separate future expansion track, preferably Patch 003 or a separately named competitive expansion track.
+Patch 002 competitive expansion remains NO-GO. PR #24, the Patch 003 competitive feature contract reconciliation, is still Draft / NO-GO and is not part of main.
 
 ## DB-backed Repository Status
 
 ```text
 DB-backed Repository Architecture Contract: Passed
 DB-backed Repository Slice 0 Plan: Passed
+DB-backed Repository Slice 0 Implementation: Passed as Workspace/Membership/RBAC repository read-path verification only
+pg Adapter Implementation: Passed for Slice 0 only
+Current HTTP/runtime product routes: In-memory
 DB-backed full persistence: NO-GO
-DB-backed Slice 0 implementation: CONDITIONAL GO only after status reconciliation, limited to Workspace/Membership/RBAC read path
+Brand Slice 1 implementation: NO-GO until reviewed and separately approved
 ```
 
-The first allowed DB-backed implementation track is Workspace/Membership/RBAC read path only. Campaign, Brief, Brand, Media, Approval, Publish, Evidence, Report, Patch 002, and write-path persistence remain out of scope for Slice 0.
+Slice 0 proves a limited repository/test read path for Workspace/Membership/RBAC. It does not replace the full in-memory store, does not switch HTTP/runtime product routes to DB-backed persistence, and does not authorize Brand, Campaign, Brief, Media, Approval, Publish, Evidence, Report, Patch 002, Usage/Cost, Audit, or write-path persistence.
+
+## Brand Slice 1 Status
+
+The Brand Runtime/SQL Mapping Addendum from PR #33 is merged as documentation only:
+
+```text
+docs/brand_runtime_sql_mapping_addendum.md
+```
+
+The addendum reconciles BrandProfile / BrandVoiceRule field names, defaults, status fields, route scope, duplicate behavior, response shape, tenant isolation, and ErrorModel mapping. It does not implement Brand Slice 1, does not approve new endpoints, and does not switch runtime routes to DB-backed persistence.
 
 ## InPactAI Status
 
 The InPactAI fit-gap study and near-term candidates are documentation only. They do not approve InPactAI implementation, Creator Marketplace implementation, ERD changes, SQL changes, OpenAPI changes, QA changes, runtime changes, or direct code adoption.
 
-## Next Allowed Steps
+## Current Allowed Direction
 
 ```text
-DB-backed Repository Slice 0 implementation planning/implementation may proceed after this reconciliation, limited to Workspace/Membership/RBAC read path.
-DB-backed full persistence remains NO-GO.
-Sprint 5 planning remains deferred until the DB-backed persistence path is reviewed.
+Documentation-only reconciliation: GO.
+Runtime changes: NO-GO.
+Brand Slice 1 implementation: NO-GO until reviewed and separately approved.
+Patch 002 DB persistence: NO-GO.
+Patch 003 / PR #24 competitive track: Draft / NO-GO / not part of main.
+DB-backed full persistence: NO-GO.
+Sprint 5 coding: NO-GO.
+Pilot: NO-GO.
+Production: NO-GO.
 ```
+
+This README does not authorize coding, endpoint changes, SQL/OpenAPI changes, or runtime behavior changes.
 
 ## Forbidden Next Steps
 
@@ -231,6 +284,9 @@ No BillingProvider.
 No ProviderUsageLog.
 No Creator Marketplace implementation.
 No InPactAI implementation.
+No Patch 002 DB persistence.
+No Patch 003 activation or merge while PR #24 remains Draft / NO-GO.
+No Brand Slice 1 implementation without separate review and approval.
 ```
 
 ## Non-Negotiable Implementation Rules
