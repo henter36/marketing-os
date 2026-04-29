@@ -9,22 +9,29 @@ Sprint 2: Passed
 Sprint 3: Passed
 Sprint 4: Passed
 Repository cleanup after Sprint 4: Passed
-Patch 002 runtime baseline: Passed as in-memory runtime
+Patch 002 runtime baseline: Passed as limited in-memory runtime
 Patch 002 SQL migration activation: Passed for strict migration order
 Migration retry verification: Passed under CI
 InPactAI fit-gap study: Merged as documentation only
 DB-backed Repository Architecture Contract: Passed
 DB-backed Repository Slice 0 Plan: Passed
-Latest verified main commit: 4ae6af2
-GitHub Actions strict verification: Passed on main
+DB-backed Repository Slice 0 Implementation: Passed as Workspace/Membership/RBAC repository read-path verification only
+pg Adapter Implementation: Passed for DB-backed Slice 0 only
+Runtime/SQL Parity Planning: Passed as documentation only
+Runtime/SQL Parity Matrix artifacts: Passed as documentation only
+DB-backed Slice 1 BrandProfile / BrandVoiceRule Planning: Passed as documentation only
+Brand Runtime/SQL Mapping Addendum: Passed and merged as documentation only in PR #33
+Latest merged main commit: 57df33c
+PR #24 / Patch 003 competitive feature contract reconciliation: Draft / NO-GO / not part of main
+Current HTTP/runtime product routes: In-memory unless explicitly switched by a future approved PR
 DB-backed full persistence: NO-GO
-DB-backed Slice 0 implementation: CONDITIONAL GO only after this reconciliation patch
+Brand Slice 1 implementation: NO-GO until reviewed and separately approved
 Sprint 5 coding: NO-GO
 Pilot: NO-GO
 Production: NO-GO
 ```
 
-The latest verified main commit is `4ae6af2e888c207aa0acfff2406c37ce116f3da4`.
+The latest merged main commit after PR #33 is `57df33ca3af74ae38494e6959b1e56b23bed83b8`.
 
 ## Completed Sprints
 
@@ -57,14 +64,23 @@ docs/repository_cleanup_after_sprint_4.md
 
 ## Current Architecture Note
 
-The active backend entrypoint layer is under `src/`:
+The active backend HTTP/runtime product entrypoint layer is under `src/`:
 
 ```text
 src/router.js
 src/store.js
 ```
 
-The current runtime still uses the in-memory store. No DB-backed runtime repository layer exists yet.
+These product routes still use the in-memory store unless explicitly switched by a future approved PR.
+
+DB-backed Slice 0 repository verification exists under:
+
+```text
+src/db.js
+src/repositories/
+```
+
+Slice 0 covers Workspace/Membership/RBAC repository read paths only. The pg adapter exists for Slice 0 only and does not imply DB-backed full persistence or DB-backed product-route persistence.
 
 The Sprint 3 compatibility layer remains under `src/`:
 
@@ -87,12 +103,13 @@ A future cleanup may flatten the root base layer only on a separate branch with 
 | Area | Status | Notes |
 |---|---|---|
 | Existing Runtime Baseline | Present on main | Limited connector, performance, contact, consent, lead capture, notification rule, and notification delivery baseline implemented with the in-memory runtime/store pattern. |
-| SQL Migration Activation | Active in strict migration order | Patch 002 runs after the base schema and Patch 001 in `scripts/db-migrate.js`. |
-| Migration Retry Verification | Passed under CI | GitHub Actions includes same-database retry verification through `scripts/db-migrate-retry.js`. |
-| Competitive Expansion | NO-GO | Any broader Patch 002 competitive expansion must be a separate future track, preferably Patch 003 or separately named. |
-| Production/Pilot Readiness | NO-GO | Patch 002 does not imply DB-backed runtime persistence, Pilot readiness, or Production readiness. |
+| SQL Migration Activation | Active in strict migration order | Patch 002 runs after the base schema and Patch 001 in strict migration order. |
+| Migration Retry Verification | Passed under CI | GitHub Actions includes same-database retry verification. |
+| Patch 002 DB Persistence | NO-GO | Patch 002 runtime remains in-memory; DB persistence for Patch 002 domains is not approved. |
+| Competitive Expansion / Patch 003 | Draft / NO-GO | PR #24 is still draft, not merged, and not part of main. |
+| Production/Pilot Readiness | NO-GO | Patch 002 does not imply Pilot readiness or Production readiness. |
 
-Patch 002 does not approve external provider execution, live sync, advanced attribution, auto-publishing, paid execution, AI agents, BillingProvider, ProviderUsageLog, Pilot, or Production.
+Patch 002 does not approve external provider execution, live sync, advanced attribution, auto-publishing, paid execution, AI agents, BillingProvider, ProviderUsageLog, Patch 002 DB persistence, Pilot, or Production.
 
 ## DB-backed Repository Status
 
@@ -102,19 +119,53 @@ The DB-backed Repository Architecture Contract is merged:
 docs/db_backed_repository_architecture_contract.md
 ```
 
-The DB-backed Repository Slice 0 Plan is merged:
+The DB-backed Repository Slice 0 Plan and implementation report are merged:
 
 ```text
 docs/db_backed_repository_slice_0_plan.md
+docs/db_backed_repository_slice_0_implementation_report.md
+docs/db_backed_slice_0_post_merge_verification_report.md
 ```
 
-Slice 0 implementation remains conditional and narrow:
+The pg adapter planning, implementation, and post-merge verification are merged:
 
 ```text
-Allowed later: Workspace/Membership/RBAC read path only.
-DB-backed full persistence: NO-GO.
-Campaign, Brief, Brand, Media, Approval, Publish, Evidence, Report, Patch 002, and write-path persistence: out of scope for Slice 0.
+docs/pg_adapter_planning.md
+docs/pg_adapter_implementation_report.md
+docs/pg_adapter_post_merge_verification_report.md
 ```
+
+Current status:
+
+```text
+DB-backed Slice 0: GO as limited Workspace/Membership/RBAC repository read-path verification only.
+pg adapter: GO for Slice 0 only.
+HTTP/runtime product routes: In-memory.
+Brand Slice 1 implementation: NO-GO until reviewed and separately approved.
+DB-backed full persistence: NO-GO.
+Campaign, Brief, Brand, Media, Approval, Publish, Evidence, Report, Patch 002, Usage/Cost, Audit, and write-path persistence: NO-GO.
+```
+
+## Runtime/SQL Parity And Brand Mapping Status
+
+Runtime/SQL parity planning and matrix artifacts are merged as documentation only:
+
+```text
+docs/runtime_sql_parity_planning.md
+docs/runtime_sql_parity_matrix.md
+docs/runtime_sql_parity_gap_register.md
+docs/runtime_sql_parity_test_plan.md
+docs/db_backed_slice_1_candidate_selection.md
+```
+
+Brand Slice 1 planning and the Brand Runtime/SQL Mapping Addendum are merged as documentation only:
+
+```text
+docs/db_backed_slice_1_brand_planning.md
+docs/brand_runtime_sql_mapping_addendum.md
+```
+
+These documents do not implement Brand Slice 1, do not switch HTTP/runtime product routes to DB-backed persistence, do not add endpoints, and do not approve DB-backed full persistence.
 
 ## InPactAI Documentation Status
 
@@ -130,7 +181,12 @@ They do not approve InPactAI implementation, Creator Marketplace implementation,
 ## Current NO-GO Items
 
 ```text
+Runtime changes from this reconciliation: NO-GO
+Slice 1 implementation: NO-GO
+SQL/OpenAPI changes from this reconciliation: NO-GO
 DB-backed full persistence: NO-GO
+Patch 002 DB persistence: NO-GO
+Patch 003 / PR #24 competitive track: Draft / NO-GO / not part of main
 Sprint 5 coding: NO-GO
 Pilot: NO-GO
 Production: NO-GO
@@ -142,19 +198,21 @@ Advanced attribution: NO-GO
 BillingProvider / ProviderUsageLog: NO-GO
 Creator Marketplace implementation: NO-GO
 InPactAI implementation: NO-GO
-Patch 002 full/competitive expansion: NO-GO
-Patch 002 production readiness: NO-GO
 ```
 
-## Next Allowed Steps
+## Current Allowed Direction
 
 ```text
-1. DB-backed Repository Slice 0 Implementation PR may proceed after this reconciliation, limited to Workspace/Membership/RBAC read path.
-2. DB-backed full persistence remains NO-GO.
-3. Sprint 5 coding remains NO-GO.
-4. Pilot and Production remain NO-GO.
+1. Documentation-only status reconciliation: GO.
+2. Runtime changes: NO-GO.
+3. Brand Slice 1 implementation remains NO-GO until reviewed and separately approved.
+4. DB-backed full persistence remains NO-GO.
+5. Sprint 5 coding remains NO-GO.
+6. Pilot and Production remain NO-GO.
 ```
+
+This status document does not authorize coding, endpoint changes, SQL/OpenAPI changes, migration changes, or runtime behavior changes.
 
 ## Documentation-Only Statement
 
-This status document is part of a status reconciliation patch only. No runtime code, tests, SQL, OpenAPI, workflows, migration runner, router, store, endpoint, DB-backed implementation, Sprint 5, Pilot, Production, or InPactAI implementation changes are made by this documentation status update.
+This status document is part of a status reconciliation patch only. No runtime code, tests, SQL, OpenAPI, workflows, migration runner, router, store, endpoint, DB-backed implementation, Slice 1 implementation, Sprint 5, Pilot, Production, or InPactAI implementation changes are made by this documentation status update.
