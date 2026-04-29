@@ -21,17 +21,19 @@ Runtime/SQL Parity Planning: Passed as documentation only
 Runtime/SQL Parity Matrix artifacts: Passed as documentation only
 DB-backed Slice 1 BrandProfile / BrandVoiceRule Planning: Passed as documentation only
 Brand Runtime/SQL Mapping Addendum: Passed and merged as documentation only in PR #33
-Latest merged main commit: 57df33c
+DB-backed Brand Slice 1 repository-only implementation: Passed and merged
+DB-backed Brand Slice 1 post-merge verification: Passed on main
+Latest merged main commit: a5a37a2
 PR #24 / Patch 003 competitive feature contract reconciliation: Draft / NO-GO / not part of main
 Current HTTP/runtime product routes: In-memory unless explicitly switched by a future approved PR
+Brand runtime route switch: NO-GO
 DB-backed full persistence: NO-GO
-Brand Slice 1 implementation: NO-GO until reviewed and separately approved
 Sprint 5 coding: NO-GO
 Pilot: NO-GO
 Production: NO-GO
 ```
 
-The latest merged main commit after PR #33 is `57df33ca3af74ae38494e6959b1e56b23bed83b8`.
+The latest merged main commit after PR #42 is `a5a37a2bc2d1b2147ca7dffb489fb52a2617b122`.
 
 ## Completed Sprints
 
@@ -140,10 +142,12 @@ Current status:
 ```text
 DB-backed Slice 0: GO as limited Workspace/Membership/RBAC repository read-path verification only.
 pg adapter: GO for Slice 0 only.
+Repository-only Brand Slice 1: GO / merged / verified for BrandProfileRepository and BrandVoiceRuleRepository methods.
 HTTP/runtime product routes: In-memory.
-Brand Slice 1 implementation: NO-GO until reviewed and separately approved.
+Brand runtime route switch: NO-GO.
+Public Brand get/update routes: NO-GO.
 DB-backed full persistence: NO-GO.
-Campaign, Brief, Brand, Media, Approval, Publish, Evidence, Report, Patch 002, Usage/Cost, Audit, and write-path persistence: NO-GO.
+Campaign, BriefVersion, Media, Approval, Publish, Evidence, Report, Patch 002, Usage/Cost, Audit, and broader write-path persistence: NO-GO.
 ```
 
 ## Runtime/SQL Parity And Brand Mapping Status
@@ -165,7 +169,14 @@ docs/db_backed_slice_1_brand_planning.md
 docs/brand_runtime_sql_mapping_addendum.md
 ```
 
-These documents do not implement Brand Slice 1, do not switch HTTP/runtime product routes to DB-backed persistence, do not add endpoints, and do not approve DB-backed full persistence.
+Repository-only Brand Slice 1 implementation and post-merge verification are merged:
+
+```text
+docs/db_backed_slice_1_brand_implementation_report.md
+docs/db_backed_slice_1_brand_post_merge_verification_report.md
+```
+
+Repository-only Brand Slice 1 is implemented for BrandProfileRepository and BrandVoiceRuleRepository list/create/internal validation methods. It does not switch HTTP/runtime product routes to DB-backed persistence, does not add public Brand get/update routes, does not change SQL/OpenAPI, does not implement durable AuditLog persistence, and does not approve DB-backed full persistence.
 
 ## InPactAI Documentation Status
 
@@ -182,7 +193,9 @@ They do not approve InPactAI implementation, Creator Marketplace implementation,
 
 ```text
 Runtime changes from this reconciliation: NO-GO
-Slice 1 implementation: NO-GO
+Repository-only Brand Slice 1 implementation: GO / merged / verified
+Brand runtime route switch: NO-GO
+Public Brand get/update routes: NO-GO
 SQL/OpenAPI changes from this reconciliation: NO-GO
 DB-backed full persistence: NO-GO
 Patch 002 DB persistence: NO-GO
@@ -205,10 +218,11 @@ InPactAI implementation: NO-GO
 ```text
 1. Documentation-only status reconciliation: GO.
 2. Runtime changes: NO-GO.
-3. Brand Slice 1 implementation remains NO-GO until reviewed and separately approved.
-4. DB-backed full persistence remains NO-GO.
-5. Sprint 5 coding remains NO-GO.
-6. Pilot and Production remain NO-GO.
+3. Repository-only Brand Slice 1 is implemented and verified.
+4. Brand runtime route switch remains NO-GO until separately planned and approved.
+5. DB-backed full persistence remains NO-GO.
+6. Sprint 5 coding remains NO-GO.
+7. Pilot and Production remain NO-GO.
 ```
 
 This status document does not authorize coding, endpoint changes, SQL/OpenAPI changes, migration changes, or runtime behavior changes.
