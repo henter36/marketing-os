@@ -1,0 +1,58 @@
+name: Governance Change
+description: Request a change to process, decision authority, scope control, or operating model.
+title: "Governance: "
+labels:
+  - governance
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A governance change request asks for a process or authority decision. It does not authorize implementation work.
+  - type: textarea
+    id: current_rule
+    attributes:
+      label: Current rule or process
+      description: What rule, workflow, or decision authority exists today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_change
+    attributes:
+      label: Proposed governance change
+      description: What should change?
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Reason
+      description: Why is this needed?
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Who or what would be affected?
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options considered
+      description: List alternatives, including keeping the current process.
+  - type: textarea
+    id: decision_log
+    attributes:
+      label: Decision log update
+      description: State whether docs/decision_log.md should be updated if approved.
+  - type: checkboxes
+    id: authorization
+    attributes:
+      label: Authorization acknowledgement
+      options:
+        - label: I understand this governance issue does not authorize product or runtime implementation.
+          required: true
+        - label: Any resulting PR must state allowed files, forbidden files, and verification gates.
+          required: true
