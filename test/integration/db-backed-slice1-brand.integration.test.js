@@ -22,8 +22,6 @@ const ids = {
 
 let pool;
 let repositories;
-let createdProfileA;
-let createdProfileB;
 
 before(async () => {
   if (!hasDatabaseUrl) {
@@ -52,20 +50,18 @@ test("BrandProfileRepository lists profiles by workspace", { skip: !hasDatabaseU
 });
 
 test("BrandProfileRepository creates with public field mapping and internal SQL defaults", { skip: !hasDatabaseUrl }, async () => {
-  createdProfileA = await repositories.brandProfiles.create({
+  const createdProfile = await createBrandProfile({
     workspaceId: ids.workspaceA,
     actorUserId: ids.ownerA,
-    input: {
-      brand_name: "Slice 1 Created Brand A",
-      brand_description: "Created description A",
-    },
+    brandName: "Slice 1 Created Mapping Brand",
+    brandDescription: "Created mapping description",
   });
 
-  assert.equal(createdProfileA.workspace_id, ids.workspaceA);
-  assert.equal(createdProfileA.brand_name, "Slice 1 Created Brand A");
-  assert.equal(createdProfileA.brand_description, "Created description A");
-  assert(!Object.hasOwn(createdProfileA, "language"));
-  assert(!Object.hasOwn(createdProfileA, "brand_status"));
+  assert.equal(createdProfile.workspace_id, ids.workspaceA);
+  assert.equal(createdProfile.brand_name, "Slice 1 Created Mapping Brand");
+  assert.equal(createdProfile.brand_description, "Created mapping description");
+  assert(!Object.hasOwn(createdProfile, "language"));
+  assert(!Object.hasOwn(createdProfile, "brand_status"));
 
   const rows = await pool.query(
     `
@@ -78,23 +74,30 @@ test("BrandProfileRepository creates with public field mapping and internal SQL 
       WHERE workspace_id = $1
         AND brand_profile_id = $2
     `,
-    [ids.workspaceA, createdProfileA.brand_profile_id],
+    [ids.workspaceA, createdProfile.brand_profile_id],
     { workspaceId: ids.workspaceA }
   );
 
-  assert.equal(rows[0].profile_name, "Slice 1 Created Brand A");
-  assert.equal(rows[0].brand_summary, "Created description A");
+  assert.equal(rows[0].profile_name, "Slice 1 Created Mapping Brand");
+  assert.equal(rows[0].brand_summary, "Created mapping description");
   assert.equal(rows[0].language, "en-US");
   assert.equal(rows[0].brand_status, "draft");
 });
 
 test("BrandProfileRepository rejects duplicate profile names within the same workspace", { skip: !hasDatabaseUrl }, async () => {
+  await createBrandProfile({
+    workspaceId: ids.workspaceA,
+    actorUserId: ids.ownerA,
+    brandName: "Slice 1 Duplicate Brand",
+    brandDescription: "Original duplicate test brand",
+  });
+
   await assert.rejects(
     () => repositories.brandProfiles.create({
       workspaceId: ids.workspaceA,
       actorUserId: ids.ownerA,
       input: {
-        brand_name: "Slice 1 Created Brand A",
+        brand_name: "Slice 1 Duplicate Brand",
         brand_description: "Duplicate attempt",
       },
     }),
@@ -110,33 +113,42 @@ test("BrandProfileRepository rejects duplicate profile names within the same wor
 
 test("BrandProfileRepository allows duplicate profile names across different workspaces", { skip: !hasDatabaseUrl }, async () => {
   const brandName = "Slice 1 Shared Brand";
-  const profileA = await repositories.brandProfiles.create({
+  const profileA = await createBrandProfile({
     workspaceId: ids.workspaceA,
     actorUserId: ids.ownerA,
-    input: { brand_name: brandName, brand_description: "Workspace A shared" },
+    brandName,
+    brandDescription: "Workspace A shared",
   });
-  createdProfileB = await repositories.brandProfiles.create({
+  const profileB = await createBrandProfile({
     workspaceId: ids.workspaceB,
     actorUserId: ids.ownerB,
-    input: { brand_name: brandName, brand_description: "Workspace B shared" },
+    brandName,
+    brandDescription: "Workspace B shared",
   });
 
   assert.equal(profileA.brand_name, brandName);
-  assert.equal(createdProfileB.brand_name, brandName);
-  assert.notEqual(profileA.workspace_id, createdProfileB.workspace_id);
+  assert.equal(profileB.brand_name, brandName);
+  assert.notEqual(profileA.workspace_id, profileB.workspace_id);
 });
 
 test("BrandProfileRepository getById is workspace-scoped and does not leak cross-workspace existence", { skip: !hasDatabaseUrl }, async () => {
+  const createdProfile = await createBrandProfile({
+    workspaceId: ids.workspaceA,
+    actorUserId: ids.ownerA,
+    brandName: "Slice 1 Workspace Scoped Brand",
+    brandDescription: "Workspace scoped brand",
+  });
+
   const found = await repositories.brandProfiles.getById({
     workspaceId: ids.workspaceA,
-    brandProfileId: createdProfileA.brand_profile_id,
+    brandProfileId: createdProfile.brand_profile_id,
   });
   const crossWorkspace = await repositories.brandProfiles.getById({
     workspaceId: ids.workspaceB,
-    brandProfileId: createdProfileA.brand_profile_id,
+    brandProfileId: createdProfile.brand_profile_id,
   });
 
-  assert.equal(found.brand_profile_id, createdProfileA.brand_profile_id);
+  assert.equal(found.brand_profile_id, createdProfile.brand_profile_id);
   assert.equal(crossWorkspace, null);
 });
 
@@ -154,9 +166,16 @@ test("BrandVoiceRuleRepository lists rules by parent profile", { skip: !hasDatab
 });
 
 test("BrandVoiceRuleRepository creates after validating parent workspace", { skip: !hasDatabaseUrl }, async () => {
+  const parentProfile = await createBrandProfile({
+    workspaceId: ids.workspaceA,
+    actorUserId: ids.ownerA,
+    brandName: "Slice 1 Rule Parent Brand",
+    brandDescription: "Rule parent brand",
+  });
+
   const rule = await repositories.brandVoiceRules.create({
     workspaceId: ids.workspaceA,
-    brandProfileId: createdProfileA.brand_profile_id,
+    brandProfileId: parentProfile.brand_profile_id,
     input: {
       rule_type: "required_phrase",
       rule_text: "Always include the approved tagline.",
@@ -165,7 +184,7 @@ test("BrandVoiceRuleRepository creates after validating parent workspace", { ski
   });
 
   assert.equal(rule.workspace_id, ids.workspaceA);
-  assert.equal(rule.brand_profile_id, createdProfileA.brand_profile_id);
+  assert.equal(rule.brand_profile_id, parentProfile.brand_profile_id);
   assert.equal(rule.rule_type, "required_phrase");
   assert.equal(rule.rule_text, "Always include the approved tagline.");
   assert.equal(rule.severity, "warning");
@@ -186,10 +205,17 @@ test("BrandVoiceRuleRepository creates after validating parent workspace", { ski
 });
 
 test("BrandVoiceRuleRepository rejects invalid rule_type before DB insert", { skip: !hasDatabaseUrl }, async () => {
+  const parentProfile = await createBrandProfile({
+    workspaceId: ids.workspaceA,
+    actorUserId: ids.ownerA,
+    brandName: "Slice 1 Invalid Rule Type Parent Brand",
+    brandDescription: "Invalid rule type parent brand",
+  });
+
   await assert.rejects(
     () => repositories.brandVoiceRules.create({
       workspaceId: ids.workspaceA,
-      brandProfileId: createdProfileA.brand_profile_id,
+      brandProfileId: parentProfile.brand_profile_id,
       input: {
         rule_type: "unsupported_type",
         rule_text: "Do not insert this rule.",
@@ -207,10 +233,17 @@ test("BrandVoiceRuleRepository rejects invalid rule_type before DB insert", { sk
 });
 
 test("BrandVoiceRuleRepository accepts only approved severity values", { skip: !hasDatabaseUrl }, async () => {
+  const parentProfile = await createBrandProfile({
+    workspaceId: ids.workspaceA,
+    actorUserId: ids.ownerA,
+    brandName: "Slice 1 Severity Parent Brand",
+    brandDescription: "Severity parent brand",
+  });
+
   for (const severity of ["info", "warning", "blocker"]) {
     const rule = await repositories.brandVoiceRules.create({
       workspaceId: ids.workspaceA,
-      brandProfileId: createdProfileA.brand_profile_id,
+      brandProfileId: parentProfile.brand_profile_id,
       input: {
         rule_type: "style",
         rule_text: `Severity ${severity} is accepted.`,
@@ -224,7 +257,7 @@ test("BrandVoiceRuleRepository accepts only approved severity values", { skip: !
     await assert.rejects(
       () => repositories.brandVoiceRules.create({
         workspaceId: ids.workspaceA,
-        brandProfileId: createdProfileA.brand_profile_id,
+        brandProfileId: parentProfile.brand_profile_id,
         input: {
           rule_type: "style",
           rule_text: `Severity ${severity} is rejected.`,
@@ -243,10 +276,17 @@ test("BrandVoiceRuleRepository accepts only approved severity values", { skip: !
 });
 
 test("BrandVoiceRuleRepository rejects cross-workspace parent access without leakage", { skip: !hasDatabaseUrl }, async () => {
+  const parentProfile = await createBrandProfile({
+    workspaceId: ids.workspaceA,
+    actorUserId: ids.ownerA,
+    brandName: "Slice 1 Cross Workspace Parent Brand",
+    brandDescription: "Cross workspace parent brand",
+  });
+
   await assert.rejects(
     () => repositories.brandVoiceRules.listByBrandProfile({
       workspaceId: ids.workspaceB,
-      brandProfileId: createdProfileA.brand_profile_id,
+      brandProfileId: parentProfile.brand_profile_id,
     }),
     (error) => {
       assert(error instanceof AppError);
@@ -260,7 +300,7 @@ test("BrandVoiceRuleRepository rejects cross-workspace parent access without lea
   await assert.rejects(
     () => repositories.brandVoiceRules.create({
       workspaceId: ids.workspaceB,
-      brandProfileId: createdProfileA.brand_profile_id,
+      brandProfileId: parentProfile.brand_profile_id,
       input: {
         rule_type: "tone",
         rule_text: "Cross workspace insert must fail.",
@@ -314,6 +354,17 @@ function runStrictMigrations() {
   });
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
+}
+
+async function createBrandProfile({ workspaceId, actorUserId, brandName, brandDescription }) {
+  return repositories.brandProfiles.create({
+    workspaceId,
+    actorUserId,
+    input: {
+      brand_name: brandName,
+      brand_description: brandDescription,
+    },
+  });
 }
 
 async function seedSlice1BrandData(activePool) {
