@@ -1,6 +1,9 @@
 const base = require("./router_sprint3");
 const { createHash } = require("crypto");
+const { loadConfig } = require("./config");
+const { createPool } = require("./db");
 const { AppError, correlationId, errorBody, sendJson } = require("./error-model");
+const { createRepositories } = require("./repositories");
 const { createSeedStore } = require("./store");
 const { authGuard, membershipCheck, permissionGuard, rejectBodyWorkspaceId, workspaceContextGuard } = require("./guards");
 
@@ -45,22 +48,30 @@ const implementedRoutes = [...base.implementedRoutes, ...sprint4Routes, ...patch
 
 function createApp(options = {}) {
   const store = options.store || createSeedStore();
+  const config = options.config || loadConfig(options.env || process.env);
+  const brandRuntimeMode = options.brandRuntimeMode || config.brandRuntimeMode || "in_memory";
+  const brandRepositories = brandRuntimeMode === "repository"
+    ? options.repositories || createRepositories({ pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true }) })
+    : null;
   const baseApp = base.createApp({ store });
 
   return async function app(req, res) {
     const url = new URL(req.url, "http://localhost");
     const path = url.pathname.replace(/^\/v1/, "");
+    const shouldRouteBrandToRepository = brandRuntimeMode === "repository" && isBrandPath(path);
 
-    if (!isSprint4Path(path) && !isPatch002Path(path)) {
+    if (!shouldRouteBrandToRepository && !isSprint4Path(path) && !isPatch002Path(path)) {
       return baseApp(req, res);
     }
 
     const id = correlationId(req);
     try {
       const body = await readBody(req);
-      const result = isPatch002Path(path)
-        ? routePatch002(req, path, body, store)
-        : routeSprint4(req, path, body, store);
+      const result = shouldRouteBrandToRepository
+        ? await routeBrandRepositories(req, path, body, store, brandRepositories)
+        : isPatch002Path(path)
+          ? routePatch002(req, path, body, store)
+          : routeSprint4(req, path, body, store);
       sendJson(res, result.status || 200, result.body);
     } catch (error) {
       const appError = error instanceof AppError
@@ -69,6 +80,51 @@ function createApp(options = {}) {
       sendJson(res, appError.status, errorBody(appError, id));
     }
   };
+}
+
+async function routeBrandRepositories(req, path, body, store, repositories) {
+  const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/(.*)$/);
+  if (!workspaceMatch) throw notFound();
+
+  const workspaceId = workspaceContextGuard({ workspaceId: workspaceMatch[1] });
+  const user = authGuard(req, store);
+  const membership = membershipCheck(user, workspaceId, store);
+  const child = workspaceMatch[2];
+
+  if (child === "brand-profiles") {
+    if (req.method === "GET") {
+      permissionGuard(membership, "brand.read");
+      return ok(await repositories.brandProfiles.listByWorkspace({ workspaceId }));
+    }
+
+    if (req.method === "POST") {
+      permissionGuard(membership, "brand.write");
+      rejectBodyWorkspaceId(body, workspaceId);
+      const brandProfile = await repositories.brandProfiles.create({ workspaceId, input: body, actorUserId: user.user_id });
+      audit(store, workspaceId, user, "brand_profile.created", "BrandProfile", brandProfile.brand_profile_id, null, brandProfile);
+      return created(brandProfile);
+    }
+  }
+
+  const brandRules = child.match(/^brand-profiles\/([^/]+)\/rules$/);
+  if (brandRules) {
+    const brandProfileId = brandRules[1];
+
+    if (req.method === "GET") {
+      permissionGuard(membership, "brand.read");
+      return ok(await repositories.brandVoiceRules.listByBrandProfile({ workspaceId, brandProfileId }));
+    }
+
+    if (req.method === "POST") {
+      permissionGuard(membership, "brand.write");
+      rejectBodyWorkspaceId(body, workspaceId);
+      const rule = await repositories.brandVoiceRules.create({ workspaceId, brandProfileId, input: body });
+      audit(store, workspaceId, user, "brand_voice_rule.created", "BrandVoiceRule", rule.brand_voice_rule_id, null, rule);
+      return created(rule);
+    }
+  }
+
+  throw notFound();
 }
 
 function routePatch002(req, path, body, store) {
@@ -529,6 +585,10 @@ function routeSprint4(req, path, body, store) {
   throw notFound();
 }
 
+function isBrandPath(path) {
+  return /^\/workspaces\/[^/]+\/brand-profiles(?:\/[^/]+\/rules)?$/.test(path);
+}
+
 function isSprint4Path(path) {
   return /^\/workspaces\/[^/]+\/(campaigns\/[^/]+\/client-report-snapshots|audit-logs|safe-mode|onboarding-progress)$/.test(path);
 }
@@ -676,6 +736,8 @@ function redactCredential(credential) {
 
 function audit(store, workspaceId, user, action, entityType, entityId, before, after) {
   const workspace = findWorkspace(store, workspaceId);
+  const isSprint4Action = action.startsWith("client_report") || action.startsWith("safe_mode") || action.startsWith("onboarding");
+  const isBrandAction = action.startsWith("brand_");
   store.auditLogs.push({
     audit_log_id: nextId("audit", store.auditLogs),
     workspace_id: workspaceId,
@@ -686,8 +748,8 @@ function audit(store, workspaceId, user, action, entityType, entityId, before, a
     entity_id: entityId,
     before_snapshot: clone(before),
     after_snapshot: clone(after),
-    metadata: { sprint: action.startsWith("client_report") || action.startsWith("safe_mode") || action.startsWith("onboarding") ? 4 : "patch-002" },
-    correlation_id: action.startsWith("client_report") || action.startsWith("safe_mode") || action.startsWith("onboarding") ? "sprint-4-placeholder" : "patch-002-placeholder",
+    metadata: { sprint: isSprint4Action ? 4 : isBrandAction ? "brand-slice-1-runtime-switch" : "patch-002" },
+    correlation_id: isSprint4Action ? "sprint-4-placeholder" : isBrandAction ? "brand-slice-1-runtime-switch-placeholder" : "patch-002-placeholder",
     occurred_at: now()
   });
 }
