@@ -1,0 +1,66 @@
+name: Proposal
+description: Propose an idea, planning track, or future change without authorizing implementation.
+title: "Proposal: "
+labels:
+  - proposal
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A proposal captures an idea for review. It does not authorize implementation.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Proposal summary
+      description: What are you proposing?
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What problem does this solve or what opportunity does it preserve?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposed scope
+      description: Include desired outcome, affected domains, and any known exclusions.
+    validations:
+      required: true
+  - type: dropdown
+    id: proposal_type
+    attributes:
+      label: Proposal type
+      options:
+        - Documentation/planning only
+        - Runtime implementation candidate
+        - SQL/OpenAPI contract candidate
+        - QA/testing candidate
+        - Governance/process candidate
+        - Parking Lot candidate
+    validations:
+      required: true
+  - type: textarea
+    id: no_go
+    attributes:
+      label: Known NO-GO boundaries
+      description: List current boundaries this proposal must not cross.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Suggested verification gates
+      description: Commands, review gates, or docs that would be required if this advances.
+  - type: checkboxes
+    id: authorization
+    attributes:
+      label: Authorization acknowledgement
+      options:
+        - label: I understand this proposal does not authorize implementation.
+          required: true
+        - label: A PR must link to an approved issue or approved governance decision before implementation.
+          required: true
