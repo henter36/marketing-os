@@ -1,0 +1,61 @@
+name: Gap Report
+description: Capture a contract, runtime, SQL, OpenAPI, QA, or documentation gap for triage.
+title: "Gap: "
+labels:
+  - gap
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A gap report records a discrepancy or missing decision. It does not authorize implementation.
+  - type: textarea
+    id: gap
+    attributes:
+      label: Gap summary
+      description: What is missing, inconsistent, or unresolved?
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Gap category
+      options:
+        - Runtime/SQL parity
+        - OpenAPI/implementation drift
+        - SQL/contract mismatch
+        - QA coverage gap
+        - Governance/process gap
+        - Documentation contradiction
+        - Tenant isolation/RBAC risk
+        - ErrorModel risk
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Link files, lines, issues, PRs, reports, or observed behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact if unresolved
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_resolution
+    attributes:
+      label: Proposed resolution path
+      description: Planning, documentation, contract PR, QA addendum, or implementation PR.
+  - type: checkboxes
+    id: authorization
+    attributes:
+      label: Authorization acknowledgement
+      options:
+        - label: I understand this gap report does not authorize implementation.
+          required: true
+        - label: Any implementation requires approved scope, allowed files, forbidden files, and verification gates.
+          required: true
