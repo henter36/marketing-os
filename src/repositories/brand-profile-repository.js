@@ -79,7 +79,8 @@ class BrandProfileRepository {
           WHERE workspace_id = $1
           LIMIT 1
         `,
-        [workspaceId]
+        [workspaceId],
+        { workspaceId }
       );
 
       const workspace = workspaces[0];
