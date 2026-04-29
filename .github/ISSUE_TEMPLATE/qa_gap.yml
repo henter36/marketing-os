@@ -1,0 +1,61 @@
+name: QA Gap
+description: Capture missing, weak, or deferred test coverage.
+title: "QA Gap: "
+labels:
+  - qa
+  - gap
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A QA gap records missing or insufficient verification. It does not authorize implementation.
+  - type: textarea
+    id: summary
+    attributes:
+      label: QA gap summary
+      description: What behavior, contract, or risk lacks coverage?
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Test layer
+      options:
+        - Unit
+        - Integration
+        - Migration
+        - OpenAPI/contract
+        - Runtime/SQL parity
+        - Tenant isolation/RBAC
+        - ErrorModel
+        - Manual verification
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: expected_test
+    attributes:
+      label: Expected future test or gate
+      description: Describe the test that should exist.
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk if not covered
+    validations:
+      required: true
+  - type: textarea
+    id: related
+    attributes:
+      label: Related docs, issues, PRs, or commands
+  - type: checkboxes
+    id: authorization
+    attributes:
+      label: Authorization acknowledgement
+      options:
+        - label: I understand this QA gap does not authorize test or runtime implementation.
+          required: true
+        - label: A future test PR must define allowed files, forbidden files, and verification gates.
+          required: true
