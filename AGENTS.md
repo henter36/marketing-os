@@ -65,6 +65,57 @@ If the request does not explicitly approve implementation, default to documentat
 - Do not treat CostEvent as billing or invoice state.
 - Do not implement auto-publishing, paid execution, AI agents/providers, advanced attribution, BillingProvider, ProviderUsageLog, or feature expansion from fit-gap documents without separate approval.
 
+## Cost-controlled Codex mode
+
+Codex must minimize context, file reads, and tool use.
+
+For broad, ambiguous, or repository-wide requests:
+
+- default to inspect-only;
+- do not modify files;
+- identify the minimum files needed;
+- stop and report if more files are required.
+
+Codex must not scan the entire repository unless the user explicitly requests a repository-wide audit.
+
+Before editing, Codex must classify the task as one of:
+
+- documentation-only;
+- planning/governance;
+- contract patch;
+- implementation;
+- verification;
+- conflict resolution.
+
+If the task classification is unclear, Codex must stop and ask for scope clarification instead of editing.
+
+## Edit limits
+
+Codex must make the smallest safe change.
+
+If a task requires modifying more than 3 files, Codex must stop and report:
+
+- why more files are required;
+- which files are affected;
+- whether the task is still within approved scope.
+
+Codex must not add dependencies, modify package files, or change workflows unless explicitly approved.
+
+## Default execution behavior
+
+For every task, Codex must report:
+
+- task classification;
+- approved sources used;
+- allowed files;
+- forbidden files;
+- changed files;
+- verification commands run;
+- remaining risks;
+- GO / NO-GO recommendation.
+
+If verification cannot be run, Codex must not mark the task as fully verified.
+
 ## Skills
 
 Use local skills under `.agents/skills/` when they match the task:
