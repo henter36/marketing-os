@@ -41,6 +41,7 @@ This document records major documentation and contract changes for Marketing OS.
 | 2026-04-29 | Brand Runtime/SQL mapping addendum documented | `docs/brand_runtime_sql_mapping_addendum.md` | Resolved documentation-only BrandProfile / BrandVoiceRule field, default, status, route, duplicate, response shape, tenant isolation, and ErrorModel mapping decisions; Slice 1 implementation, full DB-backed persistence, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-29 | Current repository status reconciled after PR #33 | `README.md`, `docs/project_status_after_sprint_4.md`, `docs/17_change_log.md`, `docs/current_repository_status_after_pr_33.md` | Reconciled current-state documentation after the Brand mapping addendum; DB-backed Slice 0 and pg are limited to Workspace/Membership/RBAC repository read-path verification, product routes remain in-memory, PR #24 / Patch 003 remains Draft / NO-GO, and Slice 1, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-29 | Brand Slice 1 implementation gate reviewed | `docs/brand_slice_1_implementation_gate_review.md`, `docs/17_change_log.md` | Locked a documentation-only CONDITIONAL GO for a future repository-only BrandProfile / BrandVoiceRule implementation preparation while runtime route switching, get/update routes, SQL/OpenAPI changes, durable AuditLog claims, DB-backed full persistence, Sprint 5, Pilot, and Production remain NO-GO |
+| 2026-04-29 | DB-backed Brand Slice 1 repositories implemented | `src/repositories/brand-profile-repository.js`, `src/repositories/brand-voice-rule-repository.js`, `src/repositories/index.js`, `test/integration/db-backed-slice1-brand.integration.test.js`, `docs/db_backed_slice_1_brand_implementation_report.md` | Added repository-only BrandProfile / BrandVoiceRule DB-backed list/create/internal validation slice with integration tests; HTTP/runtime route switching, public get/update routes, SQL/OpenAPI changes, durable AuditLog persistence, DB-backed full persistence, Sprint 5, Pilot, and Production remain NO-GO |
 | 2026-04-29 | Deferred architecture / logic remediation execution plan added | `docs/deferred_architecture_logic_remediation_execution_plan.md`, `docs/17_change_log.md` | Added a documentation-only deferred execution plan for architecture, validation, environment, guardrail, retry, and templating remediation after current repairs; no runtime, SQL, OpenAPI, package, workflow, or test changes are authorized by this plan |
 | 2026-04-29 | Conversation-derived proposal and fix priority plan added | `docs/conversation_derived_proposal_and_fix_priority_plan.md`, `docs/17_change_log.md` | Consolidated conversation-derived proposals, fixes, deferrals, rejection decisions, impact matrix, and PR strategy into a documentation-only priority plan; no runtime, SQL, OpenAPI, QA, package, workflow, or migration changes are authorized |
 | 2026-04-29 | Future technical and business ideas fit-gap added | `docs/future_technical_and_business_ideas_fit_gap.md`, `docs/17_change_log.md` | Captured eventing, AI, analytics, marketplace, integration, security, DevOps, and collaboration ideas as a future fit/gap register only; no current runtime, SQL, OpenAPI, QA, package, workflow, migration, or Core V1 implementation changes are authorized |
@@ -67,18 +68,21 @@ GO: DB-backed Slice 0 exists for Workspace/Membership/RBAC repository read-path 
 GO: pg adapter exists for DB-backed Slice 0 only.
 GO: Brand Runtime/SQL Mapping Addendum from PR #33 is merged as documentation only.
 GO: Brand Slice 1 implementation gate review is complete as documentation only.
-CONDITIONAL GO: repository-only Brand Slice 1 implementation may be prepared next.
+GO: repository-only Brand Slice 1 is implemented for BrandProfile / BrandVoiceRule list/create/internal validation methods.
 CONDITIONAL GO: deferred architecture / logic remediation planning is documented for later use after current repairs and a dedicated audit.
 CONDITIONAL GO: conversation-derived proposal consolidation is documented for planning and scope-control only.
 CONDITIONAL GO: future technical and business ideas are documented as future fit/gap only.
 CONDITIONAL GO: AI and Campaign Canvas proposals are documented as future fit/gap only.
 NO-GO: Runtime changes from this reconciliation.
+NO-GO: HTTP/runtime product route switch.
 NO-GO: HTTP/runtime product routes are DB-backed by default.
 NO-GO: public Brand get/update routes.
 NO-GO: SQL/OpenAPI changes.
 NO-GO: durable AuditLog persistence claims.
 NO-GO: DB-backed full persistence.
-NO-GO: Patch 002 DB persistence.
+NO-GO: Campaign persistence.
+NO-GO: BriefVersion persistence.
+NO-GO: Media, Approval, Publish, Evidence, Patch 002, Usage/Cost, or Audit persistence.
 NO-GO: PR #24 / Patch 003 competitive feature contract reconciliation while draft; it is not part of main.
 NO-GO: immediate implementation of Python validators.py, generic middleware, retry logic, or dynamic templating under the deferred remediation plan.
 NO-GO: execution of conversation-derived P2/P3 future ideas without separate contract/RFC/QA approval.
