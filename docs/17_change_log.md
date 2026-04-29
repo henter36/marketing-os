@@ -71,6 +71,7 @@ GO: pg adapter exists for DB-backed Slice 0 only.
 GO: Brand Runtime/SQL Mapping Addendum from PR #33 is merged as documentation only.
 GO: Brand Slice 1 implementation gate review is complete as documentation only.
 GO: repository-only Brand Slice 1 is implemented for BrandProfile / BrandVoiceRule list/create/internal validation methods.
+GO: Brand Slice 1 Runtime Switch Planning is documented as planning only; implementation remains NO-GO until reviewed.
 CONDITIONAL GO: deferred architecture / logic remediation planning is documented for later use after current repairs and a dedicated audit.
 CONDITIONAL GO: conversation-derived proposal consolidation is documented for planning and scope-control only.
 CONDITIONAL GO: future technical and business ideas are documented as future fit/gap only.
