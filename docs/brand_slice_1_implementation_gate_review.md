@@ -37,6 +37,7 @@ PR #34 has been merged to main, so the current repository status reconciliation 
 | No new get/update routes are approved | Confirmed | Individual public get/update routes for BrandProfile or BrandVoiceRule remain NO-GO. Internal repository lookup helpers may exist only for validation/tests. |
 | `language`, `brand_status`, and `rule_status` are internal/default-only for Slice 1 | Confirmed | `language` uses `workspaces.default_locale`; `brand_status` relies on SQL default `draft`; `rule_status` relies on SQL default `active`. These must not appear as new public inputs or outputs in Slice 1. |
 | `rule_type` enum validation must happen before DB insert | Confirmed | Accepted values are `tone`, `banned_claim`, `required_phrase`, `style`, `legal`, and `locale`; unsupported values must map to the existing validation ErrorModel without exposing SQL enum errors. |
+| BrandVoiceRule `severity` validation must use the accepted contract values | Confirmed | Accepted severity values are `info`, `warning`, and `blocker`; unsupported values must map to the existing validation ErrorModel without relying on raw DB errors. |
 | Implementation, if allowed later, must be repository-only first and must not switch HTTP/runtime product routes | Confirmed | The in-memory HTTP/runtime product routes remain default. A future PR may add repositories and repository tests only unless a separate reviewed runtime-switch PR is approved. |
 | Durable AuditLog persistence is not claimed | Confirmed | Current audit behavior remains a placeholder/event pattern. Brand Slice 1 must not claim durable AuditLog persistence unless a separate AuditLog implementation is approved. |
 | Required future tests are identified before implementation | Confirmed | Required future tests are listed below and must be included in the implementation PR before the slice is considered mergeable. |
@@ -89,6 +90,7 @@ A future Brand Slice 1 repository-only implementation must include tests for:
 - BrandVoiceRule list by parent BrandProfile within workspace.
 - BrandVoiceRule create validates parent BrandProfile in the same workspace.
 - BrandVoiceRule create maps `rule_type`, `rule_text`, and `severity` correctly.
+- BrandVoiceRule accepts only these `severity` values: `info`, `warning`, and `blocker`.
 - BrandVoiceRule invalid `rule_type` is rejected before DB insert with the existing validation ErrorModel.
 - BrandVoiceRule invalid `severity` maps to the existing validation ErrorModel.
 - BrandVoiceRule SQL `rule_status` default remains internal and does not drift into the public response.
