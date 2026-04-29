@@ -56,22 +56,6 @@ class BrandProfileRepository {
     try {
       validateBrandProfileInput(input);
 
-      const existing = await this.pool.query(
-        `
-          SELECT brand_profile_id
-          FROM brand_profiles
-          WHERE workspace_id = $1
-            AND profile_name = $2
-          LIMIT 1
-        `,
-        [workspaceId, input.brand_name],
-        { workspaceId }
-      );
-
-      if (existing.length > 0) {
-        throw duplicateBrandProfileError();
-      }
-
       const workspaces = await this.pool.query(
         `
           SELECT default_locale
@@ -102,6 +86,7 @@ class BrandProfileRepository {
             created_by_user_id
           )
           VALUES ($1, $2, $3, $4, $5)
+          ON CONFLICT (workspace_id, profile_name) DO NOTHING
           RETURNING
             brand_profile_id,
             workspace_id,
@@ -111,6 +96,10 @@ class BrandProfileRepository {
         [workspaceId, input.brand_name, input.brand_description || "", workspace.default_locale, actorUserId],
         { workspaceId }
       );
+
+      if (!inserted[0]) {
+        throw duplicateBrandProfileError();
+      }
 
       return toPublicBrandProfile(inserted[0]);
     } catch (error) {

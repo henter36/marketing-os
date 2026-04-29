@@ -111,6 +111,37 @@ test("BrandProfileRepository rejects duplicate profile names within the same wor
   );
 });
 
+test("BrandProfileRepository maps concurrent same-workspace duplicate creates to safe duplicate errors", { skip: !hasDatabaseUrl }, async () => {
+  const brandName = "Slice 1 Concurrent Duplicate Brand";
+  const attempts = await Promise.allSettled([
+    createBrandProfile({
+      workspaceId: ids.workspaceA,
+      actorUserId: ids.ownerA,
+      brandName,
+      brandDescription: "Concurrent duplicate first",
+    }),
+    createBrandProfile({
+      workspaceId: ids.workspaceA,
+      actorUserId: ids.ownerA,
+      brandName,
+      brandDescription: "Concurrent duplicate second",
+    }),
+  ]);
+
+  const fulfilled = attempts.filter((attempt) => attempt.status === "fulfilled");
+  const rejected = attempts.filter((attempt) => attempt.status === "rejected");
+
+  assert.equal(fulfilled.length, 1);
+  assert.equal(rejected.length, 1);
+  assert.equal(fulfilled[0].value.brand_name, brandName);
+
+  const error = rejected[0].reason;
+  assert(error instanceof AppError);
+  assert.equal(error.status, 409);
+  assert.equal(error.code, "DUPLICATE_BRAND_PROFILE");
+  assertNoRawDatabaseDetails(error);
+});
+
 test("BrandProfileRepository allows duplicate profile names across different workspaces", { skip: !hasDatabaseUrl }, async () => {
   const brandName = "Slice 1 Shared Brand";
   const profileA = await createBrandProfile({
