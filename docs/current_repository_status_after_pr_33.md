@@ -1,5 +1,9 @@
 # Current Repository Status After PR #33
 
+## Supersession Notice
+
+This document is superseded by `docs/current_repository_status_after_brand_slice_1.md` after PR #36 and PR #42. It remains historical evidence for the status immediately after PR #33.
+
 ## Executive Status
 
 ```text

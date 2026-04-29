@@ -2,7 +2,7 @@
 
 Marketing OS is a Phase 0/1 execution repository for a governed AI-assisted marketing operating system.
 
-This repository remains a contract-first implementation package. It contains a verified backend baseline through Sprint 4, a limited Patch 002 in-memory runtime baseline with strict SQL migration activation, DB-backed Slice 0 repository verification for Workspace/Membership/RBAC read paths, and the Brand Runtime/SQL Mapping Addendum from PR #33. It is not approved for Pilot or Production.
+This repository remains a contract-first implementation package. It contains a verified backend baseline through Sprint 4, a limited Patch 002 in-memory runtime baseline with strict SQL migration activation, DB-backed Slice 0 repository verification for Workspace/Membership/RBAC read paths, and repository-only DB-backed Brand Slice 1 modules for BrandProfileRepository and BrandVoiceRuleRepository. HTTP/runtime product routes still default to the in-memory runtime. It is not approved for Pilot or Production.
 
 ## Verified Status
 
@@ -25,17 +25,22 @@ Runtime/SQL Parity Planning: Passed as documentation only
 Runtime/SQL Parity Matrix artifacts: Passed as documentation only
 DB-backed Slice 1 BrandProfile / BrandVoiceRule Planning: Passed as documentation only
 Brand Runtime/SQL Mapping Addendum: Passed and merged as documentation only in PR #33
-Latest merged main commit: 57df33c
+DB-backed Brand Slice 1 repository-only implementation: Passed and merged
+DB-backed Brand Slice 1 post-merge verification: Passed and merged
+BrandProfileRepository and BrandVoiceRuleRepository: Present as repository-only modules
+Latest merged main commit: a5a37a2
 PR #24 / Patch 003 competitive feature contract reconciliation: Draft / NO-GO / not part of main
 Current HTTP/runtime product routes: In-memory unless explicitly switched by a future approved PR
+Brand runtime route switch: NO-GO
+Public Brand get/update routes: NO-GO
 DB-backed full persistence: NO-GO
-Brand Slice 1 implementation: NO-GO until reviewed and separately approved
+Brand Slice 1 repository-only implementation: GO / merged / verified
 Sprint 5 coding: NO-GO
 Pilot: NO-GO
 Production: NO-GO
 ```
 
-The latest merged main commit after PR #33 is `57df33ca3af74ae38494e6959b1e56b23bed83b8`.
+The latest merged main commit after PR #42 is `a5a37a2bc2d1b2147ca7dffb489fb52a2617b122`.
 
 ## Current Repository Structure
 
@@ -60,7 +65,10 @@ docs/
   runtime_sql_parity_*.md
   db_backed_slice_1_candidate_selection.md
   db_backed_slice_1_brand_planning.md
+  db_backed_slice_1_brand_implementation_report.md
+  db_backed_slice_1_brand_post_merge_verification_report.md
   brand_runtime_sql_mapping_addendum.md
+  current_repository_status_after_brand_slice_1.md
   current_repository_status_after_pr_33.md
   inpactai_*.md
   marketing_os_v5_6_5_phase_0_1_*.md/sql/yaml
@@ -155,6 +163,9 @@ docs/runtime_sql_parity_test_plan.md
 docs/db_backed_slice_1_candidate_selection.md
 docs/db_backed_slice_1_brand_planning.md
 docs/brand_runtime_sql_mapping_addendum.md
+docs/db_backed_slice_1_brand_implementation_report.md
+docs/db_backed_slice_1_brand_post_merge_verification_report.md
+docs/current_repository_status_after_brand_slice_1.md
 docs/current_repository_status_after_pr_33.md
 ```
 
@@ -183,6 +194,8 @@ The following remain the implementation authority for Phase 0/1 work:
 | DB-backed architecture contract | `docs/db_backed_repository_architecture_contract.md` |
 | DB-backed Slice 0 plan | `docs/db_backed_repository_slice_0_plan.md` |
 | Brand runtime/SQL mapping addendum | `docs/brand_runtime_sql_mapping_addendum.md` |
+| Brand Slice 1 implementation evidence | `docs/db_backed_slice_1_brand_implementation_report.md` |
+| Brand Slice 1 post-merge verification | `docs/db_backed_slice_1_brand_post_merge_verification_report.md` |
 
 If a numbered file conflicts with one of these source files, stop and resolve the conflict before implementation.
 
@@ -232,12 +245,15 @@ DB-backed Repository Architecture Contract: Passed
 DB-backed Repository Slice 0 Plan: Passed
 DB-backed Repository Slice 0 Implementation: Passed as Workspace/Membership/RBAC repository read-path verification only
 pg Adapter Implementation: Passed for Slice 0 only
+DB-backed Brand Slice 1 repository-only implementation: Passed and merged
+DB-backed Brand Slice 1 post-merge verification: Passed and merged
 Current HTTP/runtime product routes: In-memory
 DB-backed full persistence: NO-GO
-Brand Slice 1 implementation: NO-GO until reviewed and separately approved
+Brand runtime route switch: NO-GO
+Public Brand get/update routes: NO-GO
 ```
 
-Slice 0 proves a limited repository/test read path for Workspace/Membership/RBAC. It does not replace the full in-memory store, does not switch HTTP/runtime product routes to DB-backed persistence, and does not authorize Brand, Campaign, Brief, Media, Approval, Publish, Evidence, Report, Patch 002, Usage/Cost, Audit, or write-path persistence.
+Slice 0 proves a limited repository/test read path for Workspace/Membership/RBAC. Brand Slice 1 now proves repository-only BrandProfileRepository and BrandVoiceRuleRepository methods plus repository-only integration tests. These slices do not replace the full in-memory store, do not switch HTTP/runtime product routes to DB-backed persistence, and do not authorize Campaign, Brief, Media, Approval, Publish, Evidence, Report, Patch 002, Usage/Cost, Audit, or broader write-path persistence.
 
 ## Brand Slice 1 Status
 
@@ -247,7 +263,14 @@ The Brand Runtime/SQL Mapping Addendum from PR #33 is merged as documentation on
 docs/brand_runtime_sql_mapping_addendum.md
 ```
 
-The addendum reconciles BrandProfile / BrandVoiceRule field names, defaults, status fields, route scope, duplicate behavior, response shape, tenant isolation, and ErrorModel mapping. It does not implement Brand Slice 1, does not approve new endpoints, and does not switch runtime routes to DB-backed persistence.
+The repository-only Brand Slice 1 implementation and post-merge verification are merged:
+
+```text
+docs/db_backed_slice_1_brand_implementation_report.md
+docs/db_backed_slice_1_brand_post_merge_verification_report.md
+```
+
+Brand Slice 1 now includes repository-only BrandProfileRepository and BrandVoiceRuleRepository methods and repository-only integration tests. It does not add public Brand get/update routes, does not change SQL/OpenAPI, does not implement durable AuditLog persistence, does not switch HTTP/runtime product routes to DB-backed persistence, and does not implement DB-backed full persistence.
 
 ## InPactAI Status
 
@@ -258,7 +281,8 @@ The InPactAI fit-gap study and near-term candidates are documentation only. They
 ```text
 Documentation-only reconciliation: GO.
 Runtime changes: NO-GO.
-Brand Slice 1 implementation: NO-GO until reviewed and separately approved.
+Brand Slice 1 repository-only implementation: GO / merged / verified.
+Brand runtime route switch: NO-GO until separately planned and approved.
 Patch 002 DB persistence: NO-GO.
 Patch 003 / PR #24 competitive track: Draft / NO-GO / not part of main.
 DB-backed full persistence: NO-GO.
@@ -286,7 +310,8 @@ No Creator Marketplace implementation.
 No InPactAI implementation.
 No Patch 002 DB persistence.
 No Patch 003 activation or merge while PR #24 remains Draft / NO-GO.
-No Brand Slice 1 implementation without separate review and approval.
+No Brand runtime route switch without separate review and approval.
+No public Brand get/update routes without separate contract approval.
 ```
 
 ## Non-Negotiable Implementation Rules
