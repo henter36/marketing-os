@@ -2,7 +2,7 @@
 
 Marketing OS is a Phase 0/1 execution repository for a governed AI-assisted marketing operating system.
 
-This repository remains a contract-first implementation package. It contains a verified backend baseline through Sprint 4, a limited Patch 002 in-memory runtime baseline with strict SQL migration activation, DB-backed Slice 0 repository verification for Workspace/Membership/RBAC read paths, and repository-only DB-backed Brand Slice 1 modules for BrandProfileRepository and BrandVoiceRuleRepository. HTTP/runtime product routes still default to the in-memory runtime. It is not approved for Pilot or Production.
+This repository remains a contract-first implementation package. It contains a verified backend baseline through Sprint 4, a limited Patch 002 in-memory runtime baseline with strict SQL migration activation, DB-backed Slice 0 repository verification for Workspace/Membership/RBAC read paths, repository-only DB-backed Brand Slice 1 modules for BrandProfileRepository and BrandVoiceRuleRepository, and later documentation-only governance records for consolidated PRD intake, agent runtime portability, source-of-truth precedence, and progressive automation / governed agentic execution. HTTP/runtime product routes still default to the in-memory runtime. It is not approved for Pilot or Production.
 
 ## Verified Status
 
@@ -28,19 +28,30 @@ Brand Runtime/SQL Mapping Addendum: Passed and merged as documentation only in P
 DB-backed Brand Slice 1 repository-only implementation: Passed and merged
 DB-backed Brand Slice 1 post-merge verification: Passed and merged
 BrandProfileRepository and BrandVoiceRuleRepository: Present as repository-only modules
-Latest merged main commit: a5a37a2
+ChatGPT discussion idea intake source: Merged as non-authoritative intake only
+Consolidated expanded PRD: Merged as documentation-only strategic blueprint
+Current repository status after consolidated PRD: Merged as governance/status reconciliation
+Agent runtime constraints and portability governance: Merged as documentation-only adapter/setup-data governance
+Progressive Automation and Governed Agentic Execution Strategy: Merged as documentation-only strategy in PR #79
+Source-of-Truth Precedence Decision Record: Added as documentation-only governance record in the current reconciliation PR
+Latest merged main commit: 9e81f12
 PR #24 / Patch 003 competitive feature contract reconciliation: Draft / NO-GO / not part of main
 Current HTTP/runtime product routes: In-memory unless explicitly switched by a future approved PR
 Brand runtime route switch: NO-GO
 Public Brand get/update routes: NO-GO
 DB-backed full persistence: NO-GO
+Runtime agents: NO-GO
+External publishing: NO-GO
+Auto-replies: NO-GO
+Paid ads execution: NO-GO
+Budget-changing agents: NO-GO
 Brand Slice 1 repository-only implementation: GO / merged / verified
 Sprint 5 coding: NO-GO
 Pilot: NO-GO
 Production: NO-GO
 ```
 
-The latest merged main commit after PR #42 is `a5a37a2bc2d1b2147ca7dffb489fb52a2617b122`.
+The latest merged main commit after PR #79 is `9e81f127b91c911373972efc4baf1960a344a617`.
 
 ## Current Repository Structure
 
@@ -70,6 +81,12 @@ docs/
   brand_runtime_sql_mapping_addendum.md
   current_repository_status_after_brand_slice_1.md
   current_repository_status_after_pr_33.md
+  chatgpt_discussion_idea_intake_source.md
+  marketing_os_consolidated_prd_expanded.md
+  current_repository_status_after_consolidated_prd.md
+  agent_runtime_constraints_and_portability.md
+  progressive_automation_and_governed_agentic_execution_strategy.md
+  source_of_truth_precedence_decision_record.md
   inpactai_*.md
   marketing_os_v5_6_5_phase_0_1_*.md/sql/yaml
   marketing_os_v5_6_5_codex_implementation_instructions.md
@@ -88,6 +105,7 @@ test/
   Node test suites for migrations, tenant isolation, RBAC, ErrorModel, Sprint 1-4 behavior, Patch 002 runtime behavior, DB-backed Slice 0 repository verification, OpenAPI alignment, and regression checks.
 
 root files
+  AGENTS.md
   README.md
   package.json
   package-lock.json
@@ -167,6 +185,8 @@ docs/db_backed_slice_1_brand_implementation_report.md
 docs/db_backed_slice_1_brand_post_merge_verification_report.md
 docs/current_repository_status_after_brand_slice_1.md
 docs/current_repository_status_after_pr_33.md
+docs/current_repository_status_after_consolidated_prd.md
+docs/source_of_truth_precedence_decision_record.md
 ```
 
 The current post-Sprint 4 status summary lives in:
@@ -189,15 +209,35 @@ The following remain the implementation authority for Phase 0/1 work:
 | OpenAPI patch 002 | `docs/marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml` |
 | Backlog | `docs/marketing_os_v5_6_5_phase_0_1_backlog.md` |
 | QA suite | `docs/marketing_os_v5_6_5_phase_0_1_qa_test_suite.md` |
-| Codex instructions | `docs/marketing_os_v5_6_5_codex_implementation_instructions.md` |
+| Codex instructions | `AGENTS.md` and `docs/marketing_os_v5_6_5_codex_implementation_instructions.md` |
 | Contract patch 001 | `docs/marketing_os_v5_6_5_phase_0_1_contract_patch_001.md` |
 | DB-backed architecture contract | `docs/db_backed_repository_architecture_contract.md` |
 | DB-backed Slice 0 plan | `docs/db_backed_repository_slice_0_plan.md` |
 | Brand runtime/SQL mapping addendum | `docs/brand_runtime_sql_mapping_addendum.md` |
 | Brand Slice 1 implementation evidence | `docs/db_backed_slice_1_brand_implementation_report.md` |
 | Brand Slice 1 post-merge verification | `docs/db_backed_slice_1_brand_post_merge_verification_report.md` |
+| Source-of-truth precedence | `docs/source_of_truth_precedence_decision_record.md` |
+| Progressive automation strategy | `docs/progressive_automation_and_governed_agentic_execution_strategy.md` |
 
 If a numbered file conflicts with one of these source files, stop and resolve the conflict before implementation.
+
+## Source-of-Truth Precedence
+
+The current source-of-truth precedence decision is documented in:
+
+```text
+docs/source_of_truth_precedence_decision_record.md
+```
+
+The consolidated expanded PRD, ChatGPT discussion intake source, future fit-gap documents, proposal registers, GitHub Issues, and agent-runtime portability notes may inform planning, but do not authorize implementation by themselves.
+
+The root `AGENTS.md` exists and governs Codex operating discipline and repository task execution. It is not a product-level governed agent architecture contract. If a product-level agent contract is later needed, create a separate file such as:
+
+```text
+docs/governed_agent_architecture_contract.md
+```
+
+Do not create another `docs/AGENTS.md` that could conflict with root `AGENTS.md`.
 
 ## Database Migration Order
 
@@ -272,6 +312,21 @@ docs/db_backed_slice_1_brand_post_merge_verification_report.md
 
 Brand Slice 1 now includes repository-only BrandProfileRepository and BrandVoiceRuleRepository methods and repository-only integration tests. It does not add public Brand get/update routes, does not change SQL/OpenAPI, does not implement durable AuditLog persistence, does not switch HTTP/runtime product routes to DB-backed persistence, and does not implement DB-backed full persistence.
 
+## Governance and Agentic Strategy Status
+
+The following documents are documentation-only planning or governance references:
+
+```text
+docs/chatgpt_discussion_idea_intake_source.md
+docs/marketing_os_consolidated_prd_expanded.md
+docs/current_repository_status_after_consolidated_prd.md
+docs/agent_runtime_constraints_and_portability.md
+docs/progressive_automation_and_governed_agentic_execution_strategy.md
+docs/source_of_truth_precedence_decision_record.md
+```
+
+They do not authorize runtime agents, external providers, external publishing, auto-replies, paid execution, AI provider implementation, SQL/OpenAPI changes, runtime changes, package changes, workflow changes, Pilot, or Production.
+
 ## InPactAI Status
 
 The InPactAI fit-gap study and near-term candidates are documentation only. They do not approve InPactAI implementation, Creator Marketplace implementation, ERD changes, SQL changes, OpenAPI changes, QA changes, runtime changes, or direct code adoption.
@@ -286,6 +341,11 @@ Brand runtime route switch: NO-GO until separately planned and approved.
 Patch 002 DB persistence: NO-GO.
 Patch 003 / PR #24 competitive track: Draft / NO-GO / not part of main.
 DB-backed full persistence: NO-GO.
+Runtime agents: NO-GO.
+External publishing: NO-GO.
+Auto-replies: NO-GO.
+Paid ads execution: NO-GO.
+Budget-changing agents: NO-GO.
 Sprint 5 coding: NO-GO.
 Pilot: NO-GO.
 Production: NO-GO.
@@ -301,8 +361,11 @@ No Pilot.
 No Production.
 No frontend.
 No auto-publishing.
+No auto-replies.
+No external publishing.
 No paid execution.
 No AI agents.
+No runtime agent implementation.
 No advanced attribution.
 No BillingProvider.
 No ProviderUsageLog.
