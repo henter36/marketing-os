@@ -1,4 +1,6 @@
-const brandRuntimeModes = ["in_memory", "repository"];
+const runtimeModes = ["in_memory", "repository"];
+const brandRuntimeModes = runtimeModes;
+const templateRuntimeModes = runtimeModes;
 
 class ConfigurationError extends Error {
   constructor(code, message) {
@@ -14,6 +16,7 @@ function loadConfig(env = process.env) {
     port: Number(env.PORT || 3000),
     databaseUrl: env.DATABASE_URL || "",
     brandRuntimeMode: resolveBrandRuntimeMode(env),
+    templateRuntimeMode: resolveTemplateRuntimeMode(env),
   };
 }
 
@@ -32,4 +35,24 @@ function resolveBrandRuntimeMode(env = {}) {
   return env.ENABLE_DB_BACKED_BRAND_ROUTES === "true" ? "repository" : "in_memory";
 }
 
-module.exports = { ConfigurationError, loadConfig, resolveBrandRuntimeMode };
+function resolveTemplateRuntimeMode(env = {}) {
+  const explicitMode = env.TEMPLATE_RUNTIME_MODE;
+  if (explicitMode !== undefined && explicitMode !== "") {
+    if (!templateRuntimeModes.includes(explicitMode)) {
+      throw new ConfigurationError(
+        "INVALID_TEMPLATE_RUNTIME_MODE",
+        "Invalid TEMPLATE_RUNTIME_MODE. Allowed values: in_memory, repository."
+      );
+    }
+    return explicitMode;
+  }
+
+  return "in_memory";
+}
+
+module.exports = {
+  ConfigurationError,
+  loadConfig,
+  resolveBrandRuntimeMode,
+  resolveTemplateRuntimeMode,
+};
