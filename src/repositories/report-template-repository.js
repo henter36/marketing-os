@@ -115,7 +115,7 @@ function duplicateReportTemplateError() {
     409,
     "DUPLICATE_REPORT_TEMPLATE",
     "Report template already exists in this workspace.",
-    "Use a different template_name."
+    "Use a different name."
   );
 }
 
