@@ -35,6 +35,7 @@ Implementation continuation remains **NO-GO** unless the selected next slice has
 | Output | Purpose |
 |---|---|
 | `docs/phase_0_1_documentation_authority_review.md` | Authority map and implementation readiness decision |
+| `docs/phase_0_1_delivery_backlog_hierarchy.md` | Epic/Feature/User Story/Acceptance Criteria/Test Case/Priority/Dependencies delivery hierarchy |
 | `docs/phase_0_1_traceability_matrix.md` | Capability-to-story-to-entity-to-API-to-QA mapping |
 | `docs/phase_0_1_user_stories_review.md` | Normalized review of Phase 0/1 user stories |
 | `docs/phase_0_1_test_case_coverage_review.md` | QA coverage review and missing test backlog |
@@ -80,6 +81,7 @@ PR #24 remains Draft / NO-GO. Patch 003 competitive files must remain isolated u
 
 | Missing / weak item | Why it matters | Decision |
 |---|---|---|
+| Delivery backlog hierarchy | Organizes Epic/Feature/User Story/Test/Priority/Dependencies before slice selection | Added in this package |
 | Traceability matrix | Prevents stories without ERD/API/QA/audit coverage | Added in this package |
 | Threat model | QA does not replace abuse/security modeling | Added in this package |
 | Permission and audit matrix | RBAC/audit gaps are systemic risks | Added in this package |
@@ -109,6 +111,7 @@ Before any next coding PR, the following must be true:
 | Re-create PRD | NO-GO | Existing PRD material is strategic; replacement would create source conflict |
 | Re-create ERD | NO-GO | Phase 0/1 ERD already exists as authority |
 | Re-create OpenAPI | NO-GO | Phase 0/1 OpenAPI already exists as authority |
+| Review delivery hierarchy | GO | Existing backlog needs Epic/Feature/Story/Test/Priority/Dependency view before slice selection |
 | Review user stories | GO | Backlog stories need normalized review and traceability |
 | Review test coverage | GO | QA exists but benefits from coverage mapping |
 | Add threat model | GO | Missing governance/security artifact |
