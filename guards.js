@@ -1,6 +1,8 @@
 const { AppError } = require("./error-model");
 const { hasPermission } = require("./rbac");
 
+const promptTemplateTypes = ["caption", "ad_copy", "image_prompt", "video_script", "report", "reply"];
+
 function authGuard(req, store) {
   const userId = req.headers["x-user-id"];
   if (!userId) {
@@ -31,6 +33,50 @@ function rejectBodyWorkspaceId(body, workspaceId) {
       "Remove workspace_id from the body and use the route workspace."
     );
   }
+
+  alignTemplateRuntimeBody(body);
+}
+
+function alignTemplateRuntimeBody(body) {
+  if (!body || !Object.hasOwn(body, "template_name") || !Object.hasOwn(body, "template_body")) {
+    return;
+  }
+
+  if (Object.hasOwn(body, "template_variables") && Object.hasOwn(body, "variables")) {
+    if (!sameJson(body.template_variables, body.variables)) {
+      throw new AppError(
+        422,
+        "VALIDATION_FAILED",
+        "variables and template_variables must match when both are provided.",
+        "Send only template_variables, or send matching variables and template_variables during compatibility migration."
+      );
+    }
+  }
+
+  if (Object.hasOwn(body, "template_variables") && !Object.hasOwn(body, "variables")) {
+    body.variables = body.template_variables;
+  }
+
+  if (Object.hasOwn(body, "variables") && !Object.hasOwn(body, "template_variables")) {
+    body.template_variables = body.variables;
+  }
+
+  if (Object.hasOwn(body, "template_type") && !promptTemplateTypes.includes(body.template_type)) {
+    throw new AppError(
+      422,
+      "VALIDATION_FAILED",
+      "Prompt template type is invalid.",
+      "Use caption, ad_copy, image_prompt, video_script, report, or reply."
+    );
+  }
+
+  if (!Object.hasOwn(body, "template_type") && !Object.hasOwn(body, "report_type")) {
+    body.report_type = "legacy_compatibility_input";
+  }
+}
+
+function sameJson(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
 }
 
 function membershipCheck(user, workspaceId, store) {
