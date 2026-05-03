@@ -1,3 +1,4 @@
+const { AppError } = require("./error-model");
 const { roles, permissions, rolePermissions } = require("./rbac");
 
 function createSeedStore() {
@@ -208,7 +209,7 @@ function createSeedStore() {
     }
   ];
 
-  return {
+  const store = {
     users,
     workspaces,
     memberships,
@@ -318,6 +319,74 @@ function createSeedStore() {
     rolePermissions,
     auditLogs: []
   };
+
+  return normalizeTemplateRuntimeStore(store);
+}
+
+function normalizeTemplateRuntimeStore(store) {
+  store.promptTemplates.forEach(attachPromptTemplateSerializer);
+  store.reportTemplates.forEach(attachReportTemplateSerializer);
+
+  const originalPromptPush = store.promptTemplates.push.bind(store.promptTemplates);
+  store.promptTemplates.push = (...items) => originalPromptPush(...items.map(attachPromptTemplateSerializer));
+
+  const originalReportPush = store.reportTemplates.push.bind(store.reportTemplates);
+  store.reportTemplates.push = (...items) => {
+    for (const item of items) {
+      if (store.reportTemplates.some((candidate) => candidate.workspace_id === item.workspace_id && candidate.template_name === item.template_name)) {
+        throw new AppError(
+          409,
+          "DUPLICATE_REPORT_TEMPLATE",
+          "Report template already exists in this workspace.",
+          "Use a different template_name."
+        );
+      }
+    }
+    return originalReportPush(...items.map(attachReportTemplateSerializer));
+  };
+
+  return store;
+}
+
+function attachPromptTemplateSerializer(template) {
+  template.template_variables ??= template.variables ?? [];
+  template.variables = template.template_variables;
+  template.template_status ??= "draft";
+  Object.defineProperty(template, "toJSON", {
+    configurable: true,
+    enumerable: false,
+    value() {
+      return {
+        prompt_template_id: this.prompt_template_id,
+        workspace_id: this.workspace_id,
+        template_name: this.template_name,
+        template_type: this.template_type,
+        template_body: this.template_body,
+        template_variables: this.template_variables ?? this.variables ?? [],
+        template_status: this.template_status ?? "draft",
+        version_number: this.version_number
+      };
+    }
+  });
+  return template;
+}
+
+function attachReportTemplateSerializer(template) {
+  template.template_status ??= "draft";
+  Object.defineProperty(template, "toJSON", {
+    configurable: true,
+    enumerable: false,
+    value() {
+      return {
+        report_template_id: this.report_template_id,
+        workspace_id: this.workspace_id,
+        template_name: this.template_name,
+        template_body: this.template_body,
+        template_status: this.template_status ?? "draft"
+      };
+    }
+  });
+  return template;
 }
 
 module.exports = { createSeedStore };
