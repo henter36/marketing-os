@@ -1,0 +1,27 @@
+openapi: 3.1.0
+info:
+  title: Marketing OS V5.6.5 Phase 0/1 OpenAPI Patch 003 Placeholder
+  version: 0.3.0-draft-no-go
+  description: |
+    Draft placeholder for future Patch 003 competitive expansion.
+    This file intentionally defines no active paths.
+    Patch 003 must not be added to strict OpenAPI activation until explicitly approved.
+
+x-patch-status: draft-no-go-not-yet-activated
+x-patch-purpose: competitive-expansion-placeholder
+x-patch-002-baseline-note: Patch 002 already exists on main for limited connector/performance/contact/notification baseline.
+x-explicit-exclusions:
+  - creator_payments
+  - escrow
+  - commissions
+  - contract_automation
+  - automated_negotiation
+  - autonomous_social_engagement
+  - auto_follow
+  - auto_like
+  - auto_comment
+  - automated_paid_campaign_execution
+  - full_ai_video_rendering
+  - batch_video_generation
+paths: {}
+components: {}

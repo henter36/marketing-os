@@ -1,0 +1,26 @@
+-- Marketing OS V5.6.5 — Phase 0/1 Schema Patch 003
+-- Status: Draft / NO-GO / not-yet-activated.
+-- Purpose: Reserved placeholder for future Patch 003 competitive expansion schema.
+--
+-- IMPORTANT:
+-- This file intentionally contains no executable schema changes.
+-- Patch 003 must not be added to strict migration order until a separate RFC,
+-- SQL review, migration idempotency review, QA coverage, RBAC mapping, and audit
+-- reconciliation are complete.
+--
+-- Patch 002 already exists on main for the limited connector/performance/contact/
+-- notification baseline. Patch 003 is a separate future competitive expansion track.
+--
+-- Explicitly excluded:
+-- - creator payments;
+-- - escrow;
+-- - commissions;
+-- - contract automation;
+-- - automated negotiation;
+-- - autonomous social engagement;
+-- - auto-follow / auto-like / auto-comment;
+-- - automated paid campaign execution;
+-- - full AI video rendering;
+-- - batch video generation.
+
+-- NO-OP BY DESIGN.
