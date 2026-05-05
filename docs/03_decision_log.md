@@ -5,6 +5,7 @@
 | ID | Date | Decision | Reason | Impact | Status | Affected Files |
 |---|---|---|---|---|---|---|
 | D-001 | TBD | Use phased execution: Phase 0/1 first | Prevent scope explosion and implementation risk | Codex must implement by approved sprint only | Draft | `docs/02_v1_scope.md`, `docs/11_sprint_plan.md` |
+| D-002 | 2026-05-05 | Clarify Nashir Core V1 scope as manual/export/review/approval/evidence only | PR #95, PR #96, and PR #97 established Nashir journey, traceability, and reconciliation guidance requiring a scope patch before backlog or contract work | Adds Nashir as a customer-facing campaign journey within Marketing OS while keeping Agent Mode runtime, AI Service Layer implementation, external integrations, direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, autonomous AI execution, and Post V1 publishing/paid modules outside Core V1 | Approved documentation-only scope clarification | `docs/02_v1_scope.md`, `docs/03_decision_log.md`, `docs/17_change_log.md` |
 
 ## Rules
 
