@@ -127,6 +127,9 @@ Blocked Until Review means scoring cannot safely recommend draft generation, app
 7. User-entered and AI-suggested information must be distinguishable if future implementation is approved.
 8. Protected fields, rights confirmations, and approval status must not be overwritten by AI suggestions.
 9. Every future scoring output should be explainable through missing fields, warnings, blocking reasons, and user action taken.
+10. Missing optional quality-improvement fields may produce soft warnings.
+11. Missing required operational fields should produce `fail`.
+12. Missing required rights, claims, governance, or safety fields should produce `blocked_until_review`.
 
 ## 9. Completeness, confidence, risk gate, and approval status
 
@@ -189,10 +192,10 @@ The following weights are planning-only. They are not implementation rules and d
 
 | Gate state | Meaning |
 |---|---|
-| pass | Inputs are sufficient and no blocking condition is active. |
-| soft_pass | Inputs are usable, but warnings should be shown. |
-| fail | Inputs are insufficient for useful draft generation or checklist preparation. |
-| blocked_until_review | A blocking risk requires human review before proceeding. |
+| pass | Required inputs are sufficient and no blocking condition is active. Pass does not authorize approval or publishing. |
+| soft_pass | Draft generation may proceed with warnings, but quality/confidence is reduced. |
+| fail | The campaign brief is not ready for generation/export because required operational inputs are missing. |
+| blocked_until_review | Risk, rights, policy, governance, prohibited claims, unsupported regulated claims, or attempted NO-GO actions require human review before proceeding. |
 
 ## 14. Blocking conditions
 
@@ -204,7 +207,18 @@ Blocking conditions override numeric readiness. Blocking conditions include:
 - unclear landing destination for conversion objective;
 - unapproved material changes after approval;
 - high-risk content category;
-- attempt to use direct publishing, paid ads, payment, analytics ingestion, attribution, or autonomous AI execution.
+- attempt to use direct publishing;
+- attempt to use social OAuth;
+- attempt to use scheduling;
+- attempt to use paid ads;
+- attempt to use payment;
+- attempt to use analytics ingestion;
+- attempt to use attribution;
+- attempt to use external integrations;
+- attempt to use autonomous AI execution;
+- attempt to implement or invoke Post V1 modules.
+
+`blocked_until_review` is triggered by risk, rights, policy, governance, prohibited claims, unsupported regulated claims, or attempted NO-GO actions. It is not a quality warning.
 
 ## 15. Soft warning conditions
 
@@ -218,6 +232,8 @@ Soft warnings may reduce confidence, downgrade gate state to `soft_pass`, or rec
 - incomplete product/service details;
 - low data readiness.
 
+Missing optional quality-improvement fields may produce soft warnings. Missing required operational fields should produce `fail`. Missing required rights, claims, governance, or safety fields should produce `blocked_until_review`.
+
 Budget clarity is planning-only. It does not authorize spend, paid execution, payment, billing, invoice state, or attribution.
 
 ## 16. Output behavior by readiness
@@ -229,6 +245,8 @@ Budget clarity is planning-only. It does not authorize spend, paid execution, pa
 | Medium / soft_pass | Generate draft anyway with warnings, improve brief first, ask assistant to complete missing fields, or switch to guided wizard. |
 | Low / fail | Improve brief first or switch to guided wizard. |
 | Any score / blocked_until_review | Block until review. |
+
+`pass` does not authorize approval or publishing. `soft_pass` allows draft generation only with reduced confidence and visible warnings. `fail` means the brief is not ready for generation/export because required operational inputs are missing.
 
 The phrase "ask assistant to complete missing fields" means planning-level assistance only. AI must not approve, publish, spend, update protected fields, or convert suggestions into confirmed facts.
 
@@ -308,16 +326,16 @@ Expected planning result: `blocked_until_review` until re-review or reapproval o
 
 | Input area | Required / optional | Weight | Example missing condition | Impact on gate | Notes |
 |---|---|---:|---|---|---|
-| Campaign basics | Required | 10% | Missing objective or campaign name. | fail or soft_pass | Planning-only fields. |
+| Campaign basics | Required | 10% | Missing objective or campaign name. | fail | Required operational fields cannot be warnings only. |
 | Advertised object | Required | 15% | Product/service/store/offer unclear. | fail | User-provided data only. |
-| Audience/geography/language | Required | 10% | Audience too broad or geography missing. | soft_pass or fail | May affect confidence. |
-| Offer/CTA | Required for conversion | 10% | Weak or missing CTA. | soft_pass or fail | Unsupported claims may block. |
+| Audience/geography/language | Required | 10% | Audience missing or geography/language absent. | fail | Broad but present audience may be `soft_pass`; missing required targeting fields should fail. |
+| Offer/CTA | Required for conversion | 10% | Missing CTA or required offer detail. | fail or blocked_until_review | Weak offer may be `soft_pass`; unsupported claims block. |
 | Landing destination | Required for conversion | 10% | Destination unclear or absent. | fail or blocked_until_review | No hosting/tracking approval. |
 | Creative assets | Optional or required by format | 10% | Missing image/video/reference. | soft_pass | May reduce output quality. |
 | Creative rights | Required before publishing support | 10% | Rights not confirmed. | blocked_until_review | Manual confirmation only. |
-| Brand/governance constraints | Required where available | 10% | Prohibited claims unknown. | soft_pass or blocked_until_review | High-risk claims block. |
-| Content/channel requirements | Required for draft outputs | 10% | No channels selected or content type unclear. | fail or soft_pass | Hashtags/scripts are draft only. |
-| UTM/manual publishing readiness | Optional unless needed | 5% | Missing UTM fields or checklist status. | soft_pass | No analytics or attribution. |
+| Brand/governance constraints | Required where available | 10% | Prohibited claims unknown or required governance review missing. | blocked_until_review | Optional tone gaps may warn; required governance/safety gaps block. |
+| Content/channel requirements | Required for draft outputs | 10% | No channels selected or content type unclear. | fail | Optional format refinements may warn; missing required draft/output fields fail. |
+| UTM/manual publishing readiness | Optional unless needed | 5% | Missing UTM fields or checklist status. | soft_pass or fail | Optional UTM gaps may warn; required manual publishing readiness gaps fail. No analytics or attribution. |
 
 ## 23. Audit and explanation requirements
 
