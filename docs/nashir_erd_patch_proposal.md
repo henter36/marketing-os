@@ -95,7 +95,7 @@ Marketing OS remains a contract-first Phase 0/1 execution repository. It is not 
 
 `docs/08_api_spec.md` points to `docs/marketing_os_v5_6_5_phase_0_1_openapi.yaml` as the approved OpenAPI authority and forbids endpoints outside OpenAPI scope.
 
-The approved ERD uses Campaign, BriefVersion, MediaJob, MediaAsset, MediaAssetVersion, ApprovalDecision, ManualPublishEvidence, TrackedLink, Workspace, WorkspaceMember, Role, Permission, RolePermission, UsageMeter, CostEvent, ClientReportSnapshot, OnboardingProgress, SetupChecklistItem, and AuditLog. It forbids standalone GenerationJob, Asset, Approval, BillingProvider, and ProviderUsageLog under current authority.
+The approved ERD uses Campaign, CampaignStateTransition, BriefVersion, MediaJob, MediaAsset, MediaAssetVersion, ReviewTask, ApprovalDecision, PublishJob, ManualPublishEvidence, TrackedLink, Workspace, WorkspaceMember, Role, Permission, RolePermission, UsageMeter, CostEvent, ClientReportSnapshot, OnboardingProgress, SetupChecklistItem, and AuditLog. It forbids standalone GenerationJob, Asset, Approval, BillingProvider, and ProviderUsageLog under current authority.
 
 The approved ERD includes `RolePermission`. Therefore RBAC reuse must start with `WorkspaceMember`, `Role`, `Permission`, and `RolePermission` before any policy or assignment table is proposed.
 
@@ -143,7 +143,9 @@ The ERD Gate Decision Review outcome for this task is treated as governance inpu
 | Existing entity | Reuse proposal |
 |---|---|
 | `Campaign` | Reuse for campaign basics, objective, status, workspace/customer ownership, and campaign-level grouping. |
+| `CampaignStateTransition` | Reuse for existing campaign state transition history where existing campaign lifecycle semantics are sufficient; do not introduce new transition entities unless separately approved. |
 | `BriefVersion` | Reuse for versioned manual intake, advertised object detail, landing destination notes, idea intake, content requirements, hashtags, video reference scripts, and structured-but-not-first-class Nashir content. |
+| `ReviewTask` | Reuse for review workflow references where existing review-task semantics are sufficient; do not introduce new review entities unless separately approved. |
 | `ApprovalDecision` | Reuse as approval truth for reviewed `MediaAssetVersion`; do not create `Approval`. |
 | `ManualPublishEvidence` | Reuse for append-only user-provided proof of external manual publishing. |
 | `TrackedLink` | Reuse for UTM Tracking Lite records tied to `PublishJob`; do not treat as attribution. |
@@ -160,6 +162,8 @@ The ERD Gate Decision Review outcome for this task is treated as governance inpu
 | `OnboardingProgress` | Reuse for limited workspace readiness/setup adjacency where appropriate. |
 | `SetupChecklistItem` | Reuse for setup/checklist adjacency before proposing a dedicated manual checklist. |
 
+`PromptTemplate` is intentionally not listed as a Nashir ERD reuse candidate in this proposal. Template-backed generation remains deferred until separately approved and must not be treated as approved reuse scope for this Nashir ERD proposal.
+
 ## 9. Candidate decisions table
 
 | Nashir capability | Current ERD reuse candidate | Proposed ERD action | New entity needed? | New field needed? | Reason | Risk | Decision |
@@ -174,7 +178,7 @@ The ERD Gate Decision Review outcome for this task is treated as governance inpu
 | Idea intake | `BriefVersion` | Reuse versioned brief content. | no | defer | Ideas are draft/advisory inputs. | AI/advisory content could become confirmed fact. | Reuse first; record source/provenance only if approved. |
 | Content requirements | `BriefVersion`, `MediaAssetVersion` | Reuse versioned content. | no | defer | Requirements can live in brief/content payloads. | Weak output taxonomy if over-embedded. | Defer structured fields until output taxonomy is approved. |
 | Hashtags per channel | `BriefVersion`, `MediaAssetVersion` | Reuse draft/versioned content. | no | defer | Hashtags are advisory draft content only. | Trend/optimization scope creep. | Reuse; reject optimization entities. |
-| Video reference scripts | `BriefVersion`, `MediaAssetVersion`, `PromptTemplate` | Reuse draft/versioned content and templates. | no | defer | Scripts are reference outputs, not final video generation. | Could imply video generation/editing scope. | Reuse; reject video production entities. |
+| Video reference scripts | `BriefVersion`, `MediaAssetVersion` | Reuse draft/versioned content only; template-backed generation remains deferred. | no | defer | Scripts are reference outputs, not final video generation. `PromptTemplate` is not treated as an approved ERD reuse candidate in this proposal and remains deferred until separately approved. | Could imply video generation/editing or template runtime scope. | Reuse approved versioned content only; reject video production entities and defer template-backed structures. |
 | UTM Tracking Lite | `TrackedLink`, `PublishJob` | Reuse tracked links. | no | defer | Existing link entity can carry structured link records if fields fit. | Attribution confusion. | Reuse; candidate UTM fields only if needed. |
 | Human approval | `ReviewTask`, `ApprovalDecision`, `MediaAssetVersion` | Reuse as-is. | no | no | Current ERD already defines approval truth and hash binding. | Approval bypass if readiness is conflated. | Reuse as-is. |
 | Approval lock | `ApprovalDecision`, `MediaAssetVersion`, `AuditLog` | Reuse content hash and immutable versions first. | defer | defer | Approval lock may be represented by existing hash/version rules. | Material-change reapproval gaps. | Prefer `AuditLog`; consider fields only if lock cannot be derived. |
