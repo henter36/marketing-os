@@ -30,7 +30,7 @@ Evidence does not authorize publishing.
 
 Manual publishing remains external and user-operated in Core V1.
 
-Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post V1 module implementation remain NO-GO.
+Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 module implementation remain NO-GO.
 
 Any actual OpenAPI patch must be separately approved with explicit allowed files, forbidden files, verification commands, expected CI gates, rollback criteria, generated-client boundaries, and NO-GO boundaries.
 
@@ -63,7 +63,7 @@ This document does not:
 - treat evidence as publishing authorization;
 - treat UTM Tracking Lite as analytics ingestion or attribution;
 - treat `CostEvent` as billing, invoice, payment, or paid execution state;
-- authorize direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, or Post V1 module implementation.
+- authorize direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, or Post-V1 module implementation.
 
 ## 4. Sources inspected
 
@@ -134,7 +134,7 @@ The ERD addendum maps Nashir Core V1 to existing entities only. OpenAPI planning
 
 1. Reuse approved Phase 0/1 paths and schemas before proposing new paths or schemas.
 2. Do not add endpoints unless existing surfaces cannot represent the Core V1 flow.
-3. Do not add schemas for Post V1 modules.
+3. Do not add schemas for Post-V1 modules.
 4. Do not expose `workspace_id` in request bodies as trusted input.
 5. Preserve route/context-derived workspace authority.
 6. Preserve AuthGuard, WorkspaceContextGuard, MembershipCheck, PermissionGuard, and ErrorModel behavior.
@@ -222,7 +222,7 @@ The minimum viable OpenAPI proposal is Option A reuse-first:
 - use existing schemas where sufficient;
 - defer new paths;
 - defer generated client updates;
-- reject Post V1 endpoints.
+- reject Post-V1 endpoints.
 
 This path preserves the merged ERD Option A reuse-only addendum and avoids creating duplicate APIs or schema surfaces before concrete gaps are proven.
 
@@ -267,8 +267,8 @@ The following endpoint categories remain explicitly NO-GO:
 - attribution endpoints;
 - external integration connector endpoints;
 - autonomous AI execution endpoints;
-- Post V1 Organic Publishing Module endpoints;
-- Post V1 Paid Campaign Execution Module endpoints.
+- Post-V1 Organic Publishing Module endpoints;
+- Post-V1 Paid Campaign Execution Module endpoints.
 
 ## 15. Open questions before actual OpenAPI patch
 
@@ -281,7 +281,7 @@ The following endpoint categories remain explicitly NO-GO:
 7. Does the proposal preserve ErrorModel responses?
 8. Does the proposal require generated client updates, and if so which generated-client boundary is approved?
 9. Does the proposal require ERD, SQL, QA, Threat Model, runtime, or test changes?
-10. Does the proposal accidentally introduce direct publishing, social OAuth, scheduling, paid execution, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, or Post V1 module scope?
+10. Does the proposal accidentally introduce direct publishing, social OAuth, scheduling, paid execution, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, or Post-V1 module scope?
 
 ## 16. Proposed actual OpenAPI patch options
 
@@ -305,7 +305,7 @@ Recommended option: Option A. The OpenAPI Gate Decision Review says NO-GO for ac
 | evidence vs publishing authorization confusion | High. | State that evidence is proof of external user action only and does not authorize or execute publishing. |
 | UTM vs attribution confusion | Medium. | Keep UTM Lite as structured link support only, with no analytics ingestion or attribution. |
 | generated client churn | Medium. | Defer generated-client updates unless separately approved with explicit boundaries. |
-| Post V1 scope creep | High. | Reject direct publishing, social OAuth, scheduling, paid execution, analytics ingestion, attribution, integrations, autonomous AI execution, and Post V1 module endpoints. |
+| Post-V1 scope creep | High. | Reject direct publishing, social OAuth, scheduling, paid execution, analytics ingestion, attribution, integrations, autonomous AI execution, and Post-V1 module endpoints. |
 
 ## 18. Dependencies
 
@@ -335,7 +335,7 @@ Any future actual OpenAPI patch should, at minimum, verify:
 Future actual OpenAPI patch work must stop or roll back if:
 
 - it requires an unapproved ERD, SQL, QA, Threat Model, runtime, generated-client, test, package, workflow, script, migration, prototype, frontend, router/store, or implementation change;
-- it introduces direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integration, autonomous AI execution, or Post V1 module endpoints;
+- it introduces direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integration, autonomous AI execution, or Post-V1 module endpoints;
 - it trusts `workspace_id` from request bodies;
 - it weakens AuthGuard, WorkspaceContextGuard, MembershipCheck, PermissionGuard, tenant isolation, or ErrorModel behavior;
 - it treats readiness as approval;
@@ -368,7 +368,7 @@ NO-GO: New paths or schemas in this document.
 
 NO-GO: ERD, SQL, QA, Threat Model, runtime, tests, packages, workflows, scripts, migrations, prototype, frontend assets, router/store files, or implementation changes.
 
-NO-GO: Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post V1 module implementation.
+NO-GO: Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 module implementation.
 
 Existing OpenAPI remains authoritative until separately patched and approved.
 
