@@ -245,10 +245,11 @@ The following candidate paths are deferred and not approved:
 
 - campaign readiness endpoint;
 - wizard session/answer endpoints;
-- product/store/service/offer intake endpoints;
+- product/store/service/offer intake and advertised object endpoints;
 - landing destination endpoint;
 - creative rights endpoint;
-- content requirement/hashtag/video script endpoints;
+- dedicated content requirement endpoints where versioned brief/content surfaces are insufficient;
+- UTM-specific endpoints beyond existing tracked-link paths;
 - approval lock/reapproval endpoint;
 - manual publishing checklist endpoint;
 - manual performance review endpoint;
@@ -389,7 +390,7 @@ The following remain forbidden for this proposal and for any later work unless s
 - SQL files
 - ERD files
 - `src/`
-- tests
+- `tests/`
 - `test/`
 - `package.json`
 - lockfiles
