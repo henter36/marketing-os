@@ -280,7 +280,7 @@ The following endpoint categories remain explicitly NO-GO:
 6. Which permission code and audit event apply to each protected operation?
 7. Does the proposal preserve ErrorModel responses?
 8. Does the proposal require generated client updates, and if so which generated-client boundary is approved?
-9. Does the proposal require ERD, SQL, QA, Threat Model, runtime, or test changes?
+9. Does the proposal require changes to ERD, SQL, QA, Threat Model, runtime, or tests?
 10. Does the proposal accidentally introduce direct publishing, social OAuth, scheduling, paid execution, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, or Post-V1 module scope?
 
 ## 16. Proposed actual OpenAPI patch options
@@ -320,7 +320,7 @@ Recommended option: Option A. The OpenAPI Gate Decision Review says NO-GO for ac
 Any future actual OpenAPI patch should, at minimum, verify:
 
 - changed files are exactly within the approved files for that future request;
-- no forbidden OpenAPI-adjacent, SQL, QA, runtime, generated client, test, package, workflow, script, migration, prototype, frontend, router/store, or implementation files changed unless explicitly approved;
+- no forbidden OpenAPI-adjacent, SQL, QA, runtime, generated client, tests, package, workflow, script, migration, prototype, frontend, router/store, or implementation files changed unless explicitly approved;
 - OpenAPI syntax parses;
 - OpenAPI lint passes with repository-approved commands;
 - route-derived workspace context is preserved;
@@ -334,7 +334,7 @@ Any future actual OpenAPI patch should, at minimum, verify:
 
 Future actual OpenAPI patch work must stop or roll back if:
 
-- it requires an unapproved ERD, SQL, QA, Threat Model, runtime, generated-client, test, package, workflow, script, migration, prototype, frontend, router/store, or implementation change;
+- it requires an unapproved ERD, SQL, QA, Threat Model, runtime, generated-client, tests, package, workflow, script, migration, prototype, frontend, router/store, or implementation change;
 - it introduces direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integration, autonomous AI execution, or Post-V1 module endpoints;
 - it trusts `workspace_id` from request bodies;
 - it weakens AuthGuard, WorkspaceContextGuard, MembershipCheck, PermissionGuard, tenant isolation, or ErrorModel behavior;
