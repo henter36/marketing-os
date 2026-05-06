@@ -342,7 +342,7 @@ Expected planning result: `blocked_until_review` until re-review or reapproval o
 | Campaign basics | Required | 10% | Missing objective or campaign name. | fail | Required operational fields cannot be warnings only. |
 | Advertised object | Required | 15% | Product/service/store/offer unclear. | fail | User-provided data only. |
 | Audience/geography/language | Required | 10% | Audience missing or geography/language absent. | fail | Broad but present audience may be `soft_pass`; missing required targeting fields should fail. |
-| Offer/CTA | Required for conversion | 10% | Required offer or CTA missing for an objective that needs it. | fail or blocked_until_review | Weak or generic present offer/CTA may be `soft_pass`; missing required offer/CTA fails; prohibited, unsupported regulated, misleading urgency, unclear promotion terms, deceptive discount, or unsupported absolute claims block. |
+| Offer/CTA | Required for conversion | 10% | Required offer or CTA missing for an objective that needs it. | soft_pass, fail, or blocked_until_review | Weak or generic present offer/CTA may be soft_pass; missing required offer/CTA fails; prohibited, unsupported regulated, misleading urgency, unclear promotion terms, deceptive discount, or unsupported absolute claims block. |
 | Landing destination | Required for conversion | 10% | Destination unclear or absent. | fail or blocked_until_review | No hosting/tracking approval. |
 | Creative assets | Optional or required by format | 10% | Missing image/video/reference. | soft_pass | May reduce output quality. |
 | Creative rights | Required before publishing support | 10% | Rights not confirmed. | blocked_until_review | Manual confirmation only. |
