@@ -108,7 +108,7 @@ Marketing OS remains a contract-first Phase 0/1 execution repository. It is not 
 
 ### OpenAPI Gate Decision Review
 
-The OpenAPI Gate Decision Review outcome for this task is treated as governance input: NO-GO for actual OpenAPI patch now, GO only for documentation-only OpenAPI patch proposal / reuse-first decision documentation, existing OpenAPI remains authoritative, OpenAPI proposal must begin with existing paths/schemas, no generated client update is approved, and no SQL, QA, runtime, or implementation is approved.
+The OpenAPI Gate Decision Review outcome for this task is treated as governance input: NO-GO for actual OpenAPI patch now, GO only for documentation-only OpenAPI patch proposal / reuse-first decision documentation, existing OpenAPI remains authoritative, OpenAPI proposal must begin with existing paths/schemas, no generated client update is approved, and no SQL, QA, runtime, tests, or implementation is approved.
 
 ### Nashir ERD Option A reuse-only addendum
 
