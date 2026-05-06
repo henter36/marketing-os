@@ -156,7 +156,8 @@ Future implementation planning must preserve this traceability model:
 | Acceptance Criteria ID | Stable ID for an acceptance criterion, such as `AC-READINESS-001`. |
 | Future User Story ID | Placeholder or future story ID, such as `NUS-READINESS-001`; not sprint-ready until separately approved. |
 | Future QA Case ID | Placeholder or future QA ID, such as `NQA-READINESS-001`; no test file is created here. |
-| Existing ERD/OpenAPI reuse surface | Existing approved entity/path/schema that may support the future criterion under Option A. |
+| Existing ERD reuse surface | Existing approved entity that may support the future criterion under Option A. |
+| Existing OpenAPI reuse surface | Existing approved path/schema that may support the future criterion under Option A. |
 | NO-GO guard | Explicit boundary that must fail or block if attempted. |
 
 No future implementation request should proceed unless each in-scope criterion has approved user stories, QA cases, allowed files, forbidden files, verification commands, expected CI gates, rollback/no-go criteria, and NO-GO boundaries.
