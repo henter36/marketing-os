@@ -225,7 +225,7 @@ Conceptual evidence fields include:
 | notes | Optional. |
 | hashtags used | Optional but recommended. |
 | CTA used | Optional but recommended. |
-| UTM link used | Required when UTM Lite was generated and used. |
+| UTM link used | Required if a UTM link was generated for the referenced content version. |
 
 ## 13. Evidence Statuses
 
