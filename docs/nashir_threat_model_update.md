@@ -179,7 +179,7 @@ Roles and permissions are workspace-scoped. Protected actions require explicit a
 | Creative rights misuse | Missing rights confirmation or third-party asset misuse proceeds to approval/evidence. | Content versions, rights notes, evidence | Scoring and Evidence contracts. | Rights confirmation gate, review reason, audit coverage. | High | Future rights contract candidate. |
 | Prohibited or regulated claims | Unsupported medical, financial, legal, discount, urgency, or absolute claims pass review. | Campaign briefs, content versions | Scoring Contract blocking conditions. | Human review, blocked_until_review flow, claim-risk tests. | High | Block until review. |
 | Audit insufficiency | Protected state changes lack actor, timestamp, reason, or before/after trace. | Audit logs, approvals, evidence | AuditLog reuse, role/evidence/approval contracts. | Audit coverage matrix before implementation. | Medium | Future contract/test gate required. |
-| NO-GO scope bypass | Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI, or Post-V1 module work is introduced. | Product scope, contracts, runtime | Scope, ERD/OpenAPI Option A, QA/Test Planning. | Negative tests and review gates for each NO-GO item. | Critical | NO-GO. |
+| NO-GO scope bypass | Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, or Post-V1 module implementation is introduced. | Product scope, contracts, runtime | Scope, ERD/OpenAPI Option A, QA/Test Planning. | Negative tests and review gates for each NO-GO item. | Critical | NO-GO. |
 
 ## 12. Tenant isolation threats
 
@@ -267,8 +267,6 @@ The following remain NO-GO:
 - external integrations;
 - autonomous AI execution;
 - Post-V1 module implementation.
-
-Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 module implementation remain NO-GO.
 
 ## 21. Required mitigations
 
