@@ -144,7 +144,7 @@ The approved ERD is Section 52 only. It says the build status is not ready for d
 
 ### Existing entities that may partially support Nashir
 
-Existing ERD entities that may partially support Nashir include `User`, `Workspace`, `WorkspaceMember`, `Role`, `Permission`, `Campaign`, `BriefVersion`, `MediaJob`, `MediaAsset`, `MediaAssetVersion`, `ReviewTask`, `ApprovalDecision`, `PublishJob`, `ManualPublishEvidence`, `TrackedLink`, `ClientReportSnapshot`, `AuditLog`, `OnboardingProgress`, `SetupChecklistItem`, `UsageMeter`, and `CostEvent`.
+Existing ERD entities that may partially support Nashir include User, Workspace, WorkspaceMember, Role, Permission, RolePermission, Campaign, CampaignStateTransition, BrandProfile, PromptTemplate, ReportTemplate, BriefVersion, MediaJob, MediaAsset, MediaAssetVersion, ReviewTask, ApprovalDecision, PublishJob, ManualPublishEvidence, TrackedLink, ClientReportSnapshot, AuditLog, OnboardingProgress, SetupChecklistItem, UsageMeter, and CostEvent.
 
 ### Existing relationships that may be reused
 
