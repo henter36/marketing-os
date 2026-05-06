@@ -275,7 +275,7 @@ The following endpoint categories remain explicitly NO-GO:
 
 1. Which exact Nashir Core V1 user flow cannot be represented by existing paths?
 2. Is the need a path gap, schema description gap, enum/status gap, request validation gap, or generated-client naming gap?
-3. Can `Campaign`, `BriefVersion`, `MediaAssetVersion`, `ReviewTask`, `ApprovalDecision`, `PublishJob`, `ManualPublishEvidence`, `TrackedLink`, `ClientReportSnapshot`, `OnboardingProgressResponse`, or `AuditLog` represent the flow without new paths?
+3. Can Campaign, BriefVersion, MediaJob, MediaAsset, MediaAssetVersion, ReviewTask, ApprovalDecision, PublishJob, ManualPublishEvidence, TrackedLink, ClientReportSnapshot, OnboardingProgressResponse, or AuditLog represent the flow without new paths?
 4. Does the proposed request body avoid trusted `workspace_id`?
 5. Does the route carry workspace context for every workspace-scoped operation?
 6. Which permission code and audit event apply to each protected operation?
@@ -298,7 +298,7 @@ Recommended option: Option A. The OpenAPI Gate Decision Review says NO-GO for ac
 
 | Risk | Severity | Mitigation |
 |---|---|---|
-| endpoint sprawl | High if Nashir concepts become first-class paths too early. | Reuse existing campaign, brief, review, approval, publish job, evidence, tracked link, report, onboarding, audit, and RBAC paths first. |
+| endpoint sprawl | High if Nashir concepts become first-class paths too early. | Reuse existing campaign, brief, media job, media asset, review, approval, publish job, evidence, tracked link, client report snapshot, onboarding, audit, and RBAC paths first. |
 | schema sprawl | High if planning concepts become schemas before ERD/QA proof. | Prefer existing schemas and narrow descriptions only after proven ambiguity. |
 | duplicate APIs | High if wizard, readiness, checklist, evidence, or manual review paths duplicate existing surfaces. | Require proof that existing surfaces cannot represent the flow. |
 | workspace_id trust boundary violation | High. | Future request bodies must not trust `workspace_id`; route/context workspace authority remains mandatory. |
