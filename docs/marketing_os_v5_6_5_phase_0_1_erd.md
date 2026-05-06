@@ -2047,7 +2047,7 @@ Nashir Core V1 reuses existing approved ERD entities only.
 
 ### 21.3 Explicit Core V1 ERD Deferrals and Rejections
 
-The following are deferred or rejected for Nashir Core V1 ERD under Option A:
+The following candidate entities are deferred for Nashir Core V1 ERD under Option A. They are not approved by this addendum:
 
 ```text
 IntakeSession
@@ -2061,15 +2061,20 @@ EvidenceAuditEvent (deferred; use AuditLog)
 ApprovalStateTransition (deferred; use AuditLog)
 RolePermissionPolicy
 PermissionAssignment
-direct publishing entities
+```
+
+The following broad entity categories are rejected for Core V1 under Option A. Category examples are illustrative references to known out-of-scope names in current ERD authority and do not make those names candidate entities:
+
+```text
+direct publishing entities, including SocialAutoPublishConnector
 social OAuth connector entities
 scheduling entities
-paid ads execution entities
-payment/billing/invoice/refund/tax entities
+paid ads execution entities, including PaidExecution
+payment/billing/invoice/refund/tax entities, including BillingProvider and ProviderUsageLog
 analytics ingestion entities
-attribution model entities
+attribution model entities, including AttributionDecision
 external integration connector entities
-autonomous AI execution entities
+autonomous AI execution entities, including AgentRun, AIProvider, and AIModelRegistry
 Post V1 Organic Publishing Module entities
 Post V1 Paid Campaign Execution Module entities
 ```
