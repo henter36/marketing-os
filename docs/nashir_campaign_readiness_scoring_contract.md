@@ -204,6 +204,11 @@ Blocking conditions override numeric readiness. Blocking conditions include:
 - missing creative rights confirmation;
 - prohibited claims;
 - unsupported medical/financial/legal claims;
+- prohibited or unsupported Offer/CTA claims;
+- misleading Offer/CTA urgency;
+- unclear promotion terms;
+- deceptive discount language;
+- unsupported absolute Offer/CTA claims such as "guaranteed", "best", "number one", "instant results", or similar claims;
 - unclear landing destination for conversion objective;
 - unapproved material changes after approval;
 - high-risk content category;
@@ -233,6 +238,14 @@ Soft warnings may reduce confidence, downgrade gate state to `soft_pass`, or rec
 - low data readiness.
 
 Missing optional quality-improvement fields may produce soft warnings. Missing required operational fields should produce `fail`. Missing required rights, claims, governance, or safety fields should produce `blocked_until_review`.
+
+Offer/CTA scoring must distinguish quality gaps, operational gaps, and risk gates:
+
+- `soft_pass` applies when an offer or CTA is present but weak, generic, or quality-improvable.
+- `fail` applies when a required offer or CTA is missing for a campaign objective that requires it.
+- `blocked_until_review` applies when the offer or CTA contains prohibited claims, unsupported regulated claims, misleading urgency, unclear terms for a promotion, deceptive discount language, or other rights, policy, or governance risks.
+
+Offer/CTA risk blocking applies especially to medical, financial, legal, health, weight-loss, guaranteed-result, or regulated claims; promotions with unclear terms, duration, eligibility, quantity limits, minimum purchase conditions, or refund/return implications; and claims such as "guaranteed", "best", "number one", "instant results", or similar unsupported absolute claims.
 
 Budget clarity is planning-only. It does not authorize spend, paid execution, payment, billing, invoice state, or attribution.
 
@@ -329,7 +342,7 @@ Expected planning result: `blocked_until_review` until re-review or reapproval o
 | Campaign basics | Required | 10% | Missing objective or campaign name. | fail | Required operational fields cannot be warnings only. |
 | Advertised object | Required | 15% | Product/service/store/offer unclear. | fail | User-provided data only. |
 | Audience/geography/language | Required | 10% | Audience missing or geography/language absent. | fail | Broad but present audience may be `soft_pass`; missing required targeting fields should fail. |
-| Offer/CTA | Required for conversion | 10% | Missing CTA or required offer detail. | fail or blocked_until_review | Weak offer may be `soft_pass`; unsupported claims block. |
+| Offer/CTA | Required for conversion | 10% | Required offer or CTA missing for an objective that needs it. | soft_pass, fail, or blocked_until_review | Weak or generic present offer/CTA may be soft_pass; missing required offer/CTA fails; prohibited, unsupported regulated, misleading urgency, unclear promotion terms, deceptive discount, or unsupported absolute claims block. |
 | Landing destination | Required for conversion | 10% | Destination unclear or absent. | fail or blocked_until_review | No hosting/tracking approval. |
 | Creative assets | Optional or required by format | 10% | Missing image/video/reference. | soft_pass | May reduce output quality. |
 | Creative rights | Required before publishing support | 10% | Rights not confirmed. | blocked_until_review | Manual confirmation only. |
