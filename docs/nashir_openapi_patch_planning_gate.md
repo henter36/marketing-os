@@ -248,7 +248,7 @@ Recommend Option A now: reuse existing endpoints and schemas only. Option B may 
 
 ## 13. Reuse-first decision rules
 
-- Prefer existing campaign, brief, approval, publish job, manual evidence, tracked link, report snapshot, onboarding/setup, and audit endpoints where sufficient.
+- Prefer existing campaign, brief, approval, publish job, manual evidence, tracked link, report snapshot, onboarding, and audit endpoints where sufficient.
 - Do not create new paths unless existing surfaces cannot represent the flow.
 - Do not add schemas for Post V1 modules.
 - Do not expose `workspace_id` from request bodies as trusted input.
