@@ -201,14 +201,14 @@ The following transitions are planning-level candidates only:
 | `in_review` | approve reviewed version | `approved` |
 | `in_review` | reject reviewed version | `rejected` |
 | `approved` | detect material change or new risk | `requires_reapproval` |
-| `requires_reapproval` | submit resolved material changes for re-review | `in_review` |
+| `requires_reapproval` | revise and generate updated reviewable version | `generated` |
 | `generated` | detect blocking risk | `blocked_until_review` |
 | `blocked_until_review` | human review of blocking condition | `in_review` |
-| `rejected` | revise and resubmit reviewable version | `generated` |
+| `rejected` | revise and generate updated reviewable version | `generated` |
 | `approved` | archive approved content | `archived` |
 | `rejected` | archive rejected content | `archived` |
 
-`requires_reapproval` requires a new human review cycle. `blocked_until_review` cannot move directly to `approved`. `rejected` cannot move directly to `approved` without revision and a new review cycle.
+`requires_reapproval` revisions move to `generated`, then follow the standard `generated` -> `in_review` path. Reapproval requires a new human review cycle. `blocked_until_review` cannot move directly to `approved`. `rejected` cannot move directly to `approved` without revision and a new review cycle.
 
 ## 12. Disallowed Transitions
 
@@ -361,10 +361,10 @@ These are audit candidates only. They do not approve ERD, OpenAPI, SQL, QA, runt
 | `in_review` | Approve | `approved` | Authorized approver | Human review complete; no unresolved blocker; reviewed version is bound. | Yes | Approval does not publish. |
 | `in_review` | Reject | `rejected` | Authorized reviewer | Human review complete with rejection reason. | Yes | Resubmission requires a new review cycle. |
 | `approved` | Material edit detected | `requires_reapproval` | Editor, system-detected future rule, or reviewer | Material change or new risk is identified. | Yes | Approval lock must not be bypassed. |
-| `requires_reapproval` | Submit for re-review | `in_review` | Editor or allowed submitter | Material changes are resolved and a reviewable version exists. | Yes | Reapproval requires a new human review cycle. |
+| `requires_reapproval` | Revise and generate | `generated` | Editor or allowed creator | Material changes are resolved and a reviewable version exists. | Yes | Reapproval requires a new human review cycle through the standard `generated` -> `in_review` path. |
 | `generated` | Blocking risk detected | `blocked_until_review` | Reviewer or future approved risk check | Blocking condition exists. | Yes | Human review required before approval can proceed. |
-| `blocked_until_review` | Human review of blocking condition | `in_review` | Authorized reviewer | Blocking condition is reviewed, resolved, or explicitly cleared under policy. | Yes | Blocked content cannot become approved directly. |
-| `rejected` | Revise and resubmit | `generated` | Editor or allowed creator | Rejected content has been revised into a new reviewable version. | Yes | Resubmission starts a new review cycle. |
+| `blocked_until_review` | human review of blocking condition | `in_review` | Authorized reviewer | Blocking condition is reviewed, resolved, or explicitly cleared under policy. | Yes | Blocked content cannot become approved directly. |
+| `rejected` | Revise and generate | `generated` | Editor or allowed creator | Rejected content has been revised into a new reviewable version. | Yes | Resubmission starts a new review cycle through the standard `generated` -> `in_review` path. |
 | `approved` | Archive | `archived` | Authorized actor | Content is retired from active use. | Yes | Does not delete evidence obligations. |
 | `rejected` | Archive | `archived` | Authorized actor | Rejected content is retired. | Yes | Does not convert rejection to approval. |
 
