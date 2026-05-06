@@ -95,7 +95,7 @@ Marketing OS remains a contract-first Phase 0/1 execution repository. It is not 
 
 `docs/08_api_spec.md` points to `docs/marketing_os_v5_6_5_phase_0_1_openapi.yaml` as the approved OpenAPI authority and forbids endpoints outside OpenAPI scope.
 
-The approved ERD uses `MediaJob`, `MediaAsset`, `MediaAssetVersion`, `ApprovalDecision`, `ManualPublishEvidence`, `UsageMeter`, `CostEvent`, `ClientReportSnapshot`, and `AuditLog`. It forbids standalone `GenerationJob`, `Asset`, `Approval`, `BillingProvider`, and `ProviderUsageLog` under current authority.
+The approved ERD uses Campaign, BriefVersion, MediaJob, MediaAsset, MediaAssetVersion, ApprovalDecision, ManualPublishEvidence, TrackedLink, Workspace, WorkspaceMember, Role, Permission, RolePermission, UsageMeter, CostEvent, ClientReportSnapshot, OnboardingProgress, SetupChecklistItem, and AuditLog. It forbids standalone GenerationJob, Asset, Approval, BillingProvider, and ProviderUsageLog under current authority.
 
 The approved ERD includes `RolePermission`. Therefore RBAC reuse must start with `WorkspaceMember`, `Role`, `Permission`, and `RolePermission` before any policy or assignment table is proposed.
 
