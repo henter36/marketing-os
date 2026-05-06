@@ -96,7 +96,7 @@ The backlog wrapper permits planning references for Nashir Core V1 candidates bu
 
 ### ERD Option A reuse-only
 
-Acceptance criteria must map to existing ERD reuse surfaces only: `Campaign`, `BriefVersion`, `MediaAsset`, `MediaAssetVersion`, `ReviewTask`, `ApprovalDecision`, `PublishJob`, `ManualPublishEvidence`, `TrackedLink`, `ClientReportSnapshot`, `Workspace`, `WorkspaceMember`, `Role`, `Permission`, `RolePermission`, `AuditLog`, `OnboardingProgress`, and `SetupChecklistItem` where the ERD addendum allows them.
+Acceptance criteria must map to existing ERD reuse surfaces only: Campaign, CampaignStateTransition, BriefVersion, MediaAsset, MediaAssetVersion, MediaJob, ReviewTask, ApprovalDecision, PublishJob, ManualPublishEvidence, TrackedLink, ClientReportSnapshot, UsageMeter, Workspace, WorkspaceMember, Role, Permission, RolePermission, AuditLog, OnboardingProgress, and SetupChecklistItem where the ERD addendum allows them.
 
 ### OpenAPI Option A reuse-only
 
@@ -293,13 +293,13 @@ Future QA/test planning must define separately approved QA cases for:
 - human approval and version-bound decision behavior;
 - AI approval/rejection/bypass denial;
 - approved content material changes requiring reapproval;
-- AI evidence-protected action denial;
 - AI protected-action denials;
 - evidence requiring approved content version;
 - wrong evidence URL/channel/content version requiring correction, supersede, or invalidation;
 - evidence not authorizing publishing;
-- UTM mismatch against evidence or destination requiring correction;
+- AI evidence-protected action denial;
 - UTM Lite tracked links not implying analytics or attribution;
+- UTM mismatch against evidence or destination requiring correction;
 - manual publishing checklist support without publishing execution;
 - manual performance user-entered-only behavior;
 - viewer protected-action denial;
