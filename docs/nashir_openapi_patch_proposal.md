@@ -173,7 +173,7 @@ The ERD addendum maps Nashir Core V1 to existing entities only. OpenAPI planning
 | Campaign | Reuse for campaign basics, objective, status, and campaign-level grouping. |
 | CreateCampaignRequest | Reuse for campaign creation and Smart Wizard intake where sufficient. |
 | `CampaignStateTransition` | Reuse for existing campaign lifecycle transition history. |
-| `BriefVersion` | Reuse for versioned intake, brief, content requirements, hashtags, video scripts, advertised object details, and landing destination notes where current shape is sufficient. |
+| BriefVersion | Reuse for Smart Wizard output, manual intake, advertised object detail, landing destination notes, idea intake, content requirements, hashtags, video reference scripts, and versioned campaign brief content where current shape is sufficient. |
 | `MediaJob` | Reuse for existing media generation/job tracking surfaces without introducing autonomous AI execution. |
 | `MediaAsset` | Reuse as approved asset grouping. |
 | `MediaAssetVersion` | Reuse for version-bound reviewable variants, content hash, and approval lock integrity. |
