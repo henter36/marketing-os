@@ -217,7 +217,7 @@ No future implementation request should proceed unless each in-scope criterion h
 | Manual publishing evidence | AC-EVIDENCE-001 | Evidence requires an approved content version where accepted. | `ManualPublishEvidence`, `PublishJob`, `MediaAssetVersion`, `ApprovalDecision` | Manual evidence and publish job paths | NQA-EVIDENCE-001 | P0 | Planned only; not implemented |
 | Manual publishing evidence | AC-EVIDENCE-002 | Wrong evidence URL, channel, content version, destination, or UTM link must require correction, supersede, or invalidation. | `ManualPublishEvidence`, `TrackedLink`, `AuditLog` | Manual evidence supersede/invalidate and tracked-link paths | NQA-EVIDENCE-002 | P0 | Planned only; not implemented |
 | Manual publishing evidence | AC-EVIDENCE-003 | Evidence submission, acceptance, supersede, or invalidation must not authorize publishing. | `ManualPublishEvidence`, `PublishJob`, `AuditLog` | Manual evidence paths | NQA-EVIDENCE-003 | P0 | Planned only; not implemented |
-| Manual publishing evidence | AC-EVIDENCE-004 | AI must not accept evidence, invalidate evidence, create false evidence, or perform evidence protected actions. | `ManualPublishEvidence`, `AuditLog` | Manual evidence paths | NQA-EVIDENCE-004 | P0 | Planned only; not implemented |
+| Manual publishing evidence | AC-EVIDENCE-004 | AI must not accept evidence, invalidate evidence, create false evidence, or perform evidence-protected actions. | `ManualPublishEvidence`, `AuditLog` | Manual evidence paths | NQA-EVIDENCE-004 | P0 | Planned only; not implemented |
 | Manual performance review | AC-PERFORMANCE-001 | Manual performance data must be user-entered only and must not be treated as analytics ingestion, attribution, or platform-verified reporting. | `ClientReportSnapshot`, `ManualPublishEvidence` | Client report snapshot paths | NQA-PERFORMANCE-001 | P0 | Planned only; not implemented |
 | Manual performance review | AC-PERFORMANCE-002 | Manual performance review must not initiate optimization, paid execution, retargeting, analytics import, or attribution workflows. | `ClientReportSnapshot` | Client report snapshot paths | NQA-PERFORMANCE-002 | P0 | Planned only; not implemented |
 | Role & permission boundaries | AC-PERMISSIONS-001 | Viewer must not create, edit, approve, reject, submit evidence, accept evidence, invalidate evidence, publish, schedule, or spend. | `WorkspaceMember`, `Role`, `Permission`, `RolePermission`, `AuditLog` | Workspace member, role, permission, audit surfaces | NQA-PERMISSIONS-001 | P0 | Planned only; not implemented |
@@ -281,16 +281,30 @@ Future QA/test planning must define separately approved QA cases for:
 - low readiness draft with warning where allowed;
 - `blocked_until_review` preventing approval until human review;
 - manual/user-confirmed Smart Wizard output;
+- Smart Wizard not creating `IntakeSession`, `IntakeAnswer`, or Agent Mode runtime;
 - `Campaign` and `BriefVersion` reuse for manual intake;
+- `Campaign`/`BriefVersion` reuse not introducing new lifecycle tables or endpoints;
+- product/store/service/offer intake through approved reuse surfaces;
+- landing destination capture and material-change handling;
+- creative rights confirmation and review blocking;
+- idea intake and content requirements;
+- hashtags per selected channel as draft recommendations;
+- video reference scripts as draft/reference outputs;
+- human approval and version-bound decision behavior;
+- AI approval/rejection/bypass denial;
 - approved content material changes requiring reapproval;
+- AI evidence-protected action denial;
 - AI protected-action denials;
 - evidence requiring approved content version;
-- wrong evidence URL/channel/content version requiring correction or invalidation;
+- wrong evidence URL/channel/content version requiring correction, supersede, or invalidation;
 - evidence not authorizing publishing;
+- UTM mismatch against evidence or destination requiring correction;
 - UTM Lite tracked links not implying analytics or attribution;
+- manual publishing checklist support without publishing execution;
 - manual performance user-entered-only behavior;
 - viewer protected-action denial;
 - editor approval denial without explicit authority;
+- protected actions requiring explicit workspace-scoped permission and auditability;
 - route/context workspace winning over body `workspace_id`;
 - cross-workspace access failure;
 - ErrorModel responses for forbidden actions;
