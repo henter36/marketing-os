@@ -2012,7 +2012,27 @@ This patch applies Option A: reuse-only / no new entities.
 
 Existing ERD remains authoritative. Section 52 remains the relationship authority for Phase 0/1.
 
-This addendum does not add new entities, new fields, renamed entities, new persistence relationships, SQL-ready field definition changes, constraints, indexes, enums, table definitions, SQL changes, OpenAPI changes, QA changes, runtime changes, generated clients, tests, packages, workflows, migrations, or implementation.
+This addendum does not add:
+
+- new entities
+- new fields
+- renamed entities
+- new persistence relationships
+- SQL-ready field definition changes
+- constraints
+- indexes
+- enums
+- table definitions
+- SQL changes
+- OpenAPI changes
+- QA changes
+- runtime changes
+- generated clients
+- tests
+- packages
+- workflows
+- migrations
+- implementation
 
 Core V1 remains manual/export/review/approval/evidence only.
 
@@ -2047,6 +2067,8 @@ Nashir Core V1 reuses existing approved ERD entities only.
 
 ### 21.3 Explicit Core V1 ERD Deferrals and Rejections
 
+#### Deferred candidate entities
+
 The following candidate entities are deferred for Nashir Core V1 ERD under Option A. They are not approved by this addendum:
 
 ```text
@@ -2062,6 +2084,8 @@ ApprovalStateTransition (deferred; use AuditLog)
 RolePermissionPolicy
 PermissionAssignment
 ```
+
+#### Rejected Core V1 entity categories
 
 The following broad entity categories are rejected for Core V1 under Option A. Category examples are illustrative references to known out-of-scope names in current ERD authority and do not make those names candidate entities:
 
