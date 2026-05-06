@@ -139,13 +139,12 @@ Protected actions require explicit authority. Viewers cannot perform protected a
 9. Evidence does not authorize publishing.
 10. Manual performance review remains user-entered and is not analytics ingestion.
 11. UTM Lite is structured link support only and is not attribution.
-12. UTM Lite is not attribution.
-13. AI must not approve, reject, accept evidence, invalidate evidence, publish, schedule, spend, or change protected fields.
-14. Route/context workspace wins over request-body `workspace_id`.
-15. Cross-workspace access must fail.
-16. Error responses must preserve approved ErrorModel behavior.
-17. Idempotency expectations must remain aligned with existing OpenAPI-declared idempotent operations.
-18. Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 module implementation remain NO-GO.
+12. AI must not approve, reject, accept evidence, invalidate evidence, publish, schedule, spend, or change protected fields.
+13. Route/context workspace wins over request-body `workspace_id`.
+14. Cross-workspace access must fail.
+15. Error responses must preserve approved ErrorModel behavior.
+16. Idempotency expectations must remain aligned with existing OpenAPI-declared idempotent operations.
+17. Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 module implementation remain NO-GO.
 
 ## 8. Traceability model
 
@@ -184,7 +183,7 @@ No future implementation request should proceed unless each in-scope criterion h
 | CAP-PERMISSIONS | Role & permission boundaries | `WorkspaceMember`, `Role`, `Permission`, `RolePermission`, `AuditLog` | Workspace member, role, permission, and audit paths | Viewer/editor/AI protected-action bypass must fail. |
 | CAP-TENANT | Tenant isolation and workspace authority | Workspace-scoped entities with `workspace_id` | `/workspaces/{workspaceId}/...` paths and `WorkspaceId` parameter | Route/context workspace wins; body `workspace_id` is not trusted. |
 | CAP-ERRORS | ErrorModel and idempotency expectations | Workspace-scoped idempotency constraints where existing ERD declares them | `ErrorModel`, `ErrorResponse`, `Idempotency-Key` where OpenAPI declares it | Forbidden actions and retries must not produce inconsistent behavior. |
-| CAP-NOGO | NO-GO negative boundaries | N/A | N/A | Direct publishing, OAuth, scheduling, paid ads, payment, analytics, attribution, integrations, autonomous AI, and Post-V1 modules remain blocked. |
+| CAP-NOGO | NO-GO negative boundaries | N/A | N/A | Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 module implementation must remain blocked. |
 
 ## 10. Acceptance criteria table
 
@@ -303,8 +302,6 @@ No QA or test file is created or modified by this document.
 ## 14. Required future implementation readiness gate
 
 Future implementation requires a separately approved implementation readiness gate that names:
-
-Future implementation requires separately approved user stories, QA cases, allowed files, forbidden files, verification commands, expected CI gates, rollback/no-go criteria, and NO-GO boundaries.
 
 - approved sources;
 - exact user stories and acceptance criteria in scope;
