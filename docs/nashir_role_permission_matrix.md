@@ -345,7 +345,7 @@ Protected actions include:
 | Approve content | Owner/admin/reviewer with explicit approval authority | Yes | No | Yes | Planning-only candidate | Must bind to content version. |
 | Reject content | Owner/admin/reviewer with explicit approval authority | Yes | No | Yes | Planning-only candidate | Must record actor and reason. |
 | Request changes | Owner/admin/reviewer with explicit review authority | Yes | No | Yes | Planning-only candidate | Does not approve. |
-| Trigger requires_reapproval | Authorized editor/admin/owner or reviewer depending on policy | Yes | AI may flag only | Yes | Planning-only candidate | Material edits require review cycle. |
+| Trigger requires_reapproval | Authorized editor/admin/owner or reviewer depending on policy | No (System-triggered on edit) | AI may flag only | Yes | Planning-only candidate | Material edits require review cycle. |
 | Accept evidence | Owner/admin/evidence reviewer with explicit authority | Yes | No | Yes | Planning-only candidate | Evidence is user-provided proof only. |
 | Mark evidence needs_correction | Owner/admin/evidence reviewer with explicit authority | Yes | AI may flag missing fields only | Yes | Planning-only candidate | Does not invalidate by itself. |
 | Supersede evidence | Owner/admin/evidence reviewer with explicit authority | Yes | No | Yes | Planning-only candidate | Prior evidence remains auditable. |
