@@ -187,48 +187,48 @@ No future implementation request should proceed unless each in-scope criterion h
 
 ## 10. Acceptance criteria table
 
-| Capability | AC ID | Acceptance criterion | Existing ERD reuse | Existing OpenAPI reuse | Future QA case ID | Priority | Status |
-|---|---|---|---|---|---|---|---|
-| Readiness Dashboard | AC-READINESS-001 | Readiness must remain advisory and must not equal human approval. | `Campaign`, `BriefVersion`, `ApprovalDecision`, `ManualPublishEvidence`, `AuditLog` | Campaign, brief-version, approval, manual evidence, audit surfaces | NQA-READINESS-001 | P0 | Planned only; not implemented |
-| Readiness Dashboard | AC-READINESS-002 | Readiness must not authorize publishing, scheduling, paid execution, payment, analytics ingestion, attribution, external integrations, or autonomous AI execution. | Same as above | Same as above | NQA-READINESS-002 | P0 | Planned only; not implemented |
-| Readiness Dashboard | AC-READINESS-003 | Low readiness may allow draft generation with a visible warning only where future policy permits and no blocking risk exists. | `BriefVersion`, `MediaAssetVersion`, `AuditLog` | Brief-version and asset-version surfaces | NQA-READINESS-003 | P1 | Planned only; not implemented |
-| Readiness Dashboard | AC-READINESS-004 | `blocked_until_review` prevents approval until a human review cycle resolves the blocking risk. | `ReviewTask`, `ApprovalDecision`, `AuditLog` | Review task and approval decision paths | NQA-READINESS-004 | P0 | Planned only; not implemented |
-| Smart Wizard manual intake | AC-WIZARD-001 | Smart Wizard output must be manual, user-confirmed, and stored only through approved reuse surfaces if future implementation is approved. | `Campaign`, `BriefVersion`, `AuditLog` | Campaign and brief-version paths | NQA-WIZARD-001 | P0 | Planned only; not implemented |
-| Smart Wizard manual intake | AC-WIZARD-002 | Smart Wizard must not create `IntakeSession`, `IntakeAnswer`, Agent Mode runtime, autonomous execution, or external integration behavior under Option A. | `BriefVersion` | Brief-version paths | NQA-WIZARD-002 | P0 | Planned only; not implemented |
-| Product / Store / Service / Offer intake | AC-OBJECT-001 | Product, store, service, and offer intake must use user-provided data, uploaded files, or explicitly allowed public links only. | `Campaign`, `BriefVersion` | Campaign and brief-version paths | NQA-OBJECT-001 | P0 | Planned only; not implemented |
-| Product / Store / Service / Offer intake | AC-OBJECT-002 | Product, store, service, and offer intake must not create first-class profile/offer entities or external data ingestion under Option A. | `Campaign`, `BriefVersion` | Campaign and brief-version paths | NQA-OBJECT-002 | P0 | Planned only; not implemented |
-| Campaign basics and advertised object flow | AC-CAMPAIGN-001 | Campaign basics and advertised object flow must reuse `Campaign` and `BriefVersion` for manual intake and draft planning. | `Campaign`, `BriefVersion` | Campaign and brief-version paths | NQA-CAMPAIGN-001 | P0 | Planned only; not implemented |
-| Campaign basics and advertised object flow | AC-CAMPAIGN-002 | Campaign/BriefVersion reuse must not introduce new campaign lifecycle tables, endpoints, generated clients, SQL, or runtime behavior. | `Campaign`, `CampaignStateTransition`, `BriefVersion` | Campaign, campaign state transition, and brief-version paths | NQA-CAMPAIGN-002 | P0 | Planned only; not implemented |
-| Landing destination | AC-DESTINATION-001 | Landing destination must be captured and reviewed as manual campaign context before approval and evidence workflows. | `BriefVersion`, `TrackedLink`, `PublishJob` | Brief-version and tracked-link paths | NQA-DESTINATION-001 | P1 | Planned only; not implemented |
-| Landing destination | AC-DESTINATION-002 | Landing destination changes that materially affect approved content must require reapproval. | `MediaAssetVersion`, `ApprovalDecision`, `AuditLog` | Asset-version and approval decision paths | NQA-DESTINATION-002 | P0 | Planned only; not implemented |
-| Creative rights confirmation | AC-RIGHTS-001 | Missing or unconfirmed creative rights must block until human review and must not proceed as an approval shortcut. | `MediaAssetVersion`, `ReviewTask`, `ApprovalDecision`, `AuditLog` | Asset-version, review-task, approval-decision, audit surfaces | NQA-RIGHTS-001 | P0 | Planned only; not implemented |
-| Creative rights confirmation | AC-RIGHTS-002 | Rights confirmation must remain manual and auditable where future implementation is approved. | `ApprovalDecision`, `ManualPublishEvidence`, `AuditLog` | Approval, manual evidence, audit surfaces | NQA-RIGHTS-002 | P0 | Planned only; not implemented |
-| Idea intake and content requirements | AC-CONTENT-001 | Ideas and content requirements must remain draft/advisory inputs until user confirmation and human review. | `BriefVersion`, `MediaAssetVersion` | Brief-version and asset-version paths | NQA-CONTENT-001 | P1 | Planned only; not implemented |
-| Idea intake and content requirements | AC-CONTENT-002 | AI-suggested content must not change protected fields or bypass review, approval, or reapproval. | `BriefVersion`, `MediaAssetVersion`, `ApprovalDecision`, `AuditLog` | Brief-version, asset-version, approval, audit surfaces | NQA-CONTENT-002 | P0 | Planned only; not implemented |
-| Hashtags per selected channel | AC-HASHTAGS-001 | Hashtags per selected channel must remain draft recommendations only and must not imply reach, optimization, analytics ingestion, or attribution. | `BriefVersion`, `MediaAssetVersion` | Brief-version and asset-version paths | NQA-HASHTAGS-001 | P1 | Planned only; not implemented |
-| Video reference scripts | AC-VIDEO-001 | Video reference scripts must remain draft/reference outputs only and must not imply final video generation, editing, asset procurement, or automated rights clearance. | `BriefVersion`, `MediaAssetVersion` | Brief-version and asset-version paths | NQA-VIDEO-001 | P1 | Planned only; not implemented |
-| UTM Tracking Lite | AC-UTM-001 | UTM Lite must use tracked links only and must not imply analytics ingestion, attribution, optimization, or platform reporting. | `TrackedLink`, `PublishJob` | Tracked-link paths | NQA-UTM-001 | P0 | Planned only; not implemented |
-| UTM Tracking Lite | AC-UTM-002 | UTM mismatch against evidence, destination, channel, or content version must require correction or invalidation planning. | `TrackedLink`, `ManualPublishEvidence`, `AuditLog` | Tracked-link and manual evidence paths | NQA-UTM-002 | P1 | Planned only; not implemented |
-| Human approval | AC-APPROVAL-001 | Approval must be human, explicit, authorized, auditable, and bound to a reviewed content version. | `ReviewTask`, `ApprovalDecision`, `MediaAssetVersion`, `AuditLog` | Review task and approval decision paths | NQA-APPROVAL-001 | P0 | Planned only; not implemented |
-| Human approval | AC-APPROVAL-002 | AI must not approve, reject, or bypass human review under any Core V1 acceptance criterion. | `ReviewTask`, `ApprovalDecision`, `AuditLog` | Review task and approval decision paths | NQA-APPROVAL-002 | P0 | Planned only; not implemented |
-| Approval lock / reapproval | AC-REAPPROVAL-001 | Approved content material changes must require reapproval before manual publishing support continues. | `MediaAssetVersion`, `ApprovalDecision`, `AuditLog` | Asset-version and approval decision paths | NQA-REAPPROVAL-001 | P0 | Planned only; not implemented |
-| Approval lock / reapproval | AC-REAPPROVAL-002 | `draft` or `generated` content must not move directly to `approved` without a human review decision. | `ReviewTask`, `ApprovalDecision` | Review task and approval decision paths | NQA-REAPPROVAL-002 | P0 | Planned only; not implemented |
-| Manual publishing checklist | AC-CHECKLIST-001 | Manual publishing checklist support must remain UI-derived or reuse existing surfaces and must not publish, schedule, spend, or connect accounts. | `PublishJob`, `ApprovalDecision`, `ManualPublishEvidence`, `AuditLog` | Publish job and manual evidence paths | NQA-CHECKLIST-001 | P0 | Planned only; not implemented |
-| Manual publishing evidence | AC-EVIDENCE-001 | Evidence requires an approved content version where accepted. | `ManualPublishEvidence`, `PublishJob`, `MediaAssetVersion`, `ApprovalDecision` | Manual evidence and publish job paths | NQA-EVIDENCE-001 | P0 | Planned only; not implemented |
-| Manual publishing evidence | AC-EVIDENCE-002 | Wrong evidence URL, channel, content version, destination, or UTM link must require correction, supersede, or invalidation. | `ManualPublishEvidence`, `TrackedLink`, `AuditLog` | Manual evidence supersede/invalidate and tracked-link paths | NQA-EVIDENCE-002 | P0 | Planned only; not implemented |
-| Manual publishing evidence | AC-EVIDENCE-003 | Evidence submission, acceptance, supersede, or invalidation must not authorize publishing. | `ManualPublishEvidence`, `PublishJob`, `AuditLog` | Manual evidence paths | NQA-EVIDENCE-003 | P0 | Planned only; not implemented |
-| Manual publishing evidence | AC-EVIDENCE-004 | AI must not accept evidence, invalidate evidence, create false evidence, or perform evidence-protected actions. | `ManualPublishEvidence`, `AuditLog` | Manual evidence paths | NQA-EVIDENCE-004 | P0 | Planned only; not implemented |
-| Manual performance review | AC-PERFORMANCE-001 | Manual performance data must be user-entered only and must not be treated as analytics ingestion, attribution, or platform-verified reporting. | `ClientReportSnapshot`, `ManualPublishEvidence` | Client report snapshot paths | NQA-PERFORMANCE-001 | P0 | Planned only; not implemented |
-| Manual performance review | AC-PERFORMANCE-002 | Manual performance review must not initiate optimization, paid execution, retargeting, analytics import, or attribution workflows. | `ClientReportSnapshot` | Client report snapshot paths | NQA-PERFORMANCE-002 | P0 | Planned only; not implemented |
-| Role & permission boundaries | AC-PERMISSIONS-001 | Viewer must not create, edit, approve, reject, submit evidence, accept evidence, invalidate evidence, publish, schedule, or spend. | `WorkspaceMember`, `Role`, `Permission`, `RolePermission`, `AuditLog` | Workspace member, role, permission, audit surfaces | NQA-PERMISSIONS-001 | P0 | Planned only; not implemented |
-| Role & permission boundaries | AC-PERMISSIONS-002 | Editor may draft or edit only where future policy permits and must not approve unless explicitly granted approval authority. | `Role`, `Permission`, `RolePermission`, `AuditLog` | Role and permission paths | NQA-PERMISSIONS-002 | P0 | Planned only; not implemented |
-| Role & permission boundaries | AC-PERMISSIONS-003 | Protected actions must require explicit workspace-scoped permission and auditability where future implementation is approved. | `WorkspaceMember`, `Permission`, `RolePermission`, `AuditLog` | Permission and audit paths | NQA-PERMISSIONS-003 | P0 | Planned only; not implemented |
-| Tenant isolation and workspace authority | AC-TENANT-001 | Route/context workspace must win over body `workspace_id`; body `workspace_id` must not be trusted. | All workspace-scoped entities | `/workspaces/{workspaceId}/...`, `WorkspaceId` parameter | NQA-TENANT-001 | P0 | Planned only; not implemented |
-| Tenant isolation and workspace authority | AC-TENANT-002 | Cross-workspace access to campaigns, briefs, assets, approvals, publish jobs, evidence, tracked links, reports, permissions, or audit records must fail. | All workspace-scoped entities | Workspace-scoped paths | NQA-TENANT-002 | P0 | Planned only; not implemented |
-| ErrorModel and idempotency expectations | AC-ERRORS-001 | Authorization failures, invalid transitions, invalid evidence, cross-workspace access, idempotency conflicts, and NO-GO attempts must preserve approved ErrorModel behavior. | `AuditLog`, workspace-scoped entities | `ErrorModel`, `ErrorResponse` | NQA-ERRORS-001 | P0 | Planned only; not implemented |
-| ErrorModel and idempotency expectations | AC-ERRORS-002 | Existing OpenAPI-declared idempotency expectations must remain preserved for idempotent operations and must not create duplicate side effects. | `MediaJob`, `PublishJob`, `UsageMeter` idempotency constraints | `Idempotency-Key` on declared paths | NQA-ERRORS-002 | P1 | Planned only; not implemented |
-| NO-GO negative boundaries | AC-NOGO-001 | Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 module implementation must remain blocked. | N/A | N/A | NQA-NOGO-001 | P0 | Planned only; not implemented |
-| NO-GO negative boundaries | AC-NOGO-002 | AI must not approve, reject, accept evidence, invalidate evidence, publish, schedule, spend, connect accounts, ingest analytics, attribute results, or change protected fields. | `AuditLog`, protected workflow entities | Existing protected workflow paths only | NQA-NOGO-002 | P0 | Planned only; not implemented |
+| Capability | AC ID | Future User Story ID | Acceptance criterion | Existing ERD reuse | Existing OpenAPI reuse | Future QA case ID | Priority | Status |
+|---|---|---|---|---|---|---|---|---|
+| Readiness Dashboard | AC-READINESS-001 | TBD | Readiness must remain advisory and must not equal human approval. | `Campaign`, `BriefVersion`, `ApprovalDecision`, `ManualPublishEvidence`, `AuditLog` | Campaign, brief-version, approval, manual evidence, audit surfaces | NQA-READINESS-001 | P0 | Planned only; not implemented |
+| Readiness Dashboard | AC-READINESS-002 | TBD | Readiness must not authorize publishing, scheduling, paid execution, payment, analytics ingestion, attribution, external integrations, or autonomous AI execution. | Same as above | Same as above | NQA-READINESS-002 | P0 | Planned only; not implemented |
+| Readiness Dashboard | AC-READINESS-003 | TBD | Low readiness may allow draft generation with a visible warning only where future policy permits and no blocking risk exists. | `BriefVersion`, `MediaAssetVersion`, `AuditLog` | Brief-version and asset-version surfaces | NQA-READINESS-003 | P1 | Planned only; not implemented |
+| Readiness Dashboard | AC-READINESS-004 | TBD | `blocked_until_review` prevents approval until a human review cycle resolves the blocking risk. | `ReviewTask`, `ApprovalDecision`, `AuditLog` | Review task and approval decision paths | NQA-READINESS-004 | P0 | Planned only; not implemented |
+| Smart Wizard manual intake | AC-WIZARD-001 | TBD | Smart Wizard output must be manual, user-confirmed, and stored only through approved reuse surfaces if future implementation is approved. | `Campaign`, `BriefVersion`, `AuditLog` | Campaign and brief-version paths | NQA-WIZARD-001 | P0 | Planned only; not implemented |
+| Smart Wizard manual intake | AC-WIZARD-002 | TBD | Smart Wizard must not create `IntakeSession`, `IntakeAnswer`, Agent Mode runtime, autonomous execution, or external integration behavior under Option A. | `BriefVersion` | Brief-version paths | NQA-WIZARD-002 | P0 | Planned only; not implemented |
+| Product / Store / Service / Offer intake | AC-OBJECT-001 | TBD | Product, store, service, and offer intake must use user-provided data, uploaded files, or explicitly allowed public links only. | `Campaign`, `BriefVersion` | Campaign and brief-version paths | NQA-OBJECT-001 | P0 | Planned only; not implemented |
+| Product / Store / Service / Offer intake | AC-OBJECT-002 | TBD | Product, store, service, and offer intake must not create first-class profile/offer entities or external data ingestion under Option A. | `Campaign`, `BriefVersion` | Campaign and brief-version paths | NQA-OBJECT-002 | P0 | Planned only; not implemented |
+| Campaign basics and advertised object flow | AC-CAMPAIGN-001 | TBD | Campaign basics and advertised object flow must reuse `Campaign` and `BriefVersion` for manual intake and draft planning. | `Campaign`, `BriefVersion` | Campaign and brief-version paths | NQA-CAMPAIGN-001 | P0 | Planned only; not implemented |
+| Campaign basics and advertised object flow | AC-CAMPAIGN-002 | TBD | Campaign/BriefVersion reuse must not introduce new campaign lifecycle tables, endpoints, generated clients, SQL, or runtime behavior. | `Campaign`, `CampaignStateTransition`, `BriefVersion` | Campaign, campaign state transition, and brief-version paths | NQA-CAMPAIGN-002 | P0 | Planned only; not implemented |
+| Landing destination | AC-DESTINATION-001 | TBD | Landing destination must be captured and reviewed as manual campaign context before approval and evidence workflows. | `BriefVersion`, `TrackedLink`, `PublishJob` | Brief-version and tracked-link paths | NQA-DESTINATION-001 | P1 | Planned only; not implemented |
+| Landing destination | AC-DESTINATION-002 | TBD | Landing destination changes that materially affect approved content must require reapproval. | `MediaAssetVersion`, `ApprovalDecision`, `AuditLog` | Asset-version and approval decision paths | NQA-DESTINATION-002 | P0 | Planned only; not implemented |
+| Creative rights confirmation | AC-RIGHTS-001 | TBD | Missing or unconfirmed creative rights must block until human review and must not proceed as an approval shortcut. | `MediaAssetVersion`, `ReviewTask`, `ApprovalDecision`, `AuditLog` | Asset-version, review-task, approval-decision, audit surfaces | NQA-RIGHTS-001 | P0 | Planned only; not implemented |
+| Creative rights confirmation | AC-RIGHTS-002 | TBD | Rights confirmation must remain manual and auditable where future implementation is approved. | `ApprovalDecision`, `ManualPublishEvidence`, `AuditLog` | Approval, manual evidence, audit surfaces | NQA-RIGHTS-002 | P0 | Planned only; not implemented |
+| Idea intake and content requirements | AC-CONTENT-001 | TBD | Ideas and content requirements must remain draft/advisory inputs until user confirmation and human review. | `BriefVersion`, `MediaAssetVersion` | Brief-version and asset-version paths | NQA-CONTENT-001 | P1 | Planned only; not implemented |
+| Idea intake and content requirements | AC-CONTENT-002 | TBD | AI-suggested content must not change protected fields or bypass review, approval, or reapproval. | `BriefVersion`, `MediaAssetVersion`, `ApprovalDecision`, `AuditLog` | Brief-version, asset-version, approval, audit surfaces | NQA-CONTENT-002 | P0 | Planned only; not implemented |
+| Hashtags per selected channel | AC-HASHTAGS-001 | TBD | Hashtags per selected channel must remain draft recommendations only and must not imply reach, optimization, analytics ingestion, or attribution. | `BriefVersion`, `MediaAssetVersion` | Brief-version and asset-version paths | NQA-HASHTAGS-001 | P1 | Planned only; not implemented |
+| Video reference scripts | AC-VIDEO-001 | TBD | Video reference scripts must remain draft/reference outputs only and must not imply final video generation, editing, asset procurement, or automated rights clearance. | `BriefVersion`, `MediaAssetVersion` | Brief-version and asset-version paths | NQA-VIDEO-001 | P1 | Planned only; not implemented |
+| UTM Tracking Lite | AC-UTM-001 | TBD | UTM Lite must use tracked links only and must not imply analytics ingestion, attribution, optimization, or platform reporting. | `TrackedLink`, `PublishJob` | Tracked-link paths | NQA-UTM-001 | P0 | Planned only; not implemented |
+| UTM Tracking Lite | AC-UTM-002 | TBD | UTM mismatch against evidence, destination, channel, or content version must require correction or invalidation planning. | `TrackedLink`, `ManualPublishEvidence`, `AuditLog` | Tracked-link and manual evidence paths | NQA-UTM-002 | P1 | Planned only; not implemented |
+| Human approval | AC-APPROVAL-001 | TBD | Approval must be human, explicit, authorized, auditable, and bound to a reviewed content version. | `ReviewTask`, `ApprovalDecision`, `MediaAssetVersion`, `AuditLog` | Review task and approval decision paths | NQA-APPROVAL-001 | P0 | Planned only; not implemented |
+| Human approval | AC-APPROVAL-002 | TBD | AI must not approve, reject, or bypass human review under any Core V1 acceptance criterion. | `ReviewTask`, `ApprovalDecision`, `AuditLog` | Review task and approval decision paths | NQA-APPROVAL-002 | P0 | Planned only; not implemented |
+| Approval lock / reapproval | AC-REAPPROVAL-001 | TBD | Approved content material changes must require reapproval before manual publishing support continues. | `MediaAssetVersion`, `ApprovalDecision`, `AuditLog` | Asset-version and approval decision paths | NQA-REAPPROVAL-001 | P0 | Planned only; not implemented |
+| Approval lock / reapproval | AC-REAPPROVAL-002 | TBD | `draft` or `generated` content must not move directly to `approved` without a human review decision. | `ReviewTask`, `ApprovalDecision` | Review task and approval decision paths | NQA-REAPPROVAL-002 | P0 | Planned only; not implemented |
+| Manual publishing checklist | AC-CHECKLIST-001 | TBD | Manual publishing checklist support must remain UI-derived or reuse existing surfaces and must not publish, schedule, spend, or connect accounts. | `PublishJob`, `ApprovalDecision`, `ManualPublishEvidence`, `AuditLog` | Publish job and manual evidence paths | NQA-CHECKLIST-001 | P0 | Planned only; not implemented |
+| Manual publishing evidence | AC-EVIDENCE-001 | TBD | Evidence requires an approved content version where accepted. | `ManualPublishEvidence`, `PublishJob`, `MediaAssetVersion`, `ApprovalDecision` | Manual evidence and publish job paths | NQA-EVIDENCE-001 | P0 | Planned only; not implemented |
+| Manual publishing evidence | AC-EVIDENCE-002 | TBD | Wrong evidence URL, channel, content version, destination, or UTM link must require correction, supersede, or invalidation. | `ManualPublishEvidence`, `TrackedLink`, `AuditLog` | Manual evidence supersede/invalidate and tracked-link paths | NQA-EVIDENCE-002 | P0 | Planned only; not implemented |
+| Manual publishing evidence | AC-EVIDENCE-003 | TBD | Evidence submission, acceptance, supersede, or invalidation must not authorize publishing. | `ManualPublishEvidence`, `PublishJob`, `AuditLog` | Manual evidence paths | NQA-EVIDENCE-003 | P0 | Planned only; not implemented |
+| Manual publishing evidence | AC-EVIDENCE-004 | TBD | AI must not accept evidence, invalidate evidence, create false evidence, or perform evidence-protected actions. | `ManualPublishEvidence`, `AuditLog` | Manual evidence paths | NQA-EVIDENCE-004 | P0 | Planned only; not implemented |
+| Manual performance review | AC-PERFORMANCE-001 | TBD | Manual performance data must be user-entered only and must not be treated as analytics ingestion, attribution, or platform-verified reporting. | `ClientReportSnapshot`, `ManualPublishEvidence` | Client report snapshot paths | NQA-PERFORMANCE-001 | P0 | Planned only; not implemented |
+| Manual performance review | AC-PERFORMANCE-002 | TBD | Manual performance review must not initiate optimization, paid execution, retargeting, analytics import, or attribution workflows. | `ClientReportSnapshot` | Client report snapshot paths | NQA-PERFORMANCE-002 | P0 | Planned only; not implemented |
+| Role & permission boundaries | AC-PERMISSIONS-001 | TBD | Viewer must not create, edit, approve, reject, submit evidence, accept evidence, invalidate evidence, publish, schedule, or spend. | `WorkspaceMember`, `Role`, `Permission`, `RolePermission`, `AuditLog` | Workspace member, role, permission, audit surfaces | NQA-PERMISSIONS-001 | P0 | Planned only; not implemented |
+| Role & permission boundaries | AC-PERMISSIONS-002 | TBD | Editor may draft or edit only where future policy permits and must not approve unless explicitly granted approval authority. | `Role`, `Permission`, `RolePermission`, `AuditLog` | Role and permission paths | NQA-PERMISSIONS-002 | P0 | Planned only; not implemented |
+| Role & permission boundaries | AC-PERMISSIONS-003 | TBD | Protected actions must require explicit workspace-scoped permission and auditability where future implementation is approved. | `WorkspaceMember`, `Permission`, `RolePermission`, `AuditLog` | Permission and audit paths | NQA-PERMISSIONS-003 | P0 | Planned only; not implemented |
+| Tenant isolation and workspace authority | AC-TENANT-001 | TBD | Route/context workspace must win over body `workspace_id`; body `workspace_id` must not be trusted. | All workspace-scoped entities | `/workspaces/{workspaceId}/...`, `WorkspaceId` parameter | NQA-TENANT-001 | P0 | Planned only; not implemented |
+| Tenant isolation and workspace authority | AC-TENANT-002 | TBD | Cross-workspace access to campaigns, briefs, assets, approvals, publish jobs, evidence, tracked links, reports, permissions, or audit records must fail. | All workspace-scoped entities | Workspace-scoped paths | NQA-TENANT-002 | P0 | Planned only; not implemented |
+| ErrorModel and idempotency expectations | AC-ERRORS-001 | TBD | Authorization failures, invalid transitions, invalid evidence, cross-workspace access, idempotency conflicts, and NO-GO attempts must preserve approved ErrorModel behavior. | `AuditLog`, workspace-scoped entities | `ErrorModel`, `ErrorResponse` | NQA-ERRORS-001 | P0 | Planned only; not implemented |
+| ErrorModel and idempotency expectations | AC-ERRORS-002 | TBD | Existing OpenAPI-declared idempotency expectations must remain preserved for idempotent operations and must not create duplicate side effects. | `MediaJob`, `PublishJob`, `UsageMeter` idempotency constraints | `Idempotency-Key` on declared paths | NQA-ERRORS-002 | P1 | Planned only; not implemented |
+| NO-GO negative boundaries | AC-NOGO-001 | TBD | Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 module implementation must remain blocked. | N/A | N/A | NQA-NOGO-001 | P0 | Planned only; not implemented |
+| NO-GO negative boundaries | AC-NOGO-002 | TBD | AI must not approve, reject, accept evidence, invalidate evidence, publish, schedule, spend, connect accounts, ingest analytics, attribute results, or change protected fields. | `AuditLog`, protected workflow entities | Existing protected workflow paths only | NQA-NOGO-002 | P0 | Planned only; not implemented |
 
 ## 11. Missing areas that remain non-implementation-ready
 
@@ -276,40 +276,46 @@ These IDs are placeholders and do not create approved backlog stories.
 
 Future QA/test planning must define separately approved QA cases for:
 
-- readiness is not approval;
-- readiness is not publishing authorization;
-- low readiness draft with warning where allowed;
-- `blocked_until_review` preventing approval until human review;
-- manual/user-confirmed Smart Wizard output;
-- Smart Wizard not creating `IntakeSession`, `IntakeAnswer`, or Agent Mode runtime;
-- `Campaign` and `BriefVersion` reuse for manual intake;
-- `Campaign`/`BriefVersion` reuse not introducing new lifecycle tables or endpoints;
-- product/store/service/offer intake through approved reuse surfaces;
-- landing destination capture and material-change handling;
-- creative rights confirmation and review blocking;
-- idea intake and content requirements;
-- hashtags per selected channel as draft recommendations;
-- video reference scripts as draft/reference outputs;
-- human approval and version-bound decision behavior;
-- AI approval/rejection/bypass denial;
-- approved content material changes requiring reapproval;
-- AI protected-action denials;
-- evidence requiring approved content version;
-- wrong evidence URL/channel/content version requiring correction, supersede, or invalidation;
-- evidence not authorizing publishing;
-- AI evidence-protected action denial;
-- UTM Lite tracked links not implying analytics or attribution;
-- UTM mismatch against evidence or destination requiring correction;
-- manual publishing checklist support without publishing execution;
-- manual performance user-entered-only behavior;
-- viewer protected-action denial;
-- editor approval denial without explicit authority;
-- protected actions requiring explicit workspace-scoped permission and auditability;
-- route/context workspace winning over body `workspace_id`;
-- cross-workspace access failure;
-- ErrorModel responses for forbidden actions;
-- idempotency preservation where OpenAPI declares it;
-- negative blocking for direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 modules.
+- NQA-READINESS-001: readiness is not approval;
+- NQA-READINESS-002: readiness is not publishing authorization;
+- NQA-READINESS-003: low readiness draft with warning where allowed;
+- NQA-READINESS-004: `blocked_until_review` preventing approval until human review;
+- NQA-WIZARD-001: manual/user-confirmed Smart Wizard output;
+- NQA-WIZARD-002: Smart Wizard not creating `IntakeSession`, `IntakeAnswer`, or Agent Mode runtime;
+- NQA-OBJECT-001: product/store/service/offer intake through user-provided data, uploaded files, or explicitly allowed public links;
+- NQA-OBJECT-002: product/store/service/offer intake not creating first-class entities or external data ingestion;
+- NQA-CAMPAIGN-001: `Campaign` and `BriefVersion` reuse for manual intake;
+- NQA-CAMPAIGN-002: `Campaign`/`BriefVersion` reuse not introducing new lifecycle tables, endpoints, generated clients, SQL, or runtime behavior;
+- NQA-DESTINATION-001: landing destination capture before approval and evidence workflows;
+- NQA-DESTINATION-002: landing destination material changes requiring reapproval;
+- NQA-RIGHTS-001: creative rights confirmation and review blocking;
+- NQA-RIGHTS-002: rights confirmation remaining manual and auditable;
+- NQA-CONTENT-001: idea intake and content requirements remaining draft/advisory until user confirmation and human review;
+- NQA-CONTENT-002: AI-suggested content not changing protected fields or bypassing review, approval, or reapproval;
+- NQA-HASHTAGS-001: hashtags per selected channel as draft recommendations;
+- NQA-VIDEO-001: video reference scripts as draft/reference outputs;
+- NQA-UTM-001: UTM Lite tracked links not implying analytics ingestion, attribution, optimization, or platform reporting;
+- NQA-UTM-002: UTM mismatch against evidence, destination, channel, or content version requiring correction or invalidation planning;
+- NQA-APPROVAL-001: human approval and version-bound decision behavior;
+- NQA-APPROVAL-002: AI approval/rejection/bypass denial;
+- NQA-REAPPROVAL-001: approved content material changes requiring reapproval;
+- NQA-REAPPROVAL-002: `draft` or `generated` content not moving directly to `approved` without human review;
+- NQA-CHECKLIST-001: manual publishing checklist support without publishing execution;
+- NQA-EVIDENCE-001: evidence requiring approved content version;
+- NQA-EVIDENCE-002: wrong evidence URL/channel/content version/destination/UTM link requiring correction, supersede, or invalidation;
+- NQA-EVIDENCE-003: evidence not authorizing publishing;
+- NQA-EVIDENCE-004: AI evidence-protected action denial;
+- NQA-PERFORMANCE-001: manual performance user-entered-only behavior;
+- NQA-PERFORMANCE-002: manual performance review not initiating optimization, paid execution, retargeting, analytics import, or attribution workflows;
+- NQA-PERMISSIONS-001: viewer protected-action denial;
+- NQA-PERMISSIONS-002: editor approval denial without explicit authority;
+- NQA-PERMISSIONS-003: protected actions requiring explicit workspace-scoped permission and auditability;
+- NQA-TENANT-001: route/context workspace winning over body `workspace_id`;
+- NQA-TENANT-002: cross-workspace access failure;
+- NQA-ERRORS-001: ErrorModel responses for forbidden actions, invalid transitions, invalid evidence, cross-workspace access, idempotency conflicts, and NO-GO attempts;
+- NQA-ERRORS-002: idempotency preservation where OpenAPI declares it;
+- NQA-NOGO-001: negative blocking for direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post-V1 modules;
+- NQA-NOGO-002: AI protected-action denials.
 
 No QA or test file is created or modified by this document.
 
