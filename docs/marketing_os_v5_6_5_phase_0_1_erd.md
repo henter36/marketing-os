@@ -2032,7 +2032,7 @@ Nashir Core V1 reuses existing approved ERD entities only.
 
 | Nashir Core V1 area | Reuse-only ERD mapping | Option A boundary |
 |---|---|---|
-| Readiness Dashboard | Reuse `OnboardingProgress`, `SetupChecklistItem`, `Campaign`, `ApprovalDecision`, `ManualPublishEvidence`, and `AuditLog` where sufficient. | Readiness remains advisory and not approval. No `CampaignReadinessSnapshot` entity is added. |
+| Readiness Dashboard | Reuse `OnboardingProgress` and `SetupChecklistItem` only for workspace/setup readiness where sufficient. For campaign-level readiness, derive from existing campaign, review, evidence, and audit surfaces such as `Campaign`, `BriefVersion`, `ApprovalDecision`, `ManualPublishEvidence`, and `AuditLog`. | Readiness remains advisory and not approval. Do not add `campaign_id` to `OnboardingProgress` or `SetupChecklistItem`. No new readiness fields, relationships, or `CampaignReadinessSnapshot` entity are added. |
 | Smart Wizard / manual intake | Reuse `BriefVersion` and `Campaign` for confirmed manual intake output. | Do not add `IntakeSession` or `IntakeAnswer`. No Agent Mode runtime is approved. |
 | Product / Store / Service / Offer intake | Reuse `Campaign` and `BriefVersion`. | Do not create `ProductProfile`, `StoreProfile`, `ServiceProfile`, or `Offer` entities. |
 | Campaign basics and advertised object flow | Reuse `Campaign` and `BriefVersion`. | Do not add new campaign lifecycle tables. |
@@ -2040,7 +2040,7 @@ Nashir Core V1 reuses existing approved ERD entities only.
 | Creative rights confirmation | Reuse `MediaAssetVersion`, `ReviewTask`, `ApprovalDecision`, `ManualPublishEvidence`, and `AuditLog` where sufficient. | Do not add a `CreativeRights` table. |
 | Idea intake / content requirements / hashtags / video reference scripts | Reuse `BriefVersion` and `MediaAssetVersion`. | Do not treat `PromptTemplate` as a Nashir reuse candidate from this addendum. Template-backed generation remains outside Nashir Option A unless separately approved. Do not add video production entities. |
 | Human approval and approval lock | Reuse `ReviewTask`, `ApprovalDecision`, `MediaAssetVersion`, and `AuditLog`. | Approval remains human, version-bound, and separate from readiness. Readiness score does not equal approval. |
-| Manual publishing checklist | Reuse `PublishJob`, `SetupChecklistItem`, and `AuditLog` where sufficient. | Checklist may remain UI-only unless future approved contracts require persistence. Do not add `ManualPublishingChecklist` or `ManualPublishingChecklistItem`. |
+| Manual publishing checklist | Keep the checklist UI-derived and non-persisted in Option A. Derive checklist readiness from `PublishJob`, `ApprovalDecision`, `ManualPublishEvidence`, and `AuditLog` where sufficient. | Do not map a per-campaign or per-publish-job checklist to `SetupChecklistItem`. Do not add `ManualPublishingChecklist`, `ManualPublishingChecklistItem`, new checklist fields, or new checklist relationships. |
 | Manual publishing evidence | Reuse `ManualPublishEvidence`, `PublishJob`, `MediaAssetVersion`, and `AuditLog`. | Evidence remains user-provided proof only. Evidence does not authorize publishing. Do not add `EvidenceAttachment` or `EvidenceAuditEvent`. |
 | Manual performance review | Reuse `ClientReportSnapshot` and `ManualPublishEvidence`. | Performance data remains user-entered only. No analytics ingestion or attribution is approved. |
 | Role & Permission Matrix | Reuse `WorkspaceMember`, `Role`, `Permission`, `RolePermission`, and `AuditLog` where sufficient. | Do not add `RolePermissionPolicy` or `PermissionAssignment`. |
@@ -2057,8 +2057,8 @@ CampaignReadinessSignal
 ManualPublishingChecklist
 ManualPublishingChecklistItem
 EvidenceAttachment
-EvidenceAuditEvent if AuditLog is enough
-ApprovalStateTransition if AuditLog is enough
+EvidenceAuditEvent (deferred; use AuditLog)
+ApprovalStateTransition (deferred; use AuditLog)
 RolePermissionPolicy
 PermissionAssignment
 direct publishing entities
