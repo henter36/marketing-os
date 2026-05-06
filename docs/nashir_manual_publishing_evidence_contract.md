@@ -434,8 +434,10 @@ Evidence integrity risks include:
 |---|---|---|---|---|---|---|
 | `draft` | Submit evidence | `submitted` | Editor or allowed submitter | Required evidence fields are present enough for review. | Yes | Does not accept evidence. |
 | `submitted` | Accept evidence | `accepted` | Authorized reviewer | Evidence references approved content and required proof is sufficient. | Yes | Acceptance does not publish. |
-| `submitted` | Request correction | `needs_correction` | Authorized reviewer | Evidence is incomplete, mismatched, or unclear. | Yes | Correction required before acceptance. |
-| `needs_correction` | Resubmit corrected evidence | `submitted` | Editor or allowed submitter | Corrected evidence is provided. | Yes | Starts another evidence review pass. |
+| submitted | Request correction | needs_correction | Authorized reviewer | Evidence is incomplete, mismatched, or unclear. | Yes | Correction required before acceptance. |
+| submitted | Invalidate evidence | invalidated | Authorized reviewer | Evidence is fundamentally flawed, fraudulent, or mismatched. | Yes | Terminates the evidence record. |
+| needs_correction | Resubmit corrected evidence | submitted | Editor or allowed submitter | Corrected evidence is provided. | Yes | Starts another evidence review pass. |
+| needs_correction | Invalidate evidence | invalidated | Authorized reviewer | Evidence cannot be corrected or is determined to be invalid. | Yes | Terminates the evidence record. |
 | `accepted` | Supersede evidence | `superseded` | Authorized reviewer | Corrected or more complete evidence exists and references prior evidence. | Yes | Prior evidence remains auditable. |
 | `accepted` | Invalidate evidence | `invalidated` | Authorized reviewer | Invalidation reason is present. | Yes | Does not delete evidence. |
 | `superseded` | Archive evidence | `archived` | Authorized actor | Evidence is retired from active use. | Yes | Does not restore acceptance. |
