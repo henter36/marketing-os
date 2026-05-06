@@ -153,14 +153,16 @@ The ERD addendum maps Nashir Core V1 to existing entities only. OpenAPI planning
 | campaign paths | `/workspaces/{workspaceId}/campaigns`, `/workspaces/{workspaceId}/campaigns/{campaignId}` | Reuse for campaign basics and campaign-level grouping. |
 | campaign state transition paths | `/workspaces/{workspaceId}/campaigns/{campaignId}/state-transitions` | Reuse for existing campaign lifecycle transition history where current semantics are sufficient. |
 | brief version paths | `/workspaces/{workspaceId}/campaigns/{campaignId}/brief-versions` | Reuse for Smart Wizard output, manual intake, advertised object detail, landing destination notes, idea intake, content requirements, hashtags, video reference scripts, and versioned campaign brief content. |
-| media job / media asset / media asset version paths | /workspaces/{workspaceId}/campaigns/{campaignId}/media-jobs, /workspaces/{workspaceId}/media-jobs/{mediaJobId}, /workspaces/{workspaceId}/media-jobs/{mediaJobId}/status, /workspaces/{workspaceId}/media-jobs/{mediaJobId}/media-assets, /workspaces/{workspaceId}/media-assets/{mediaAssetId}/versions | Reuse approved names; do not introduce GenerationJob or standalone Asset. |
-| review task / approval decision paths | /workspaces/{workspaceId}/media-asset-versions/{mediaAssetVersionId}/review-tasks, /workspaces/{workspaceId}/review-tasks/{reviewTaskId}/decisions | Reuse for human review, approval, rejection, and version-bound decision records. |
+| media job / media asset / media asset version paths | /workspaces/{workspaceId}/campaigns/{campaignId}/media-jobs, /workspaces/{workspaceId}/media-jobs/{mediaJobId}, /workspaces/{workspaceId}/media-jobs/{mediaJobId}/status, /workspaces/{workspaceId}/media-jobs/{mediaJobId}/assets, /workspaces/{workspaceId}/assets/{mediaAssetId}/versions | Reuse approved names; do not introduce GenerationJob or standalone Asset. |
+| review task / approval decision paths | /workspaces/{workspaceId}/asset-versions/{mediaAssetVersionId}/review-tasks, /workspaces/{workspaceId}/review-tasks/{reviewTaskId}/decisions | Reuse for human review, approval, rejection, and version-bound decision records. |
 | publish job paths | `/workspaces/{workspaceId}/approval-decisions/{approvalDecisionId}/publish-jobs` | Reuse only for manual publishing support after approval. No direct publishing or scheduling. |
 | manual evidence paths | `/workspaces/{workspaceId}/publish-jobs/{publishJobId}/manual-evidence`, `/workspaces/{workspaceId}/manual-evidence/{manualPublishEvidenceId}/supersede`, `/workspaces/{workspaceId}/manual-evidence/{manualPublishEvidenceId}/invalidate` | Reuse for user-provided evidence. Evidence is proof only and does not authorize publishing. |
 | tracked link paths | `/workspaces/{workspaceId}/publish-jobs/{publishJobId}/tracked-links` | Reuse for UTM Tracking Lite. Do not treat as analytics ingestion or attribution. |
 | client report snapshot paths | `/workspaces/{workspaceId}/campaigns/{campaignId}/client-report-snapshots` | Reuse for frozen manual review/report snapshots using user-entered observations. |
 | audit log paths | `/workspaces/{workspaceId}/audit-logs` | Reuse for traceability where current audit semantics are sufficient. Do not make audit logs the business state source. |
 | onboarding-progress paths | `/workspaces/{workspaceId}/onboarding-progress` | Reuse for limited readiness/setup adjacency only. No setup checklist path was observed in the inspected OpenAPI paths. |
+
+Note: The current approved OpenAPI uses the existing path segments `assets` and `asset-versions` while binding them to `MediaAsset` and `MediaAssetVersion` schemas. This proposal reuses those existing paths as-is and does not rename them to avoid implying new OpenAPI paths.
 
 ## 9. Existing schema reuse candidates
 
@@ -170,10 +172,10 @@ The ERD addendum maps Nashir Core V1 to existing entities only. OpenAPI planning
 | `WorkspaceMember` | Reuse for membership and workspace actor context. |
 | `Role` | Reuse for baseline workspace role authority. |
 | `Permission` | Reuse for protected-action permission codes. |
-| Campaign | Reuse for campaign basics, objective, status, and campaign-level grouping. |
-| CreateCampaignRequest | Reuse for campaign creation and Smart Wizard intake where sufficient. |
+| `Campaign` | Reuse for campaign basics, objective, status, and campaign-level grouping. |
+| `CreateCampaignRequest` | Reuse for campaign creation and Smart Wizard intake where sufficient. |
 | `CampaignStateTransition` | Reuse for existing campaign lifecycle transition history. |
-| BriefVersion | Reuse for Smart Wizard output, manual intake, advertised object detail, landing destination notes, idea intake, content requirements, hashtags, video reference scripts, and versioned campaign brief content where current shape is sufficient. |
+| `BriefVersion` | Reuse for Smart Wizard output, manual intake, advertised object detail, landing destination notes, idea intake, content requirements, hashtags, video reference scripts, and versioned campaign brief content where current shape is sufficient. |
 | `MediaJob` | Reuse for existing media generation/job tracking surfaces without introducing autonomous AI execution. |
 | `MediaAsset` | Reuse as approved asset grouping. |
 | `MediaAssetVersion` | Reuse for version-bound reviewable variants, content hash, and approval lock integrity. |
