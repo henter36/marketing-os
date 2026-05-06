@@ -425,7 +425,7 @@ Evidence integrity risks include:
 | Hashtags used | Optional recommended | User-provided | Compare with approved content where relevant. | Published content may differ. | No trend ingestion. |
 | CTA used | Optional recommended | User-provided | Compare with approved content where relevant. | Offer/CTA mismatch risk. | Risk wording may require review. |
 | Landing destination used | Recommended | User-provided | Compare with approved destination and UTM link. | Destination mismatch risk. | No hosting/tracking approval. |
-| UTM link used | Conditional | User-provided/generated planning output | Required when UTM Lite was generated and used. | UTM mismatch or missing link. | No analytics or attribution. |
+| UTM link used | Conditional | User-provided/generated planning output | Required if a UTM link was generated for the content version. | UTM mismatch or missing link. | No analytics or attribution. |
 | Evidence status | Required | Evidence workflow | Must be one of defined planning statuses. | State ambiguity. | No implementation approved. |
 
 ## 27. Conceptual Evidence Transition Table
