@@ -170,7 +170,8 @@ The ERD addendum maps Nashir Core V1 to existing entities only. OpenAPI planning
 | `WorkspaceMember` | Reuse for membership and workspace actor context. |
 | `Role` | Reuse for baseline workspace role authority. |
 | `Permission` | Reuse for protected-action permission codes. |
-| `Campaign` | Reuse for campaign basics, objective, status, and campaign-level grouping. |
+| Campaign | Reuse for campaign basics, objective, status, and campaign-level grouping. |
+| CreateCampaignRequest | Reuse for campaign creation and Smart Wizard intake where sufficient. |
 | `CampaignStateTransition` | Reuse for existing campaign lifecycle transition history. |
 | `BriefVersion` | Reuse for versioned intake, brief, content requirements, hashtags, video scripts, advertised object details, and landing destination notes where current shape is sufficient. |
 | `MediaJob` | Reuse for existing media generation/job tracking surfaces without introducing autonomous AI execution. |
