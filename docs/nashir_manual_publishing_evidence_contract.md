@@ -260,7 +260,8 @@ The following transitions are planning-level candidates only:
 
 The following transitions must remain disallowed unless future repository authority explicitly changes them:
 
-- `draft` -> `accepted`
+- draft -> accepted
+- needs_correction -> accepted
 - `submitted` -> `superseded` without acceptance
 - `invalidated` -> `accepted`
 - `superseded` -> `accepted`
