@@ -1999,3 +1999,83 @@ Next required output:
 ```text
 Convert this approved ERD into PostgreSQL SQL DDL with tables, enums, foreign keys, indexes, unique constraints, immutable triggers, append-only rules, idempotency constraints, and tenant isolation constraints.
 ```
+
+---
+
+## 21. Nashir Option A Reuse-Only Addendum
+
+### 21.1 Addendum Status
+
+This is a documentation-only ERD patch.
+
+This patch applies Option A: reuse-only / no new entities.
+
+Existing ERD remains authoritative. Section 52 remains the relationship authority for Phase 0/1.
+
+This addendum does not add new entities, new fields, renamed entities, new persistence relationships, SQL-ready field definition changes, constraints, indexes, enums, table definitions, SQL changes, OpenAPI changes, QA changes, runtime changes, generated clients, tests, packages, workflows, migrations, or implementation.
+
+Core V1 remains manual/export/review/approval/evidence only.
+
+Readiness does not equal approval.
+
+Evidence does not authorize publishing.
+
+Manual publishing remains external and user-operated in Core V1.
+
+Direct publishing, social OAuth, scheduling, paid ads, payment, analytics ingestion, attribution, external integrations, autonomous AI execution, and Post V1 module implementation remain NO-GO.
+
+OpenAPI Patch, SQL Migration Plan, QA/Test Plan, and Threat Model Update remain future separate steps.
+
+### 21.2 Nashir Core V1 Reuse Mapping
+
+Nashir Core V1 reuses existing approved ERD entities only.
+
+| Nashir Core V1 area | Reuse-only ERD mapping | Option A boundary |
+|---|---|---|
+| Readiness Dashboard | Reuse `OnboardingProgress`, `SetupChecklistItem`, `Campaign`, `ApprovalDecision`, `ManualPublishEvidence`, and `AuditLog` where sufficient. | Readiness remains advisory and not approval. No `CampaignReadinessSnapshot` entity is added. |
+| Smart Wizard / manual intake | Reuse `BriefVersion` and `Campaign` for confirmed manual intake output. | Do not add `IntakeSession` or `IntakeAnswer`. No Agent Mode runtime is approved. |
+| Product / Store / Service / Offer intake | Reuse `Campaign` and `BriefVersion`. | Do not create `ProductProfile`, `StoreProfile`, `ServiceProfile`, or `Offer` entities. |
+| Campaign basics and advertised object flow | Reuse `Campaign` and `BriefVersion`. | Do not add new campaign lifecycle tables. |
+| Landing destination and UTM Lite | Reuse `BriefVersion`, `TrackedLink`, and `PublishJob` where sufficient. | UTM Lite remains structured link support only. No analytics ingestion or attribution is approved. |
+| Creative rights confirmation | Reuse `MediaAssetVersion`, `ReviewTask`, `ApprovalDecision`, `ManualPublishEvidence`, and `AuditLog` where sufficient. | Do not add a `CreativeRights` table. |
+| Idea intake / content requirements / hashtags / video reference scripts | Reuse `BriefVersion` and `MediaAssetVersion`. | Do not treat `PromptTemplate` as a Nashir reuse candidate from this addendum. Template-backed generation remains outside Nashir Option A unless separately approved. Do not add video production entities. |
+| Human approval and approval lock | Reuse `ReviewTask`, `ApprovalDecision`, `MediaAssetVersion`, and `AuditLog`. | Approval remains human, version-bound, and separate from readiness. Readiness score does not equal approval. |
+| Manual publishing checklist | Reuse `PublishJob`, `SetupChecklistItem`, and `AuditLog` where sufficient. | Checklist may remain UI-only unless future approved contracts require persistence. Do not add `ManualPublishingChecklist` or `ManualPublishingChecklistItem`. |
+| Manual publishing evidence | Reuse `ManualPublishEvidence`, `PublishJob`, `MediaAssetVersion`, and `AuditLog`. | Evidence remains user-provided proof only. Evidence does not authorize publishing. Do not add `EvidenceAttachment` or `EvidenceAuditEvent`. |
+| Manual performance review | Reuse `ClientReportSnapshot` and `ManualPublishEvidence`. | Performance data remains user-entered only. No analytics ingestion or attribution is approved. |
+| Role & Permission Matrix | Reuse `WorkspaceMember`, `Role`, `Permission`, `RolePermission`, and `AuditLog` where sufficient. | Do not add `RolePermissionPolicy` or `PermissionAssignment`. |
+
+### 21.3 Explicit Core V1 ERD Deferrals and Rejections
+
+The following are deferred or rejected for Nashir Core V1 ERD under Option A:
+
+```text
+IntakeSession
+IntakeAnswer
+CampaignReadinessSnapshot
+CampaignReadinessSignal
+ManualPublishingChecklist
+ManualPublishingChecklistItem
+EvidenceAttachment
+EvidenceAuditEvent if AuditLog is enough
+ApprovalStateTransition if AuditLog is enough
+RolePermissionPolicy
+PermissionAssignment
+direct publishing entities
+social OAuth connector entities
+scheduling entities
+paid ads execution entities
+payment/billing/invoice/refund/tax entities
+analytics ingestion entities
+attribution model entities
+external integration connector entities
+autonomous AI execution entities
+Post V1 Organic Publishing Module entities
+Post V1 Paid Campaign Execution Module entities
+```
+
+### 21.4 Future Separate Steps
+
+This addendum does not approve any follow-on patch by itself.
+
+Any future OpenAPI Patch, SQL Migration Plan, QA/Test Plan, Threat Model Update, runtime change, generated-client change, test change, package change, workflow change, migration, or implementation must be separately approved with explicit allowed files, forbidden files, verification gates, and NO-GO boundaries.
