@@ -242,7 +242,7 @@ The following matrix is planning-only. Candidate permissions require future appr
 | invalidate evidence | Candidate if evidence-authorized | Candidate if evidence-authorized | No unless evidence-authorized | No | Candidate | Yes | Elevated protected action. |
 | archive evidence | Candidate | Candidate | Candidate if policy allows | No | Candidate | Yes | Must preserve audit trail where future implementation permits. |
 | enter manual performance review | Candidate | Candidate | Candidate if policy allows | No | No | Yes | User-entered data only. |
-| view manual performance review | Candidate | Candidate | Candidate | Candidate if policy allows | Candidate | No, unless sensitive data is exposed | Not analytics ingestion or attribution. |
+| view manual performance review | Candidate | Candidate | Candidate | No | Candidate | No, unless sensitive data is exposed | Not analytics ingestion or attribution. |
 | export/copy approved content | Candidate | Candidate | Candidate if policy allows | No | Candidate if policy allows | Yes if persisted | Copy/export only; no direct publishing. |
 | access audit trail | Candidate | Candidate if policy allows | No unless policy allows scoped audit | No unless policy allows scoped read | Candidate if policy allows | Yes | Audit access may expose sensitive governance data. |
 
