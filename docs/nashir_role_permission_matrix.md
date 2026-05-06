@@ -165,6 +165,10 @@ Approval authority is explicit, auditable permission for a human actor to approv
 
 Protected action is an action that changes approval, evidence, policy, publishing boundary, integration, payment, or other sensitive state and requires explicit authority and audit treatment.
 
+### Archive
+
+Archiving is a planning-level status change for content or evidence that removes it from active workflows while preserving its record and audit history for governance purposes.
+
 ## 8. Core V1 role principles
 
 1. Permissions are workspace-scoped and must preserve tenant isolation.
