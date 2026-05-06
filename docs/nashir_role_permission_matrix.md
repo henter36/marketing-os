@@ -351,7 +351,7 @@ Protected actions include:
 | Supersede evidence | Owner/admin/evidence reviewer with explicit authority | Yes | No | Yes | Planning-only candidate | Prior evidence remains auditable. |
 | Invalidate evidence | Owner/admin/evidence reviewer with elevated authority | Yes | No | Yes | Planning-only candidate | Requires reason. |
 | Change approval policy | Owner/admin candidate only | Yes | No | Yes | Future contract required | Not implemented by this document. |
-| Change forbidden claims | Owner/admin/reviewer policy candidate | Yes | No | Yes | Future contract required | Requires policy and QA definition. |
+| Change forbidden claims | Owner/admin candidate only | Yes | No | Yes | Future contract required | Requires policy and QA definition. |
 | Change publishing permissions | Owner/admin candidate only | Yes | No | Yes | Future contract required | Must not enable direct publishing in Core V1. |
 | Connect external accounts | Integration admin, Post V1 only | Yes | No | Yes | NO-GO in Core V1 | Social OAuth and integrations remain NO-GO. |
 | Initiate direct publishing | None | Not allowed | No | Not applicable | NO-GO | Forbidden in Core V1. |
