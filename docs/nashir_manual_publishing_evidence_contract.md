@@ -247,8 +247,10 @@ The following transitions are planning-level candidates only:
 |---|---|---|
 | `draft` | submit evidence | `submitted` |
 | `submitted` | accept evidence | `accepted` |
-| `submitted` | request correction | `needs_correction` |
-| `needs_correction` | resubmit corrected evidence | `submitted` |
+| submitted | request correction | needs_correction |
+| submitted | invalidate evidence | invalidated |
+| needs_correction | resubmit corrected evidence | submitted |
+| needs_correction | invalidate evidence | invalidated |
 | `accepted` | supersede with corrected evidence | `superseded` |
 | `accepted` | invalidate evidence | `invalidated` |
 | `superseded` | archive superseded evidence | `archived` |
