@@ -70,11 +70,11 @@ class BrandProfileRepository {
 
         const workspace = workspaces[0];
         if (!workspace) {
-          throw new AppError(404, "NOT_FOUND", "Workspace was not found.", "Check the workspace ID.");
+          return { outcome: "workspace_not_found" };
         }
 
         if (!workspace.default_locale) {
-          throw new AppError(422, "VALIDATION_FAILED", "Workspace default locale is required.", "Configure a workspace default locale.");
+          return { outcome: "workspace_locale_missing" };
         }
 
         const inserted = rowsFromQueryResult(await queryable.query(
@@ -99,17 +99,17 @@ class BrandProfileRepository {
         ));
 
         if (!inserted[0]) {
-          throw duplicateBrandProfileError();
+          return { outcome: "duplicate_brand_profile" };
         }
 
-        return toPublicBrandProfile(inserted[0]);
+        return { outcome: "created", profile: toPublicBrandProfile(inserted[0]) };
       };
 
-      if (typeof this.pool.withTransaction === "function") {
-        return await this.pool.withTransaction(createProfile, { workspaceId });
-      }
+      const result = typeof this.pool.withTransaction === "function"
+        ? await this.pool.withTransaction(createProfile, { workspaceId })
+        : await createProfile(this.pool);
 
-      return await createProfile(this.pool);
+      return toCreateResult(result);
     } catch (error) {
       throw toRepositoryError(error);
     }
@@ -133,6 +133,26 @@ function toPublicBrandProfile(row) {
 
 function rowsFromQueryResult(result) {
   return Array.isArray(result) ? result : result.rows;
+}
+
+function toCreateResult(result) {
+  if (result.outcome === "created") {
+    return result.profile;
+  }
+
+  if (result.outcome === "workspace_not_found") {
+    throw new AppError(404, "NOT_FOUND", "Workspace was not found.", "Check the workspace ID.");
+  }
+
+  if (result.outcome === "workspace_locale_missing") {
+    throw new AppError(422, "VALIDATION_FAILED", "Workspace default locale is required.", "Configure a workspace default locale.");
+  }
+
+  if (result.outcome === "duplicate_brand_profile") {
+    throw duplicateBrandProfileError();
+  }
+
+  throw new AppError(500, "INTERNAL_ERROR", "Database read failed.", "Retry or contact support.");
 }
 
 function duplicateBrandProfileError() {
