@@ -314,8 +314,8 @@ If separately approved, later documentation-only planning may edit narrowly scop
 - `docs/nashir_qa_test_planning.md`;
 - `docs/03_decision_log.md`;
 - `docs/17_change_log.md`;
-- future UI / route / permission / audit / ErrorModel mapping documents;
-- future implementation gate planning documents.
+- future UI / route / permission / audit / ErrorModel mapping document;
+- future implementation gate planning document.
 
 Any future contract or implementation work requires its own approved allowed files, forbidden files, verification commands, expected CI gates, rollback/no-go criteria, and NO-GO boundaries.
 
