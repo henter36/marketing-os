@@ -56,60 +56,41 @@ class BrandProfileRepository {
     try {
       validateBrandProfileInput(input);
 
-      const createProfile = async (queryable) => {
-        const workspaces = rowsFromQueryResult(await queryable.query(
-          `
-            SELECT default_locale
-            FROM workspaces
-            WHERE workspace_id = $1
-            LIMIT 1
-          `,
-          [workspaceId],
-          { workspaceId }
-        ));
+      const inserted = rowsFromQueryResult(await this.pool.query(
+        `
+          INSERT INTO brand_profiles (
+            workspace_id,
+            profile_name,
+            brand_summary,
+            language,
+            created_by_user_id
+          )
+          SELECT
+            w.workspace_id,
+            $2,
+            $3,
+            w.default_locale,
+            $4
+          FROM workspaces w
+          WHERE w.workspace_id = $1
+            AND w.default_locale IS NOT NULL
+          ON CONFLICT (workspace_id, profile_name) DO NOTHING
+          RETURNING
+            brand_profile_id,
+            workspace_id,
+            profile_name AS brand_name,
+            COALESCE(brand_summary, '') AS brand_description
+        `,
+        [workspaceId, input.brand_name, input.brand_description || "", actorUserId],
+        { workspaceId }
+      ));
 
-        const workspace = workspaces[0];
-        if (!workspace) {
-          return { outcome: "workspace_not_found" };
-        }
+      if (inserted[0]) {
+        return toPublicBrandProfile(inserted[0]);
+      }
 
-        if (!workspace.default_locale) {
-          return { outcome: "workspace_locale_missing" };
-        }
-
-        const inserted = rowsFromQueryResult(await queryable.query(
-          `
-            INSERT INTO brand_profiles (
-              workspace_id,
-              profile_name,
-              brand_summary,
-              language,
-              created_by_user_id
-            )
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT (workspace_id, profile_name) DO NOTHING
-            RETURNING
-              brand_profile_id,
-              workspace_id,
-              profile_name AS brand_name,
-              COALESCE(brand_summary, '') AS brand_description
-          `,
-          [workspaceId, input.brand_name, input.brand_description || "", workspace.default_locale, actorUserId],
-          { workspaceId }
-        ));
-
-        if (!inserted[0]) {
-          return { outcome: "duplicate_brand_profile" };
-        }
-
-        return { outcome: "created", profile: toPublicBrandProfile(inserted[0]) };
-      };
-
-      const result = typeof this.pool.withTransaction === "function"
-        ? await this.pool.withTransaction(createProfile, { workspaceId })
-        : await createProfile(this.pool);
-
-      return toCreateResult(result);
+      await classifyBrandProfileCreateMiss({ pool: this.pool, workspaceId });
+      throw duplicateBrandProfileError();
     } catch (error) {
       throw toRepositoryError(error);
     }
@@ -135,24 +116,26 @@ function rowsFromQueryResult(result) {
   return Array.isArray(result) ? result : result.rows;
 }
 
-function toCreateResult(result) {
-  if (result.outcome === "created") {
-    return result.profile;
-  }
+async function classifyBrandProfileCreateMiss({ pool, workspaceId }) {
+  const workspaces = rowsFromQueryResult(await pool.query(
+    `
+      SELECT default_locale
+      FROM workspaces
+      WHERE workspace_id = $1
+      LIMIT 1
+    `,
+    [workspaceId],
+    { workspaceId }
+  ));
 
-  if (result.outcome === "workspace_not_found") {
+  const workspace = workspaces[0];
+  if (!workspace) {
     throw new AppError(404, "NOT_FOUND", "Workspace was not found.", "Check the workspace ID.");
   }
 
-  if (result.outcome === "workspace_locale_missing") {
+  if (!workspace.default_locale) {
     throw new AppError(422, "VALIDATION_FAILED", "Workspace default locale is required.", "Configure a workspace default locale.");
   }
-
-  if (result.outcome === "duplicate_brand_profile") {
-    throw duplicateBrandProfileError();
-  }
-
-  throw new AppError(500, "INTERNAL_ERROR", "Database read failed.", "Retry or contact support.");
 }
 
 function duplicateBrandProfileError() {
