@@ -18,6 +18,37 @@ test("PromptTemplate request accepts canonical template_variables and mirrors le
   assert.deepEqual(body.variables, ["product"]);
 });
 
+test("PromptTemplate request accepts equivalent variable lists regardless of order", () => {
+  const body = {
+    template_name: "Equivalent Variables Prompt",
+    template_type: "caption",
+    template_body: "Write about {{product}} for {{audience}}.",
+    variables: ["audience", "product"],
+    template_variables: ["product", "audience"],
+    version_number: 1
+  };
+
+  rejectBodyWorkspaceId(body, "workspace-a");
+
+  assert.deepEqual(body.variables, ["audience", "product"]);
+  assert.deepEqual(body.template_variables, ["product", "audience"]);
+});
+
+test("PromptTemplate request accepts equivalent object variables regardless of key order", () => {
+  const body = {
+    template_name: "Equivalent Object Variables Prompt",
+    template_type: "caption",
+    template_body: "Write about {{product}}.",
+    variables: { product: { required: true, type: "string" }, audience: { type: "string" } },
+    template_variables: { audience: { type: "string" }, product: { type: "string", required: true } },
+    version_number: 1
+  };
+
+  rejectBodyWorkspaceId(body, "workspace-a");
+
+  assert.deepEqual(body.variables.product, { required: true, type: "string" });
+});
+
 test("PromptTemplate request rejects conflicting variables and template_variables", () => {
   const body = {
     template_name: "Conflicting Variables Prompt",
@@ -91,6 +122,30 @@ test("ReportTemplate duplicate template_name is rejected within the same workspa
       report_type: "monthly",
       template_body: { sections: ["summary"] }
     }),
+    (error) => error.code === "DUPLICATE_REPORT_TEMPLATE"
+  );
+});
+
+test("ReportTemplate duplicate template_name is rejected within the same push batch", () => {
+  const store = createSeedStore();
+
+  assert.throws(
+    () => store.reportTemplates.push(
+      {
+        report_template_id: "report-template-batch-a",
+        workspace_id: "workspace-a",
+        template_name: "Batch Duplicate Report",
+        report_type: "monthly",
+        template_body: { sections: ["summary"] }
+      },
+      {
+        report_template_id: "report-template-batch-b",
+        workspace_id: "workspace-a",
+        template_name: "Batch Duplicate Report",
+        report_type: "monthly",
+        template_body: { sections: ["details"] }
+      }
+    ),
     (error) => error.code === "DUPLICATE_REPORT_TEMPLATE"
   );
 });

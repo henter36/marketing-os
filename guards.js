@@ -43,7 +43,7 @@ function alignTemplateRuntimeBody(body) {
   }
 
   if (Object.hasOwn(body, "template_variables") && Object.hasOwn(body, "variables")) {
-    if (!sameJson(body.template_variables, body.variables)) {
+    if (!sameTemplateVariables(body.template_variables, body.variables)) {
       throw new AppError(
         422,
         "VALIDATION_FAILED",
@@ -75,8 +75,40 @@ function alignTemplateRuntimeBody(body) {
   }
 }
 
-function sameJson(left, right) {
-  return JSON.stringify(left) === JSON.stringify(right);
+function sameTemplateVariables(left, right) {
+  return stableStringify(normalizeTemplateVariables(left)) === stableStringify(normalizeTemplateVariables(right));
+}
+
+function normalizeTemplateVariables(value) {
+  if (Array.isArray(value)) {
+    const normalized = value.map(normalizeTemplateVariables);
+    if (normalized.every((item) => item === null || ["boolean", "number", "string"].includes(typeof item))) {
+      return normalized.slice().sort((left, right) => primitiveSortKey(left).localeCompare(primitiveSortKey(right)));
+    }
+    return normalized;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.keys(value)
+      .sort()
+      .reduce((result, key) => {
+        result[key] = normalizeTemplateVariables(value[key]);
+        return result;
+      }, Object.create(null));
+  }
+
+  return value;
+}
+
+function primitiveSortKey(value) {
+  if (value === null) {
+    return "null:null";
+  }
+  return `${typeof value}:${String(value)}`;
+}
+
+function stableStringify(value) {
+  return JSON.stringify(value);
 }
 
 function membershipCheck(user, workspaceId, store) {
