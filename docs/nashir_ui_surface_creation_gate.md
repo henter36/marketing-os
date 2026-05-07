@@ -148,7 +148,7 @@ The following remain forbidden:
 - autonomous AI execution;
 - Post-V1 modules.
 
-The future implementation must also avoid router/store files, frontend assets not explicitly approved, any implementation file not explicitly named, and any ERD/OpenAPI/SQL/runtime contract file unless a later gate explicitly allows it.
+The future implementation must also avoid router/store files (except for the exact route registration path approved per Section 8), frontend assets not explicitly approved, any implementation file not explicitly named, and any ERD/OpenAPI/SQL/runtime contract file unless a later gate explicitly allows it.
 
 ## 10. Required Inputs Before Future Implementation
 
