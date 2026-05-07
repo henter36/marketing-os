@@ -214,7 +214,7 @@ No story is marked ready for implementation. "Needs clarification" means the sto
 
 ## 8. Proposed Implementation Gate Inputs
 
-A future implementation gate must include all of the following before any code:
+A future implementation gate must include all the following before any code:
 
 - exact scope;
 - allowed files;
