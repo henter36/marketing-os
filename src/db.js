@@ -187,8 +187,8 @@ function createTransactionClient(client) {
     query(sql, params = []) {
       return client.query(sql, normalizeParams(params));
     },
-    exec(sql, params = []) {
-      return client.query(sql, normalizeParams(params));
+    async exec(sql, params = []) {
+      await client.query(sql, normalizeParams(params));
     },
   };
 }
