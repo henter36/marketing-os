@@ -100,8 +100,10 @@ Candidate file paths for a future implementation PR:
 - `ui/nashir/app.js`
 - `ui/nashir/styles.css`
 - `docs/nashir_minimal_ui_surface_implementation_report.md`
+- `docs/03_decision_log.md`
+- `docs/17_change_log.md`
 
-These paths are candidate allowed files only for a future implementation PR. They are not created or approved for editing by this document.
+These paths are candidate allowed files only for a future separately approved implementation PR. They are not created or approved for editing by this document.
 
 ## 7. Candidate UI Requirements
 
@@ -156,6 +158,8 @@ A future UI implementation must not include controls that imply:
 | `ui/nashir/app.js` | Static local UI behavior for display-only section rendering, if needed. | Client-side read-only rendering from local constants only. | Network calls, persistence, package imports, generated clients, runtime coupling, protected actions. | Inspect for no `fetch`, no storage writes, no external integrations, and no forbidden controls. | Candidate only; not approved here. |
 | `ui/nashir/styles.css` | Static styles for the read-only shell. | Layout, typography, badges, labels, and responsive display. | Frontend asset imports not explicitly approved, generated assets, package dependencies. | Inspect diff and static rendering if future gate allows. | Candidate only; not approved here. |
 | `docs/nashir_minimal_ui_surface_implementation_report.md` | Future implementation report. | Document files changed, source docs, verification, limitations, and NO-GO preservation. | Runtime claims, implementation expansion, Pilot/Production readiness claims. | Review report for exact changed files and verification evidence. | Candidate only; not approved here. |
+| `docs/03_decision_log.md` | Future decision log update. | Document the future implementation decision/change only. | Scope expansion, implementation approval beyond the future PR, or runtime/product claims. | Review wording for documentation-only decision/change boundaries. | Candidate only; not approved here. |
+| `docs/17_change_log.md` | Future change log update. | Document the future implementation change only. | Scope expansion, implementation approval beyond the future PR, or runtime/product claims. | Review wording for documentation-only decision/change boundaries. | Candidate only; not approved here. |
 
 ## 11. Forbidden Files
 
@@ -184,19 +188,19 @@ The following remain forbidden for the future minimal UI surface unless a later 
 - payment/billing files;
 - AI runtime/autonomous agent files.
 
-## 12. Future Implementation Verification Commands
+## 12. Future Implementation Verification Steps
 
-A future implementation PR must run:
+A future implementation PR must run and verify:
 
 - `git branch --show-current`
 - `git status --short`
 - `git diff --name-only`
 - `git diff --stat`
 - `git diff --check`
-- forbidden file check against changed files;
-- static file inspection for forbidden words/controls, if possible;
-- no package install;
-- no build command unless a future gate explicitly adds one.
+- verify no forbidden files are changed;
+- perform static file inspection for forbidden words/controls;
+- verify no package install is required;
+- verify no build command is required unless a future gate explicitly adds one.
 
 Expected changed files exactly:
 
@@ -204,6 +208,10 @@ Expected changed files exactly:
 - `ui/nashir/app.js`
 - `ui/nashir/styles.css`
 - `docs/nashir_minimal_ui_surface_implementation_report.md`
+- `docs/03_decision_log.md`
+- `docs/17_change_log.md`
+
+`docs/03_decision_log.md` and `docs/17_change_log.md` are allowed only to document the future implementation decision/change. They must not authorize scope expansion.
 
 Any additional changed file is a NO-GO unless the future implementation prompt explicitly approved it before work began.
 
