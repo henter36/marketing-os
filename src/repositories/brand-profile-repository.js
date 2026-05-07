@@ -7,7 +7,7 @@ class BrandProfileRepository {
 
   async listByWorkspace({ workspaceId }) {
     try {
-      const rows = await this.pool.query(
+      const rows = rowsFromQueryResult(await this.pool.query(
         `
           SELECT
             brand_profile_id,
@@ -20,7 +20,7 @@ class BrandProfileRepository {
         `,
         [workspaceId],
         { workspaceId }
-      );
+      ));
 
       return rows.map(toPublicBrandProfile);
     } catch (error) {
@@ -30,7 +30,7 @@ class BrandProfileRepository {
 
   async getById({ workspaceId, brandProfileId }) {
     try {
-      const rows = await this.pool.query(
+      const rows = rowsFromQueryResult(await this.pool.query(
         `
           SELECT
             brand_profile_id,
@@ -44,7 +44,7 @@ class BrandProfileRepository {
         `,
         [workspaceId, brandProfileId],
         { workspaceId }
-      );
+      ));
 
       return rows[0] ? toPublicBrandProfile(rows[0]) : null;
     } catch (error) {
@@ -56,27 +56,7 @@ class BrandProfileRepository {
     try {
       validateBrandProfileInput(input);
 
-      const workspaces = await this.pool.query(
-        `
-          SELECT default_locale
-          FROM workspaces
-          WHERE workspace_id = $1
-          LIMIT 1
-        `,
-        [workspaceId],
-        { workspaceId }
-      );
-
-      const workspace = workspaces[0];
-      if (!workspace) {
-        throw new AppError(404, "NOT_FOUND", "Workspace was not found.", "Check the workspace ID.");
-      }
-
-      if (!workspace.default_locale) {
-        throw new AppError(422, "VALIDATION_FAILED", "Workspace default locale is required.", "Configure a workspace default locale.");
-      }
-
-      const inserted = await this.pool.query(
+      const inserted = rowsFromQueryResult(await this.pool.query(
         `
           INSERT INTO brand_profiles (
             workspace_id,
@@ -85,7 +65,15 @@ class BrandProfileRepository {
             language,
             created_by_user_id
           )
-          VALUES ($1, $2, $3, $4, $5)
+          SELECT
+            w.workspace_id,
+            $2,
+            $3,
+            w.default_locale,
+            $4
+          FROM workspaces w
+          WHERE w.workspace_id = $1
+            AND w.default_locale IS NOT NULL
           ON CONFLICT (workspace_id, profile_name) DO NOTHING
           RETURNING
             brand_profile_id,
@@ -93,15 +81,16 @@ class BrandProfileRepository {
             profile_name AS brand_name,
             COALESCE(brand_summary, '') AS brand_description
         `,
-        [workspaceId, input.brand_name, input.brand_description || "", workspace.default_locale, actorUserId],
+        [workspaceId, input.brand_name, input.brand_description || "", actorUserId],
         { workspaceId }
-      );
+      ));
 
-      if (!inserted[0]) {
-        throw duplicateBrandProfileError();
+      if (inserted[0]) {
+        return toPublicBrandProfile(inserted[0]);
       }
 
-      return toPublicBrandProfile(inserted[0]);
+      await classifyBrandProfileCreateMiss({ pool: this.pool, workspaceId });
+      throw duplicateBrandProfileError();
     } catch (error) {
       throw toRepositoryError(error);
     }
@@ -121,6 +110,32 @@ function toPublicBrandProfile(row) {
     brand_name: row.brand_name,
     brand_description: row.brand_description || "",
   };
+}
+
+function rowsFromQueryResult(result) {
+  return Array.isArray(result) ? result : result.rows;
+}
+
+async function classifyBrandProfileCreateMiss({ pool, workspaceId }) {
+  const workspaces = rowsFromQueryResult(await pool.query(
+    `
+      SELECT default_locale
+      FROM workspaces
+      WHERE workspace_id = $1
+      LIMIT 1
+    `,
+    [workspaceId],
+    { workspaceId }
+  ));
+
+  const workspace = workspaces[0];
+  if (!workspace) {
+    throw new AppError(404, "NOT_FOUND", "Workspace was not found.", "Check the workspace ID.");
+  }
+
+  if (!workspace.default_locale) {
+    throw new AppError(422, "VALIDATION_FAILED", "Workspace default locale is required.", "Configure a workspace default locale.");
+  }
 }
 
 function duplicateBrandProfileError() {

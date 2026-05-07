@@ -464,6 +464,15 @@ async function seedSlice1BrandData(activePool) {
   `);
 
   await activePool.exec(`
+    DELETE FROM role_permissions rp
+    USING roles r, permissions p
+    WHERE rp.role_id = r.role_id
+      AND rp.permission_id = p.permission_id
+      AND r.role_code IN ('owner', 'viewer')
+      AND p.permission_code IN ('brand.read', 'brand.write')
+  `);
+
+  await activePool.exec(`
     INSERT INTO role_permissions (role_id, permission_id)
     SELECT r.role_id, p.permission_id
     FROM roles r

@@ -13,7 +13,7 @@ class BrandVoiceRuleRepository {
     try {
       await this.requireParentBrandProfile({ workspaceId, brandProfileId });
 
-      const rows = await this.pool.query(
+      const rows = rowsFromQueryResult(await this.pool.query(
         `
           SELECT
             brand_voice_rule_id,
@@ -29,7 +29,7 @@ class BrandVoiceRuleRepository {
         `,
         [workspaceId, brandProfileId],
         { workspaceId }
-      );
+      ));
 
       return rows.map(toPublicBrandVoiceRule);
     } catch (error) {
@@ -40,9 +40,8 @@ class BrandVoiceRuleRepository {
   async create({ workspaceId, brandProfileId, input }) {
     try {
       validateBrandVoiceRuleInput(input);
-      await this.requireParentBrandProfile({ workspaceId, brandProfileId });
 
-      const inserted = await this.pool.query(
+      const inserted = rowsFromQueryResult(await this.pool.query(
         `
           INSERT INTO brand_voice_rules (
             workspace_id,
@@ -51,7 +50,15 @@ class BrandVoiceRuleRepository {
             rule_text,
             severity
           )
-          VALUES ($1, $2, $3, $4, $5)
+          SELECT
+            $1,
+            bp.brand_profile_id,
+            $3,
+            $4,
+            $5
+          FROM brand_profiles bp
+          WHERE bp.workspace_id = $1
+            AND bp.brand_profile_id = $2
           RETURNING
             brand_voice_rule_id,
             brand_profile_id,
@@ -62,7 +69,11 @@ class BrandVoiceRuleRepository {
         `,
         [workspaceId, brandProfileId, input.rule_type, input.rule_text, input.severity],
         { workspaceId }
-      );
+      ));
+
+      if (!inserted[0]) {
+        throw brandProfileNotFoundError();
+      }
 
       return toPublicBrandVoiceRule(inserted[0]);
     } catch (error) {
@@ -79,7 +90,7 @@ class BrandVoiceRuleRepository {
       return parent;
     }
 
-    const rows = await this.pool.query(
+    const rows = rowsFromQueryResult(await this.pool.query(
       `
         SELECT brand_profile_id
         FROM brand_profiles
@@ -89,7 +100,7 @@ class BrandVoiceRuleRepository {
       `,
       [workspaceId, brandProfileId],
       { workspaceId }
-    );
+    ));
 
     if (!rows[0]) {
       throw brandProfileNotFoundError();
@@ -123,6 +134,10 @@ function toPublicBrandVoiceRule(row) {
     rule_text: row.rule_text,
     severity: row.severity,
   };
+}
+
+function rowsFromQueryResult(result) {
+  return Array.isArray(result) ? result : result.rows;
 }
 
 function brandProfileNotFoundError() {
