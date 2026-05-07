@@ -7,7 +7,7 @@ class BrandProfileRepository {
 
   async listByWorkspace({ workspaceId }) {
     try {
-      const rows = await this.pool.query(
+      const rows = rowsFromQueryResult(await this.pool.query(
         `
           SELECT
             brand_profile_id,
@@ -20,7 +20,7 @@ class BrandProfileRepository {
         `,
         [workspaceId],
         { workspaceId }
-      );
+      ));
 
       return rows.map(toPublicBrandProfile);
     } catch (error) {
@@ -30,7 +30,7 @@ class BrandProfileRepository {
 
   async getById({ workspaceId, brandProfileId }) {
     try {
-      const rows = await this.pool.query(
+      const rows = rowsFromQueryResult(await this.pool.query(
         `
           SELECT
             brand_profile_id,
@@ -44,7 +44,7 @@ class BrandProfileRepository {
         `,
         [workspaceId, brandProfileId],
         { workspaceId }
-      );
+      ));
 
       return rows[0] ? toPublicBrandProfile(rows[0]) : null;
     } catch (error) {
