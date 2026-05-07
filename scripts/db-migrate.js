@@ -44,14 +44,14 @@ function buildMigrationDriver(root = defaultRoot) {
   return lines.join("\n");
 }
 
-function runMigrationsWithLock({ root, env, spawn = spawnSync }) {
+function runMigrationsWithLock({ root, env, spawnSyncRunner = spawnSync }) {
   const tempDir = mkdtempSync(path.join(tmpdir(), "marketing-os-migrations-"));
   const driverPath = path.join(tempDir, "migration-driver.sql");
 
   try {
     writeFileSync(driverPath, buildMigrationDriver(root), "utf8");
 
-    const result = spawn("psql", [env.DATABASE_URL, "-v", "ON_ERROR_STOP=1", "-f", driverPath], {
+    const result = spawnSyncRunner("psql", [env.DATABASE_URL, "-v", "ON_ERROR_STOP=1", "-f", driverPath], {
       stdio: "inherit",
       env: { ...process.env, ...env }
     });

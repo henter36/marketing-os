@@ -27,7 +27,7 @@ test("migration runner returns non-zero for signal-terminated psql", () => {
   const status = runMigrationsWithLock({
     root: "/repo/root",
     env: { DATABASE_URL: "postgres://example/db" },
-    spawn: () => ({ status: null, signal: "SIGTERM" }),
+    spawnSyncRunner: () => ({ status: null, signal: "SIGTERM" }),
   });
 
   assert.equal(status, 1);
@@ -39,7 +39,7 @@ test("migration runner passes env overrides to psql", () => {
   const status = runMigrationsWithLock({
     root: "/repo/root",
     env: { DATABASE_URL: "postgres://example/db", PGSSLMODE: "require" },
-    spawn: (command, args, options) => {
+    spawnSyncRunner: (command, args, options) => {
       spawnOptions = options;
       return { status: 0 };
     },

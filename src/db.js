@@ -36,10 +36,7 @@ class PgPoolAdapter {
 
     if (options.workspaceId !== undefined && options.workspaceId !== null) {
       return this.withTransaction(
-        async (client) => {
-          const result = await runQuery(client, sql, values);
-          return result.rows;
-        },
+        async (client) => client.query(sql, values),
         { workspaceId: options.workspaceId }
       );
     }
@@ -54,7 +51,7 @@ class PgPoolAdapter {
     if (options.workspaceId !== undefined && options.workspaceId !== null) {
       await this.withTransaction(
         async (client) => {
-          await runQuery(client, sql, values);
+          await client.exec(sql, values);
         },
         { workspaceId: options.workspaceId }
       );
@@ -184,8 +181,9 @@ async function setWorkspaceContext(client, workspaceId) {
 
 function createTransactionClient(client) {
   return {
-    query(sql, params = []) {
-      return client.query(sql, normalizeParams(params));
+    async query(sql, params = []) {
+      const result = await client.query(sql, normalizeParams(params));
+      return result.rows;
     },
     async exec(sql, params = []) {
       await client.query(sql, normalizeParams(params));
