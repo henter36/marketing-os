@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document type | Implementation report |
-| Status | Completed — Slice B |
+| Status | Completed — Slice B (documentation/reporting for already-implemented Slice A) |
 | Scope | Nashir Core V1 minimal static UI surface |
 | Change type | Documentation-only report for already-merged Slice A |
 | Implementation status | Slice A completed; further implementation remains gated |
