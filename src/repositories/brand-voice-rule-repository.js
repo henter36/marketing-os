@@ -40,7 +40,6 @@ class BrandVoiceRuleRepository {
   async create({ workspaceId, brandProfileId, input }) {
     try {
       validateBrandVoiceRuleInput(input);
-      await this.requireParentBrandProfile({ workspaceId, brandProfileId });
 
       const inserted = await this.pool.query(
         `
@@ -51,7 +50,15 @@ class BrandVoiceRuleRepository {
             rule_text,
             severity
           )
-          VALUES ($1, $2, $3, $4, $5)
+          SELECT
+            $1,
+            bp.brand_profile_id,
+            $3,
+            $4,
+            $5
+          FROM brand_profiles bp
+          WHERE bp.workspace_id = $1
+            AND bp.brand_profile_id = $2
           RETURNING
             brand_voice_rule_id,
             brand_profile_id,
@@ -63,6 +70,10 @@ class BrandVoiceRuleRepository {
         [workspaceId, brandProfileId, input.rule_type, input.rule_text, input.severity],
         { workspaceId }
       );
+
+      if (!inserted[0]) {
+        throw brandProfileNotFoundError();
+      }
 
       return toPublicBrandVoiceRule(inserted[0]);
     } catch (error) {

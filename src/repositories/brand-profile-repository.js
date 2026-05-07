@@ -56,52 +56,60 @@ class BrandProfileRepository {
     try {
       validateBrandProfileInput(input);
 
-      const workspaces = await this.pool.query(
-        `
-          SELECT default_locale
-          FROM workspaces
-          WHERE workspace_id = $1
-          LIMIT 1
-        `,
-        [workspaceId],
-        { workspaceId }
-      );
+      const createProfile = async (queryable) => {
+        const workspaces = rowsFromQueryResult(await queryable.query(
+          `
+            SELECT default_locale
+            FROM workspaces
+            WHERE workspace_id = $1
+            LIMIT 1
+          `,
+          [workspaceId],
+          { workspaceId }
+        ));
 
-      const workspace = workspaces[0];
-      if (!workspace) {
-        throw new AppError(404, "NOT_FOUND", "Workspace was not found.", "Check the workspace ID.");
+        const workspace = workspaces[0];
+        if (!workspace) {
+          throw new AppError(404, "NOT_FOUND", "Workspace was not found.", "Check the workspace ID.");
+        }
+
+        if (!workspace.default_locale) {
+          throw new AppError(422, "VALIDATION_FAILED", "Workspace default locale is required.", "Configure a workspace default locale.");
+        }
+
+        const inserted = rowsFromQueryResult(await queryable.query(
+          `
+            INSERT INTO brand_profiles (
+              workspace_id,
+              profile_name,
+              brand_summary,
+              language,
+              created_by_user_id
+            )
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (workspace_id, profile_name) DO NOTHING
+            RETURNING
+              brand_profile_id,
+              workspace_id,
+              profile_name AS brand_name,
+              COALESCE(brand_summary, '') AS brand_description
+          `,
+          [workspaceId, input.brand_name, input.brand_description || "", workspace.default_locale, actorUserId],
+          { workspaceId }
+        ));
+
+        if (!inserted[0]) {
+          throw duplicateBrandProfileError();
+        }
+
+        return toPublicBrandProfile(inserted[0]);
+      };
+
+      if (typeof this.pool.withTransaction === "function") {
+        return await this.pool.withTransaction(createProfile, { workspaceId });
       }
 
-      if (!workspace.default_locale) {
-        throw new AppError(422, "VALIDATION_FAILED", "Workspace default locale is required.", "Configure a workspace default locale.");
-      }
-
-      const inserted = await this.pool.query(
-        `
-          INSERT INTO brand_profiles (
-            workspace_id,
-            profile_name,
-            brand_summary,
-            language,
-            created_by_user_id
-          )
-          VALUES ($1, $2, $3, $4, $5)
-          ON CONFLICT (workspace_id, profile_name) DO NOTHING
-          RETURNING
-            brand_profile_id,
-            workspace_id,
-            profile_name AS brand_name,
-            COALESCE(brand_summary, '') AS brand_description
-        `,
-        [workspaceId, input.brand_name, input.brand_description || "", workspace.default_locale, actorUserId],
-        { workspaceId }
-      );
-
-      if (!inserted[0]) {
-        throw duplicateBrandProfileError();
-      }
-
-      return toPublicBrandProfile(inserted[0]);
+      return await createProfile(this.pool);
     } catch (error) {
       throw toRepositoryError(error);
     }
@@ -121,6 +129,10 @@ function toPublicBrandProfile(row) {
     brand_name: row.brand_name,
     brand_description: row.brand_description || "",
   };
+}
+
+function rowsFromQueryResult(result) {
+  return Array.isArray(result) ? result : result.rows;
 }
 
 function duplicateBrandProfileError() {
