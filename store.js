@@ -332,13 +332,11 @@ function normalizeTemplateRuntimeStore(store) {
 
   const originalReportPush = store.reportTemplates.push.bind(store.reportTemplates);
   store.reportTemplates.push = (...items) => {
+    const existingKeys = new Set(store.reportTemplates.map(reportTemplateKey));
     const batchKeys = new Set();
     for (const item of items) {
-      const key = `${item.workspace_id}:${item.template_name}`;
-      if (
-        batchKeys.has(key) ||
-        store.reportTemplates.some((candidate) => candidate.workspace_id === item.workspace_id && candidate.template_name === item.template_name)
-      ) {
+      const key = reportTemplateKey(item);
+      if (batchKeys.has(key) || existingKeys.has(key)) {
         throw new AppError(
           409,
           "DUPLICATE_REPORT_TEMPLATE",
@@ -352,6 +350,10 @@ function normalizeTemplateRuntimeStore(store) {
   };
 
   return store;
+}
+
+function reportTemplateKey(template) {
+  return `${template.workspace_id}\0${template.template_name}`;
 }
 
 function attachPromptTemplateSerializer(template) {
