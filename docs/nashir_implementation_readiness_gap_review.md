@@ -12,11 +12,11 @@
 
 This document is documentation-only.
 
-This document identifies what remains unresolved before Nashir Core V1 can enter an implementation planning gate.
+It identifies what remains unresolved before Nashir Core V1 can enter an implementation planning gate.
 
-This document does not approve implementation.
+It does not approve implementation.
 
-This document does not modify ERD, OpenAPI, SQL, QA/test files, runtime, generated clients, packages, workflows, migrations, frontend assets, router/store files, or implementation files.
+No ERD, OpenAPI, SQL, QA/test files, runtime, generated clients, packages, workflows, migrations, frontend assets, router/store files, or implementation files are modified by this review.
 
 Existing ERD and OpenAPI remain authoritative. Option A reuse-only remains current direction.
 
@@ -109,7 +109,7 @@ Implementation Gate is not ready.
 | readiness score display behavior | Scoring contract defines levels/gates as planning-only. | Exact display states, score visibility, warning wording, and blocked behavior. | Readiness may be treated as approval or publishing authorization. | Approve display rules and labels. | Blocker | Nashir UI behavior mapping document. |
 | approval state display behavior | Approval states and transitions are planning-level. | Exact UI state labels, allowed actions, disabled actions, and reviewer views. | Users may bypass review or misread state. | Approve approval state UI map. | High | Nashir UI behavior mapping document. |
 | reapproval trigger behavior | Material-change examples exist. | Exact material/non-material field list and reapproval trigger handling. | Approved content may be silently changed. | Approve material-change policy. | Blocker | Nashir approval lock detail addendum. |
-| manual publishing checklist behavior | Checklist is planning-level and likely UI-derived. | UI-only vs persisted decision, checklist items, completion semantics, and relation to evidence. | Checklist may be mistaken for publishing execution. | Approve checklist behavior and persistence decision. | High | Nashir checklist behavior document. |
+| manual publishing checklist behavior | Checklist is planning-level and likely UI-derived. | UI-only vs persisted decision, checklist items, completion semantics, relation to evidence, and missing OpenAPI path for SetupChecklistItem reuse. | Checklist may be mistaken for publishing execution. | Approve checklist behavior and persistence decision. | High | Nashir checklist behavior document. |
 | manual publishing evidence behavior | Evidence fields/statuses/transitions are planning-level. | Exact request/response reuse, acceptance/correction/invalidation rules, and attachment handling if any. | Evidence tampering or evidence-as-authorization. | Approve evidence implementation mapping. | High | Nashir evidence implementation mapping document. |
 | UTM Lite behavior | TrackedLink reuse is planned. | Exact UTM fields, validation, display, mismatch handling, and evidence relationship. | UTM Lite may become analytics ingestion or attribution. | Approve UTM Lite field/wording mapping. | High | Nashir UTM Lite mapping document. |
 | manual performance review behavior | User-entered review only is documented. | Exact user-entered metrics, snapshot wording, edit/lock behavior, and report surface. | Manual observations may be treated as analytics or attribution. | Approve manual performance review semantics. | High | Nashir manual performance review mapping document. |
@@ -285,13 +285,20 @@ Implementation Gate remains not ready.
 
 The readiness gaps are not yet sufficiently bounded for `docs/nashir_implementation_gate_planning.md`.
 
-The recommended next documentation-only step is a focused Nashir UI / route / permission / audit / ErrorModel mapping document that resolves:
+The recommended next documentation-only step is a focused Nashir UI / route / permission / audit / ErrorModel mapping document that resolves the major Blocker and High gaps without approving implementation:
 
-- exact UI behavior;
+- exact UI behavior including readiness, approval, and manual publishing states;
 - exact route/component mapping;
-- exact permission codes;
+- exact permission codes and enforcement matrix;
 - exact audit event names;
-- exact ErrorModel responses;
+- exact ErrorModel and idempotency responses;
+- exact material-change reapproval triggers;
+- exact tenant isolation verification steps;
+- exact AI advisory boundaries;
+- exact manual publishing checklist behavior;
+- exact manual publishing evidence behavior;
+- exact UTM Lite behavior;
+- exact manual performance review behavior;
 - exact NO-GO negative behavior;
 - exact read-only first-slice boundaries.
 
