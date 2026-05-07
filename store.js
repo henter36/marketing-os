@@ -332,8 +332,13 @@ function normalizeTemplateRuntimeStore(store) {
 
   const originalReportPush = store.reportTemplates.push.bind(store.reportTemplates);
   store.reportTemplates.push = (...items) => {
+    const batchKeys = new Set();
     for (const item of items) {
-      if (store.reportTemplates.some((candidate) => candidate.workspace_id === item.workspace_id && candidate.template_name === item.template_name)) {
+      const key = `${item.workspace_id}:${item.template_name}`;
+      if (
+        batchKeys.has(key) ||
+        store.reportTemplates.some((candidate) => candidate.workspace_id === item.workspace_id && candidate.template_name === item.template_name)
+      ) {
         throw new AppError(
           409,
           "DUPLICATE_REPORT_TEMPLATE",
@@ -341,6 +346,7 @@ function normalizeTemplateRuntimeStore(store) {
           "Use a different template_name."
         );
       }
+      batchKeys.add(key);
     }
     return originalReportPush(...items.map(attachReportTemplateSerializer));
   };
