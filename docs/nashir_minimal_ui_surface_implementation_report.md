@@ -135,7 +135,6 @@ The final changed-file whitelist for Slice A contained only:
 - It has no authorization enforcement.
 - It has no tenant isolation enforcement.
 - It has no tests yet.
-- No implementation report existed until this Slice B.
 
 ## 10. GO / NO-GO Decision
 
