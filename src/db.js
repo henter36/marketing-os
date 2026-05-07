@@ -184,8 +184,9 @@ async function setWorkspaceContext(client, workspaceId) {
 
 function createTransactionClient(client) {
   return {
-    query(sql, params = []) {
-      return client.query(sql, normalizeParams(params));
+    async query(sql, params = []) {
+      const result = await client.query(sql, normalizeParams(params));
+      return result.rows;
     },
     async exec(sql, params = []) {
       await client.query(sql, normalizeParams(params));
