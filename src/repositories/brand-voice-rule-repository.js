@@ -13,7 +13,7 @@ class BrandVoiceRuleRepository {
     try {
       await this.requireParentBrandProfile({ workspaceId, brandProfileId });
 
-      const rows = await this.pool.query(
+      const rows = rowsFromQueryResult(await this.pool.query(
         `
           SELECT
             brand_voice_rule_id,
@@ -29,7 +29,7 @@ class BrandVoiceRuleRepository {
         `,
         [workspaceId, brandProfileId],
         { workspaceId }
-      );
+      ));
 
       return rows.map(toPublicBrandVoiceRule);
     } catch (error) {
@@ -90,7 +90,7 @@ class BrandVoiceRuleRepository {
       return parent;
     }
 
-    const rows = await this.pool.query(
+    const rows = rowsFromQueryResult(await this.pool.query(
       `
         SELECT brand_profile_id
         FROM brand_profiles
@@ -100,7 +100,7 @@ class BrandVoiceRuleRepository {
       `,
       [workspaceId, brandProfileId],
       { workspaceId }
-    );
+    ));
 
     if (!rows[0]) {
       throw brandProfileNotFoundError();
