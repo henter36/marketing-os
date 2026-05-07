@@ -97,6 +97,8 @@ Implementation Gate is not ready.
 
 ## 5. Readiness Gap Matrix
 
+Note: Where the matrix references mapping documents, these references are intended as sections within the consolidated future Nashir UI / route / permission / audit / ErrorModel mapping document unless a later approved gate explicitly splits them into separate documents.
+
 | Area | Current documented state | Missing implementation detail | Risk if unresolved | Required decision before implementation | Blocking level | Recommended next document or gate |
 |---|---|---|---|---|---|---|
 | UI behavior | Scope, AC, and stories describe user-facing concepts. | Exact screens, controls, states, copy boundaries, disabled states, warnings, and no-authority wording. | UI may imply approval, publishing, attribution, or automation. | Approve a UI behavior map for each story. | Blocker | Nashir UI behavior mapping document. |
@@ -141,7 +143,7 @@ No story is marked ready for implementation. "Needs clarification" means the sto
 | `NUS-UTM-001` | UTM Tracking Lite | Yes | Yes | Yes | Mostly clear | Mostly clear | Exact UTM fields, tracked-link reuse, mismatch correction, and evidence relationship. | Needs clarification |
 | `NUS-APPROVAL-001` | Human approval | Yes | Yes | Yes | Mostly clear | Mostly clear | Exact permission codes, state/action UI, ErrorModel mapping, and audit events. | Needs clarification |
 | `NUS-REAPPROVAL-001` | Approval lock / reapproval | Yes | Yes | Yes | Mostly clear | Mostly clear | Exact material-change criteria, reapproval triggers, transition display, and audit event names. | Needs clarification |
-| `NUS-CHECKLIST-001` | Manual publishing checklist | Yes | Yes | Yes | Partially clear | Partially clear | UI-only vs persisted decision, checklist items, and non-publishing enforcement. | Needs clarification |
+| `NUS-CHECKLIST-001` | Manual publishing checklist | Yes | Yes | Yes | Partially clear | Not clear | OpenAPI path for SetupChecklistItem reuse is missing; UI-only vs persisted checklist behavior remains undecided; checklist items and non-publishing enforcement need approval. | Needs clarification |
 | `NUS-EVIDENCE-001` | Manual publishing evidence | Yes | Yes | Yes | Mostly clear | Mostly clear | Exact evidence status mapping, attachment handling, correction flow, permission codes, and audit events. | Needs clarification |
 | `NUS-PERFORMANCE-001` | Manual performance review | Yes | Yes | Yes | Mostly clear | Mostly clear | Exact manual metrics, snapshot semantics, edit/lock behavior, and no-ingestion labels. | Needs clarification |
 | `NUS-PERMISSIONS-001` | Role & permission boundaries | Yes | Yes | Yes | Mostly clear | Mostly clear | Exact permission code list, enforcement matrix, and protected-action audit mapping. | Blocked |
