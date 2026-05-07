@@ -34,7 +34,7 @@ class PgPoolAdapter {
   async query(sql, params = [], options = {}) {
     const values = normalizeParams(params);
 
-    if (options.workspaceId) {
+    if (options.workspaceId !== undefined && options.workspaceId !== null) {
       return this.withTransaction(
         async (client) => {
           const result = await runQuery(client, sql, values);
@@ -51,7 +51,7 @@ class PgPoolAdapter {
   async exec(sql, params = [], options = {}) {
     const values = normalizeParams(params);
 
-    if (options.workspaceId) {
+    if (options.workspaceId !== undefined && options.workspaceId !== null) {
       await this.withTransaction(
         async (client) => {
           await runQuery(client, sql, values);
@@ -73,7 +73,7 @@ class PgPoolAdapter {
       client = await this.pool.connect();
       await runQuery(client, "BEGIN", []);
 
-      if (options.workspaceId) {
+      if (options.workspaceId !== undefined && options.workspaceId !== null) {
         await setWorkspaceContext(client, options.workspaceId);
       }
 
@@ -171,8 +171,12 @@ async function withTransaction(callback, options = {}) {
 }
 
 async function setWorkspaceContext(client, workspaceId) {
-  if (!workspaceId) {
+  if (workspaceId === undefined || workspaceId === null) {
     return;
+  }
+
+  if (workspaceId === "") {
+    throw new DatabaseQueryError("Workspace context must not be empty.");
   }
 
   await runQuery(client, "SELECT set_config($1, $2, true)", ["app.current_workspace_id", String(workspaceId)]);
@@ -181,6 +185,9 @@ async function setWorkspaceContext(client, workspaceId) {
 function createTransactionClient(client) {
   return {
     query(sql, params = []) {
+      return client.query(sql, normalizeParams(params));
+    },
+    exec(sql, params = []) {
       return client.query(sql, normalizeParams(params));
     },
   };

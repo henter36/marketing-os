@@ -20,7 +20,7 @@ function isStrictMode(options = {}) {
 }
 
 function escapePsqlIncludePath(filePath) {
-  return filePath.replace(/'/g, "''");
+  return filePath.replace(/\\/g, "/").replace(/'/g, "''");
 }
 
 function buildMigrationDriver(root = defaultRoot) {
@@ -44,18 +44,19 @@ function buildMigrationDriver(root = defaultRoot) {
   return lines.join("\n");
 }
 
-function runMigrationsWithLock({ root, env }) {
+function runMigrationsWithLock({ root, env, spawn = spawnSync }) {
   const tempDir = mkdtempSync(path.join(tmpdir(), "marketing-os-migrations-"));
   const driverPath = path.join(tempDir, "migration-driver.sql");
 
   try {
     writeFileSync(driverPath, buildMigrationDriver(root), "utf8");
 
-    const result = spawnSync("psql", [env.DATABASE_URL, "-v", "ON_ERROR_STOP=1", "-f", driverPath], {
-      stdio: "inherit"
+    const result = spawn("psql", [env.DATABASE_URL, "-v", "ON_ERROR_STOP=1", "-f", driverPath], {
+      stdio: "inherit",
+      env: { ...process.env, ...env }
     });
 
-    return result.status || 0;
+    return result.status ?? 1;
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
@@ -104,9 +105,11 @@ if (require.main === module) {
 
 module.exports = {
   buildMigrationDriver,
+  escapePsqlIncludePath,
   isStrictMode,
   migrations,
   migrationLockKey,
   run,
+  runMigrationsWithLock,
   validateMigrationFiles
 };
