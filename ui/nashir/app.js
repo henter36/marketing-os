@@ -107,31 +107,40 @@
 
   function renderLabels() {
     const container = document.getElementById("governance-labels");
+    if (!container) return;
+    const fragment = document.createDocumentFragment();
     governanceLabels.forEach((label) => {
-      container.appendChild(textElement("p", "label-card", label));
+      fragment.appendChild(textElement("p", "label-card", label));
     });
+    container.appendChild(fragment);
   }
 
   function renderCards(targetId, cards) {
     const container = document.getElementById(targetId);
+    if (!container) return;
+    const fragment = document.createDocumentFragment();
     cards.forEach((card) => {
       const article = document.createElement("article");
       article.className = "status-card";
       article.appendChild(textElement("p", "card-state", card.state));
       article.appendChild(textElement("h3", "", card.title));
       article.appendChild(textElement("p", "", card.detail));
-      container.appendChild(article);
+      fragment.appendChild(article);
     });
+    container.appendChild(fragment);
   }
 
   function renderBlockedActions() {
     const list = document.getElementById("blocked-actions");
+    if (!list) return;
+    const fragment = document.createDocumentFragment();
     blockedActions.forEach((action) => {
       const item = document.createElement("li");
       item.appendChild(textElement("span", "blocked-marker", "Blocked"));
       item.appendChild(textElement("span", "", action));
-      list.appendChild(item);
+      fragment.appendChild(item);
     });
+    list.appendChild(fragment);
   }
 
   renderLabels();
