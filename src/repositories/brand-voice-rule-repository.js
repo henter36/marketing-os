@@ -41,7 +41,7 @@ class BrandVoiceRuleRepository {
     try {
       validateBrandVoiceRuleInput(input);
 
-      const inserted = await this.pool.query(
+      const inserted = rowsFromQueryResult(await this.pool.query(
         `
           INSERT INTO brand_voice_rules (
             workspace_id,
@@ -69,7 +69,7 @@ class BrandVoiceRuleRepository {
         `,
         [workspaceId, brandProfileId, input.rule_type, input.rule_text, input.severity],
         { workspaceId }
-      );
+      ));
 
       if (!inserted[0]) {
         throw brandProfileNotFoundError();
@@ -134,6 +134,10 @@ function toPublicBrandVoiceRule(row) {
     rule_text: row.rule_text,
     severity: row.severity,
   };
+}
+
+function rowsFromQueryResult(result) {
+  return Array.isArray(result) ? result : result.rows;
 }
 
 function brandProfileNotFoundError() {
