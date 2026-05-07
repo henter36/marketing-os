@@ -83,7 +83,7 @@ function normalizeTemplateVariables(value) {
   if (Array.isArray(value)) {
     const normalized = value.map(normalizeTemplateVariables);
     if (normalized.every((item) => item === null || ["boolean", "number", "string"].includes(typeof item))) {
-      return normalized.slice().sort();
+      return normalized.slice().sort((left, right) => primitiveSortKey(left).localeCompare(primitiveSortKey(right)));
     }
     return normalized;
   }
@@ -94,10 +94,17 @@ function normalizeTemplateVariables(value) {
       .reduce((result, key) => {
         result[key] = normalizeTemplateVariables(value[key]);
         return result;
-      }, {});
+      }, Object.create(null));
   }
 
   return value;
+}
+
+function primitiveSortKey(value) {
+  if (value === null) {
+    return "null:null";
+  }
+  return `${typeof value}:${String(value)}`;
 }
 
 function stableStringify(value) {
