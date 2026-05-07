@@ -94,16 +94,18 @@ This gate does not approve implementation. It defines candidate boundaries for a
 
 Future candidate surface: Read-only / UI-contract-first Nashir Core V1 static UI shell.
 
-Candidate file paths for a future implementation PR:
+Candidate future files for a future implementation PR:
 
-- `ui/nashir/index.html`
-- `ui/nashir/app.js`
-- `ui/nashir/styles.css`
-- `docs/nashir_minimal_ui_surface_implementation_report.md`
-- `docs/03_decision_log.md`
-- `docs/17_change_log.md`
+- ui/nashir/index.html
+- ui/nashir/app.js
+- ui/nashir/styles.css
+- docs/nashir_minimal_ui_surface_implementation_report.md
+- docs/03_decision_log.md
+- docs/17_change_log.md
 
-These paths are candidate allowed files only for a future separately approved implementation PR. They are not created or approved for editing by this document.
+These candidate future files are candidate allowed files only for a future separately approved implementation PR. They are not created or approved for editing by this document.
+
+`docs/03_decision_log.md` and `docs/17_change_log.md` are allowed only to document the future implementation decision/change. Their inclusion does not authorize scope expansion.
 
 ## 7. Candidate UI Requirements
 
@@ -202,16 +204,16 @@ A future implementation PR must run and verify:
 - verify no package install is required;
 - verify no build command is required unless a future gate explicitly adds one.
 
-Expected changed files exactly:
+expected changed files exactly:
 
-- `ui/nashir/index.html`
-- `ui/nashir/app.js`
-- `ui/nashir/styles.css`
-- `docs/nashir_minimal_ui_surface_implementation_report.md`
-- `docs/03_decision_log.md`
-- `docs/17_change_log.md`
+- ui/nashir/index.html
+- ui/nashir/app.js
+- ui/nashir/styles.css
+- docs/nashir_minimal_ui_surface_implementation_report.md
+- docs/03_decision_log.md
+- docs/17_change_log.md
 
-`docs/03_decision_log.md` and `docs/17_change_log.md` are allowed only to document the future implementation decision/change. They must not authorize scope expansion.
+`docs/03_decision_log.md` and `docs/17_change_log.md` are allowed only to document the future implementation decision/change. Their inclusion does not authorize scope expansion.
 
 Any additional changed file is a NO-GO unless the future implementation prompt explicitly approved it before work began.
 
