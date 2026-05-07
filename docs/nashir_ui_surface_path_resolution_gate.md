@@ -38,7 +38,7 @@ No blocking source conflict was found for this documentation-only UI surface pat
 
 The first implementation attempt stopped correctly.
 
-No files were changed.
+In that halted implementation attempt, no implementation files were changed.
 
 Exact UI paths were not safely identified.
 
