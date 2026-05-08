@@ -126,7 +126,7 @@ function validatePromptTemplateInput(input = {}) {
       422,
       "VALIDATION_FAILED",
       "Prompt template type is invalid.",
-      "Use caption, ad_copy, image_prompt, video_script, report, or reply."
+      `Use one of: ${ALLOWED_TEMPLATE_TYPES.join(", ")}.`
     );
   }
 
@@ -166,7 +166,7 @@ function toRepositoryError(error) {
     return error;
   }
 
-  return new AppError(500, "INTERNAL_ERROR", "Database read failed.", "Retry or contact support.");
+  return new AppError(500, "INTERNAL_ERROR", "Database operation failed.", "Retry or contact support.");
 }
 
 module.exports = {
