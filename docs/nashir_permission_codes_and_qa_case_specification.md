@@ -49,7 +49,7 @@ Direct publishing, publishing authorization bypass, social OAuth, scheduling, pa
 
 These codes are planning identifiers only. They do not create permissions, seed permissions, modify roles, or approve RBAC enforcement.
 
-The `nashir.*.*` identifiers are planning identifiers only. They are not final seeded RBAC permission codes and do not modify current RBAC. A future implementation gate must reconcile them with the repository's existing `domain.action` permission convention before any RBAC enforcement. Examples of existing-style permissions include `campaign.read`, `performance.read`, and `rbac.read`; these examples do not approve implementation.
+The `nashir.*.*` identifiers are planning aliases only. They are not final seeded RBAC permission codes and do not change current RBAC. They intentionally preserve Nashir traceability at the planning layer. A future implementation gate must map them to the repository's actual `domain.action` permission convention before any RBAC seed or enforcement work. Examples such as `campaign.read`, `performance.read`, and `rbac.read` are examples only and are not modified here. Do not rename these planning aliases in this PR.
 
 | Proposed code | Planning meaning | Boundary |
 |---|---|---|
