@@ -49,7 +49,7 @@ Direct publishing, publishing authorization bypass, social OAuth, scheduling, pa
 
 These codes are planning identifiers only. They do not create permissions, seed permissions, modify roles, or approve RBAC enforcement.
 
-The `nashir.*.*` identifiers are planning aliases only. They are not final seeded RBAC permission codes and do not change current RBAC. They intentionally preserve Nashir traceability at the planning layer. A future implementation gate must map them to the repository's actual `domain.action` permission convention before any RBAC seed or enforcement work. Examples such as `campaign.read`, `performance.read`, and `rbac.read` are examples only and are not modified here. Do not rename these planning aliases in this PR.
+The `nashir.*.*` identifiers are planning aliases only. They are not final seeded RBAC permission codes and do not change current RBAC. They intentionally preserve Nashir traceability at the planning layer. A future implementation gate must map them to the repository's actual `domain.action` permission convention before any RBAC seed or enforcement work. Examples such as `campaign.read`, `performance.read`, and `rbac.read` are examples only and are not modified here. Do not rename these planning aliases in this PR. Any final naming conversion, including flattening to a two-part `domain.action` pattern, requires a separate RBAC naming/mapping gate.
 
 | Proposed code | Planning meaning | Boundary |
 |---|---|---|
@@ -94,7 +94,7 @@ Role names in this matrix are Nashir planning personas, not final current `role_
 | Trigger reapproval after material change | Candidate | Candidate | Candidate when editing approved content | Candidate if policy allows | Denied unless separately authorized | Denied | Denied |
 | View/prepare manual checklist | Candidate | Candidate | Candidate | Candidate if policy allows | Denied unless separately authorized | Denied | Denied |
 | Submit evidence | Candidate | Candidate | Candidate if policy allows | Denied unless separately granted | Candidate if policy allows | Denied | Denied |
-| Review/accept/correct/supersede/invalidate evidence | Candidate with explicit evidence authority | Candidate with explicit evidence authority | Denied unless evidence-authorized | Denied unless evidence-authorized | Candidate with explicit evidence authority | Denied | Denied |
+| Review/accept/request correction/supersede/invalidate evidence | Candidate with explicit evidence authority | Candidate with explicit evidence authority | Denied unless evidence-authorized | Denied unless evidence-authorized | Candidate with explicit evidence authority | Denied | Denied |
 | View/prepare UTM Lite | Candidate | Candidate | Candidate if policy allows | Candidate if policy allows | Denied unless separately authorized | Denied | Denied |
 | View/enter manual performance | Candidate | Candidate | Candidate if policy allows | Denied unless separately granted | Denied unless separately granted | Denied | Denied |
 | View audit / permissions / NO-GO boundaries | Candidate | Candidate if policy allows | Scoped view only if policy allows | Candidate if policy allows | Candidate if policy allows | Denied | Denied |
@@ -108,6 +108,7 @@ Role names in this matrix are Nashir planning personas, not final current `role_
 - Evidence reviewer is denied approval, rejection, and request-changes decisions unless reviewer-authorized.
 - AI assistant is denied all protected actions.
 - All roles are denied NO-GO actions.
+- No role may accept or invalidate evidence they submitted themselves.
 - No role may directly publish, authorize publishing, use social OAuth, schedule, launch paid ads, pay, bill, ingest analytics, attribute performance, connect external integrations, run autonomous AI execution, implement Post-V1 modules, or claim production readiness from this specification.
 
 ## 6. QA Case Identifier Rules
@@ -135,7 +136,7 @@ Future automated tests require a separate QA/test implementation gate with exact
 | `NQA-APPROVAL` | Verify human authorized approval only. | Review approval copy for human, explicit, version-bound authority. | Unauthorized approval; AI approval; readiness approval bypass. | Authorized human review actions allowed; viewer/editor/AI approval denied. | `NUS-APPROVAL-001` | `AC-APPROVAL-001`, `AC-APPROVAL-002` | NO |
 | `NQA-REAPPROVAL` | Verify approval lock and material-change handling. | Review reapproval-required wording and material-change examples. | Draft/generated direct-to-approved denial; material change requires reapproval. | Reapproval labels allowed; silent approved-content mutation denied. | `NUS-REAPPROVAL-001` | `AC-REAPPROVAL-001`, `AC-REAPPROVAL-002` | NO |
 | `NQA-CHECKLIST` | Verify manual publishing checklist remains non-executing. | Review checklist wording for no publish/schedule/spend/connect controls. | Checklist completion not publishing; forbidden control absence. | Checklist view/prepare allowed where authorized; execution denied. | `NUS-CHECKLIST-001` | `AC-CHECKLIST-001` | NO |
-| `NQA-EVIDENCE` | Verify evidence remains proof only. | Review URL/screenshot/version/UTM evidence expectations. | Wrong version evidence; accept/correct/supersede/invalidate authorization; AI evidence denial. | Evidence submit/review allowed where authorized; authorization bypass denied. | `NUS-EVIDENCE-001` | `AC-EVIDENCE-001` through `AC-EVIDENCE-004` | NO |
+| `NQA-EVIDENCE` | Verify evidence remains proof only. | Review URL/screenshot/version/UTM evidence expectations. | Wrong version evidence; accept/request correction/supersede/invalidate authorization; AI evidence denial. | Evidence submit/review allowed where authorized; authorization bypass denied. | `NUS-EVIDENCE-001` | `AC-EVIDENCE-001` through `AC-EVIDENCE-004` | NO |
 | `NQA-PERFORMANCE` | Verify manual performance remains user-entered only. | Review manual observation wording for no platform verification. | Analytics import denial; attribution/optimization denial. | Manual entry allowed where authorized; ingestion/attribution denied. | `NUS-PERFORMANCE-001` | `AC-PERFORMANCE-001`, `AC-PERFORMANCE-002` | NO |
 | `NQA-PERMISSIONS` | Verify role and protected-action boundaries. | Review proposed codes, denials, and role/action matrix. | Viewer mutation denial; editor approval denial; reviewer/evidence-reviewer separation; AI denial. | Authorized actions allowed only where explicit; all unauthorized protected actions denied. | `NUS-PERMISSIONS-001` | `AC-PERMISSIONS-001` through `AC-PERMISSIONS-003` | NO |
 | `NQA-TENANT` | Verify workspace trust boundary. | Review route/context workspace authority requirements. | Cross-workspace denial; body `workspace_id` distrust. | Same-workspace access only where authorized; cross-workspace access denied. | `NUS-TENANT-001` | `AC-TENANT-001`, `AC-TENANT-002` | NO |
