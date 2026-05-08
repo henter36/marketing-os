@@ -15,11 +15,7 @@ This document is documentation-only.
 
 It defines planning/specification-only Nashir permission code identifiers and QA case identifiers for future review.
 
-It does not approve implementation.
-
-It does not create executable tests.
-
-It does not add or modify runtime, backend, UI, API, SQL, OpenAPI, generated-client, package, workflow, migration, script, prototype, routing, serving, linking, integration, analytics, attribution, payment, billing, AI runtime, autonomous agent, or production behavior.
+It does not approve implementation, create executable tests, or add/modify runtime, backend, UI, API, SQL, OpenAPI, generated-client, package, workflow, migration, script, prototype, routing, serving, linking, integration, analytics, attribution, payment, billing, AI runtime, autonomous agent, or production behavior.
 
 Permission codes in this document are proposed planning identifiers only. They are not implemented RBAC permissions and do not imply that RBAC enforcement exists for Nashir.
 
@@ -104,12 +100,15 @@ Role names in this matrix are Nashir planning personas, not final current `role_
 
 - Viewer is denied all mutations.
 - Editor is denied approval unless explicitly reviewer-authorized.
-- Reviewer is denied evidence acceptance, correction, supersede, or invalidation unless evidence-authorized.
+- Reviewer is denied evidence acceptance, request correction, supersede, or invalidation unless evidence-authorized.
 - Evidence reviewer is denied approval, rejection, and request-changes decisions unless reviewer-authorized.
 - AI assistant is denied all protected actions.
 - All roles are denied NO-GO actions.
 - No role may accept or invalidate evidence they submitted themselves.
-- No role may directly publish, authorize publishing, use social OAuth, schedule, launch paid ads, pay, bill, ingest analytics, attribute performance, connect external integrations, run autonomous AI execution, implement Post-V1 modules, or claim production readiness from this specification.
+
+### Project-wide NO-GO Boundaries (independent of role)
+
+No role may directly publish, authorize publishing, use social OAuth, schedule, launch paid ads, pay, bill, ingest analytics, attribute performance, connect external integrations, run autonomous AI execution, implement Post-V1 modules, or claim production readiness from this specification.
 
 ## 6. QA Case Identifier Rules
 
@@ -222,15 +221,13 @@ GO for documentation-only Nashir permission codes and QA case specification.
 
 GO for using the proposed permission codes and QA case IDs as planning identifiers in later documentation review.
 
-NO-GO for implementation.
+NO-GO for:
 
-NO-GO for executable tests.
-
-NO-GO for runtime/backend/UI/API/SQL/OpenAPI/generated-client/package/workflow/migration changes.
-
-NO-GO for RBAC enforcement claims.
-
-NO-GO for route/serve/link readiness, production readiness, AI action authority, publishing, analytics ingestion, attribution, external integrations, payment, billing, or Post-V1 implementation.
+- implementation
+- executable tests
+- runtime/backend/UI/API/SQL/OpenAPI/generated-client/package/workflow/migration changes
+- RBAC enforcement claims
+- route/serve/link readiness, production readiness, AI action authority, publishing, analytics ingestion, attribution, external integrations, payment, billing, or Post-V1 implementation
 
 ## 13. Recommended Next Step
 
