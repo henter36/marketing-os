@@ -116,9 +116,9 @@ The following remain forbidden:
 - `migrations/**`
 - `scripts/**`
 - `prototype/**`
-- `router.js`
-- `store.js`
-- `server.js`
+- `src/router.js`
+- `src/store.js`
+- `src/server.js`
 - runtime files
 - external integrations
 - analytics/attribution files
@@ -153,7 +153,7 @@ This gate is NO-GO if:
 - any runtime/server/router/store behavior is touched;
 - any SQL, OpenAPI, generated client, package, workflow, migration, script, prototype, source, or test file is touched;
 - wording implies new implementation approval;
-- wording implies routing, serving, deployment, production readiness, auth/RBAC, tenant isolation enforcement, audit logging, ErrorModel behavior, API integration, persistence, publishing authorization, approval automation, analytics ingestion, attribution, OAuth/account connection, paid ads, payment, external integrations, autonomous AI execution, or Post-V1 implementation.
+- wording implies routing, serving, deployment, production readiness, auth/RBAC, tenant isolation enforcement, audit logging, ErrorModel behavior, API integration, persistence, direct publishing, publishing authorization, approval automation, analytics ingestion, attribution, social OAuth, scheduling, paid ads, payment, billing, external integrations, autonomous AI execution, or Post-V1 implementation.
 
 ## 11. GO / NO-GO Decision
 
