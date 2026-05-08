@@ -12,14 +12,14 @@ function toRepositoryError(repositoryName, error) {
 function logUnexpectedRepositoryError(repositoryName, error) {
   const payload = {
     error_name: error?.name,
+    error_message: error?.message,
     error_code: error?.code,
-    error_detail: error?.detail,
-    error_hint: error?.hint,
-    error_constraint: error?.constraint,
   };
 
   if (process.env.NODE_ENV !== "production") {
-    payload.error_message = error?.message;
+    payload.error_detail = error?.detail;
+    payload.error_hint = error?.hint;
+    payload.error_constraint = error?.constraint;
     payload.error_stack = error?.stack;
   }
 
