@@ -87,7 +87,7 @@ This gate does not approve routing, serving, linking, backend/runtime behavior, 
 
 ## 6. Future Gate Requirement
 
-Any future route, serve, link, integration, auth/RBAC, tenant isolation, audit, ErrorModel, test, deployment, backend/runtime, API, package, workflow, SQL, OpenAPI, generated-client, migration, script, prototype, analytics, attribution, payment, billing, or AI runtime work requires a separate approved gate with exact allowed files, forbidden files, verification commands, rollback/no-go criteria, and expected CI gates.
+Any future route, serve, link, integration, auth/RBAC, tenant isolation, audit, ErrorModel, test, deployment, backend/runtime, API, package, workflow, SQL, OpenAPI, generated client, migration, script, prototype, analytics, attribution, payment, billing, or AI runtime work requires a separate approved gate with exact allowed files, forbidden files, verification commands, rollback/no-go criteria, and expected CI gates.
 
 ## 7. Allowed Files For This Documentation-Only Gate
 
