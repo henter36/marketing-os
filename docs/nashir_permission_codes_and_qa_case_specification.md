@@ -49,7 +49,7 @@ Direct publishing, publishing authorization bypass, social OAuth, scheduling, pa
 
 These codes are planning identifiers only. They do not create permissions, seed permissions, modify roles, or approve RBAC enforcement.
 
-The `nashir.*.*` identifiers are not final seeded RBAC permission codes and do not modify current RBAC. Future implementation must reconcile these planning identifiers against existing `domain.action` permissions such as `campaign.read`, `performance.read`, and `rbac.read`, or approve a separate RBAC naming patch before enforcement.
+The `nashir.*.*` identifiers are planning identifiers only. They are not final seeded RBAC permission codes and do not modify current RBAC. A future implementation gate must reconcile them with the repository's existing `domain.action` permission convention before any RBAC enforcement. Examples of existing-style permissions include `campaign.read`, `performance.read`, and `rbac.read`; these examples do not approve implementation.
 
 | Proposed code | Planning meaning | Boundary |
 |---|---|---|
@@ -83,7 +83,7 @@ The `nashir.*.*` identifiers are not final seeded RBAC permission codes and do n
 
 This matrix is planning-only. "Candidate" means a future policy may grant the permission. "Denied" means the role must not perform the action under Core V1 unless an explicitly named future authorization changes the role boundary.
 
-Role names in this matrix are Nashir planning personas, not final current `role_code` values. Future implementation must reconcile these personas with existing repository roles before enforcement. `billing_admin` is not granted Nashir operational authority by this planning matrix unless a future policy explicitly grants it.
+Role names in this matrix are Nashir planning personas, not final current `role_code` values. A future implementation gate must reconcile these personas with existing repository roles before enforcement. Existing role examples include `owner`, `admin`, `creator`, `reviewer`, `publisher`, `viewer`, and `billing_admin`. `billing_admin` is not granted Nashir operational authority by this document unless a future policy explicitly allows it.
 
 | Action group | Owner | Admin | Editor | Reviewer | Evidence reviewer | Viewer | AI assistant advisory-only |
 |---|---|---|---|---|---|---|---|
