@@ -1,6 +1,8 @@
 const { AppError } = require("../error-model");
+const { toRepositoryError: toUnexpectedRepositoryError } = require("./repository-error-logging");
 
 const ALLOWED_TEMPLATE_TYPES = ["caption", "ad_copy", "image_prompt", "video_script", "report", "reply"];
+const templateTypeListFormatter = new Intl.ListFormat("en", { style: "long", type: "disjunction" });
 
 class PromptTemplateRepository {
   constructor({ pool }) {
@@ -126,7 +128,7 @@ function validatePromptTemplateInput(input = {}) {
       422,
       "VALIDATION_FAILED",
       "Prompt template type is invalid.",
-      "Use caption, ad_copy, image_prompt, video_script, report, or reply."
+      `Use one of: ${formatAllowedTemplateTypes()}.`
     );
   }
 
@@ -137,6 +139,10 @@ function validatePromptTemplateInput(input = {}) {
   if (input.template_variables !== undefined && !Array.isArray(input.template_variables) && typeof input.template_variables !== "object") {
     throw new AppError(422, "VALIDATION_FAILED", "template_variables must be JSON-compatible.", "Send template_variables as a JSON object or array.");
   }
+}
+
+function formatAllowedTemplateTypes() {
+  return templateTypeListFormatter.format(ALLOWED_TEMPLATE_TYPES);
 }
 
 function toPublicPromptTemplate(row) {
@@ -162,11 +168,7 @@ function duplicatePromptTemplateError() {
 }
 
 function toRepositoryError(error) {
-  if (error instanceof AppError) {
-    return error;
-  }
-
-  return new AppError(500, "INTERNAL_ERROR", "Database read failed.", "Retry or contact support.");
+  return toUnexpectedRepositoryError("PromptTemplateRepository", error);
 }
 
 module.exports = {

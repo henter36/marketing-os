@@ -1,4 +1,5 @@
 const { AppError } = require("../error-model");
+const { toRepositoryError: toUnexpectedRepositoryError } = require("./repository-error-logging");
 
 class ReportTemplateRepository {
   constructor({ pool }) {
@@ -120,11 +121,7 @@ function duplicateReportTemplateError() {
 }
 
 function toRepositoryError(error) {
-  if (error instanceof AppError) {
-    return error;
-  }
-
-  return new AppError(500, "INTERNAL_ERROR", "Database read failed.", "Retry or contact support.");
+  return toUnexpectedRepositoryError("ReportTemplateRepository", error);
 }
 
 module.exports = {
