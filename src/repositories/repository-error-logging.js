@@ -11,8 +11,8 @@ function toRepositoryError(repositoryName, error) {
 
 function logUnexpectedRepositoryError(repositoryName, error) {
   const payload = {
-    error_name: error?.name,
-    error_message: error?.message,
+    error_name: error?.name || errorType(error),
+    error_message: error?.message || errorMessage(error),
     error_code: error?.code,
   };
 
@@ -24,6 +24,18 @@ function logUnexpectedRepositoryError(repositoryName, error) {
   }
 
   console.error(`${repositoryName} database operation failed.`, payload);
+}
+
+function errorType(error) {
+  return error === undefined || error === null ? undefined : typeof error;
+}
+
+function errorMessage(error) {
+  if (error === undefined || error === null) {
+    return "Unknown error";
+  }
+
+  return String(error);
 }
 
 function shouldLogDetailedRepositoryError() {
