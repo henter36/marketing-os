@@ -35,7 +35,20 @@ function errorMessage(error) {
     return "Unknown error";
   }
 
+  if (typeof error === "object" && !(error instanceof Error)) {
+    return summarizeObjectError(error);
+  }
+
   return String(error);
+}
+
+function summarizeObjectError(error) {
+  try {
+    const keys = Object.keys(error).sort();
+    return keys.length > 0 ? `Object error with keys: ${keys.join(", ")}` : "Object error with no enumerable keys";
+  } catch {
+    return "Object error";
+  }
 }
 
 function shouldLogDetailedRepositoryError() {
