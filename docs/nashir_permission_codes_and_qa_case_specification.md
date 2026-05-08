@@ -52,9 +52,9 @@ These codes are planning identifiers only. They do not create permissions, seed 
 | Proposed code | Planning meaning | Boundary |
 |---|---|---|
 | `nashir.readiness.view` | View advisory readiness, blockers, warnings, approval status, checklist status, and evidence status. | Readiness does not approve or authorize publishing. |
-| `nashir.intake.draft` | Draft manual intake and advertised-object inputs where future implementation is approved. | Manual/user-confirmed only; no external ingestion. |
-| `nashir.intake.submit_review` | Submit intake-derived material for human review where future implementation is approved. | Submission does not approve. |
-| `nashir.content.edit` | Edit draft content, requirements, hashtags, scripts, destinations, or related planning fields where future implementation is approved. | Material changes after approval require reapproval. |
+| `nashir.intake.draft` | Draft manual intake and advertised-object inputs. | Manual/user-confirmed only; no external ingestion. |
+| `nashir.intake.submit_review` | Submit intake-derived material for human review. | Submission does not approve. |
+| `nashir.content.edit` | Edit draft content, requirements, hashtags, scripts, destinations, or related planning fields. | Material changes after approval require reapproval. |
 | `nashir.content.submit_review` | Submit content for human review. | Does not approve or publish. |
 | `nashir.approval.review` | View and participate in human review where authorized. | Review authority is not approval authority by itself. |
 | `nashir.approval.approve` | Human approval of reviewed content version. | Must be explicit, authorized, auditable, and version-bound. |
@@ -90,7 +90,7 @@ This matrix is planning-only. "Candidate" means a future policy may grant the pe
 | Submit evidence | Candidate | Candidate | Candidate if policy allows | Denied unless separately granted | Candidate if policy allows | Denied | Denied |
 | Review/accept/correct/supersede/invalidate evidence | Candidate with explicit evidence authority | Candidate with explicit evidence authority | Denied unless evidence-authorized | Denied unless evidence-authorized | Candidate with explicit evidence authority | Denied | Denied |
 | Enter manual performance | Candidate | Candidate | Candidate if policy allows | Denied unless separately granted | Denied unless separately granted | Denied | Denied |
-| View audit / permissions / NO-GO boundaries | Candidate | Candidate if policy allows | Scoped view only if policy allows | Candidate if policy allows | Candidate if policy allows | Denied unless policy allows read-only audit | Denied |
+| View audit / permissions / NO-GO boundaries | Candidate | Candidate if policy allows | Scoped view only if policy allows | Candidate if policy allows | Candidate if policy allows | Denied | Denied |
 | NO-GO action attempts | Denied | Denied | Denied | Denied | Denied | Denied | Denied |
 
 ## 5. Explicit Denials
@@ -101,7 +101,7 @@ This matrix is planning-only. "Candidate" means a future policy may grant the pe
 - Evidence reviewer is denied approval, rejection, and request-changes decisions unless reviewer-authorized.
 - AI assistant is denied all protected actions.
 - All roles are denied NO-GO actions.
-- No role may directly publish, authorize publishing, use social OAuth, schedule, launch paid ads, pay, bill, ingest analytics, attribute performance, connect external integrations, run autonomous AI execution, implement Post-V1 modules, claim production readiness, or cause generated client/OpenAPI/SQL drift from this specification.
+- No role may directly publish, authorize publishing, use social OAuth, schedule, launch paid ads, pay, bill, ingest analytics, attribute performance, connect external integrations, run autonomous AI execution, implement Post-V1 modules, or claim production readiness from this specification.
 
 ## 6. QA Case Identifier Rules
 
