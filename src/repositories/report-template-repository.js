@@ -124,7 +124,7 @@ function toRepositoryError(error) {
     return error;
   }
 
-  return new AppError(500, "INTERNAL_ERROR", "Database read failed.", "Retry or contact support.");
+  return new AppError(500, "INTERNAL_ERROR", "Database operation failed.", "Retry or contact support.");
 }
 
 module.exports = {
