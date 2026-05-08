@@ -64,7 +64,7 @@ function summarizeObjectError(error) {
 }
 
 function shouldLogDetailedRepositoryError() {
-  return process.env.NODE_ENV !== "production" || process.env.REPOSITORY_ERROR_LOG_DETAIL === "true";
+  return process.env.NODE_ENV !== "production";
 }
 
 module.exports = {
