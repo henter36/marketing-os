@@ -124,7 +124,15 @@ function toRepositoryError(error) {
     return error;
   }
 
+  logUnexpectedRepositoryError(error);
   return new AppError(500, "INTERNAL_ERROR", "Database operation failed.", "Retry or contact support.");
+}
+
+function logUnexpectedRepositoryError(error) {
+  console.error("ReportTemplateRepository database operation failed.", {
+    error_name: error?.name,
+    error_code: error?.code,
+  });
 }
 
 module.exports = {
