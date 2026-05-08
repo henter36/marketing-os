@@ -11,7 +11,7 @@ function toRepositoryError(repositoryName, error) {
 
 function logUnexpectedRepositoryError(repositoryName, error) {
   const payload = {
-    error_name: error?.name || errorType(error),
+    error_name: error?.name || errorType(error) || "UnknownError",
     error_message: error?.message || errorMessage(error),
     error_code: error?.code,
   };
