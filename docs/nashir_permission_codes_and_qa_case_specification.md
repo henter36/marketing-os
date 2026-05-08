@@ -51,7 +51,7 @@ These codes are planning identifiers only. They do not create permissions, seed 
 
 | Proposed code | Planning meaning | Boundary |
 |---|---|---|
-| `nashir.readiness.view` | View advisory readiness, blockers, warnings, approval status, checklist status, and evidence status. | Readiness does not approve or authorize publishing. |
+| `nashir.readiness.view` | View campaign readiness, blockers, warnings, approval status, checklist status, evidence status, and associated intake/content material. | Readiness does not approve or authorize publishing. |
 | `nashir.intake.draft` | Draft manual intake and advertised-object inputs. | Manual/user-confirmed only; no external ingestion. |
 | `nashir.intake.submit_review` | Submit intake-derived material for human review. | Submission does not approve. |
 | `nashir.content.edit` | Edit draft content, requirements, hashtags, scripts, destinations, or related planning fields. | Material changes after approval require reapproval. |
@@ -90,7 +90,8 @@ This matrix is planning-only. "Candidate" means a future policy may grant the pe
 | Trigger reapproval after material change | Candidate | Candidate | Candidate when editing approved content | Candidate if policy allows | Denied unless separately authorized | Denied | Denied |
 | Submit evidence | Candidate | Candidate | Candidate if policy allows | Denied unless separately granted | Candidate if policy allows | Denied | Denied |
 | Review/accept/correct/supersede/invalidate evidence | Candidate with explicit evidence authority | Candidate with explicit evidence authority | Denied unless evidence-authorized | Denied unless evidence-authorized | Candidate with explicit evidence authority | Denied | Denied |
-| Enter manual performance | Candidate | Candidate | Candidate if policy allows | Denied unless separately granted | Denied unless separately granted | Denied | Denied |
+| View/prepare UTM Lite | Candidate | Candidate | Candidate if policy allows | Candidate if policy allows | Denied unless separately authorized | Denied | Denied |
+| View/enter manual performance | Candidate | Candidate | Candidate if policy allows | Denied unless separately granted | Denied unless separately granted | Denied | Denied |
 | View audit / permissions / NO-GO boundaries | Candidate | Candidate if policy allows | Scoped view only if policy allows | Candidate if policy allows | Candidate if policy allows | Denied | Denied |
 | NO-GO action attempts | Denied | Denied | Denied | Denied | Denied | Denied | Denied |
 
