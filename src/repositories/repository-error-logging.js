@@ -16,7 +16,7 @@ function logUnexpectedRepositoryError(repositoryName, error) {
     error_code: error?.code,
   };
 
-  if (process.env.NODE_ENV !== "production") {
+  if (shouldLogDetailedRepositoryError()) {
     payload.error_detail = error?.detail;
     payload.error_hint = error?.hint;
     payload.error_constraint = error?.constraint;
@@ -26,7 +26,12 @@ function logUnexpectedRepositoryError(repositoryName, error) {
   console.error(`${repositoryName} database operation failed.`, payload);
 }
 
+function shouldLogDetailedRepositoryError() {
+  return process.env.NODE_ENV !== "production" || process.env.REPOSITORY_ERROR_LOG_DETAIL === "true";
+}
+
 module.exports = {
   logUnexpectedRepositoryError,
+  shouldLogDetailedRepositoryError,
   toRepositoryError,
 };
