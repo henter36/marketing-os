@@ -36,10 +36,22 @@ function errorMessage(error) {
   }
 
   if (typeof error === "object" && !(error instanceof Error)) {
-    return summarizeObjectError(error);
+    return objectErrorMessage(error);
   }
 
   return String(error);
+}
+
+function objectErrorMessage(error) {
+  if (shouldLogDetailedRepositoryError()) {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return summarizeObjectError(error);
+    }
+  }
+
+  return summarizeObjectError(error);
 }
 
 function summarizeObjectError(error) {
