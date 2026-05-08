@@ -1,4 +1,5 @@
 const { AppError } = require("../error-model");
+const { logUnexpectedRepositoryError } = require("./repository-error-logging");
 
 const ALLOWED_TEMPLATE_TYPES = ["caption", "ad_copy", "image_prompt", "video_script", "report", "reply"];
 
@@ -166,17 +167,8 @@ function toRepositoryError(error) {
     return error;
   }
 
-  logUnexpectedRepositoryError(error);
+  logUnexpectedRepositoryError("PromptTemplateRepository", error);
   return new AppError(500, "INTERNAL_ERROR", "Database operation failed.", "Retry or contact support.");
-}
-
-function logUnexpectedRepositoryError(error) {
-  console.error("PromptTemplateRepository database operation failed.", {
-    error_name: error?.name,
-    error_message: error?.message,
-    error_code: error?.code,
-    error_stack: error?.stack,
-  });
 }
 
 module.exports = {
