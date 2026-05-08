@@ -131,7 +131,9 @@ function toRepositoryError(error) {
 function logUnexpectedRepositoryError(error) {
   console.error("ReportTemplateRepository database operation failed.", {
     error_name: error?.name,
+    error_message: error?.message,
     error_code: error?.code,
+    error_stack: error?.stack,
   });
 }
 
