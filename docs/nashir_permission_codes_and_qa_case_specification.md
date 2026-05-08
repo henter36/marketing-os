@@ -45,7 +45,7 @@ Direct publishing, publishing authorization bypass, social OAuth, scheduling, pa
 
 These codes are planning identifiers only. They do not create permissions, seed permissions, modify roles, or approve RBAC enforcement.
 
-The `nashir.*.*` identifiers are planning aliases only. They are not final seeded RBAC permission codes and do not change current RBAC. They intentionally preserve Nashir traceability at the planning layer. A future implementation gate must map them to the repository's actual `domain.action` permission convention before any RBAC seed or enforcement work. Examples such as `campaign.read`, `performance.read`, and `rbac.read` are examples only and are not modified here. Do not rename these planning aliases in this PR. Any final naming conversion, including flattening to a two-part `domain.action` pattern, requires a separate RBAC naming/mapping gate.
+The `nashir.*.*` identifiers are planning aliases only. They are not final seeded RBAC permission codes and do not change current RBAC. They intentionally preserve Nashir traceability at the planning layer. A future implementation gate must map them to the repository's actual `domain.action` permission convention before any RBAC seed or enforcement work. Examples such as `campaign.read`, `performance.read`, and `rbac.read` are examples only and are not modified here. Do not rename these planning aliases in this PR. These planning aliases intentionally do not claim final RBAC naming. Final RBAC permission naming, including any conversion to a two-part `domain.action` pattern, is explicitly deferred to a separate RBAC naming/mapping gate.
 
 | Proposed code | Planning meaning | Boundary |
 |---|---|---|
@@ -79,9 +79,9 @@ The `nashir.*.*` identifiers are planning aliases only. They are not final seede
 
 This matrix is planning-only. "Candidate" means a future policy may grant the permission. "Denied" means the role must not perform the action under Core V1 unless an explicitly named future authorization changes the role boundary.
 
-Role names in this matrix are Nashir planning personas, not final current `role_code` values. A future implementation gate must reconcile these personas with existing repository roles before enforcement. Existing role examples include `owner`, `admin`, `creator`, `reviewer`, `publisher`, `viewer`, and `billing_admin`. At the planning layer, `Editor` maps to the `creator` role and `Evidence reviewer` maps to the `reviewer` role with explicit evidence authority; these are planning aliases only. `billing_admin` is not granted Nashir operational authority by this document unless a future policy explicitly allows it.
+Role names in this matrix are Nashir planning personas, not final current `role_code` values. A future implementation gate must reconcile these personas with existing repository roles before enforcement. Existing role examples include `owner`, `admin`, `creator`, `reviewer`, `publisher`, `viewer`, and `billing_admin`. At the planning layer, `Creator (Editor)` and `Publisher (Evidence reviewer)` are planning aliases only. `billing_admin` is not granted Nashir operational authority by this planning matrix unless a future policy explicitly allows it.
 
-| Action group | Owner | Admin | Editor | Reviewer | Evidence reviewer | Viewer | AI assistant advisory-only |
+| Action group | Owner | Admin | Creator (Editor) | Reviewer | Publisher (Evidence reviewer) | Viewer | AI assistant advisory-only |
 |---|---|---|---|---|---|---|---|
 | View readiness/status | Candidate | Candidate | Candidate | Candidate | Candidate | Candidate | Advisory display only |
 | Draft/edit intake or content | Candidate | Candidate | Candidate | Denied unless separately granted | Denied unless separately granted | Denied | Denied as actor |
