@@ -86,8 +86,9 @@ This matrix is planning-only. "Candidate" means a future policy may grant the pe
 | View readiness/status | Candidate | Candidate | Candidate | Candidate | Candidate | Candidate | Advisory display only |
 | Draft/edit intake or content | Candidate | Candidate | Candidate | Denied unless separately granted | Denied unless separately granted | Denied | Denied as actor |
 | Submit for review | Candidate | Candidate | Candidate | Candidate if policy allows | Denied unless separately granted | Denied | Denied |
-| Approve/reject/request changes | Candidate with explicit approval authority | Candidate with explicit approval authority | Denied unless reviewer-authorized | Candidate with explicit approval authority | Denied unless reviewer-authorized | Denied | Denied |
+| Review/approve/reject/request changes | Candidate with explicit approval authority | Candidate with explicit approval authority | Denied unless reviewer-authorized | Candidate with explicit approval authority | Denied unless reviewer-authorized | Denied | Denied |
 | Trigger reapproval after material change | Candidate | Candidate | Candidate when editing approved content | Candidate if policy allows | Denied unless separately authorized | Denied | Denied |
+| View/prepare manual checklist | Candidate | Candidate | Candidate | Candidate if policy allows | Denied unless separately authorized | Denied | Denied |
 | Submit evidence | Candidate | Candidate | Candidate if policy allows | Denied unless separately granted | Candidate if policy allows | Denied | Denied |
 | Review/accept/correct/supersede/invalidate evidence | Candidate with explicit evidence authority | Candidate with explicit evidence authority | Denied unless evidence-authorized | Denied unless evidence-authorized | Candidate with explicit evidence authority | Denied | Denied |
 | View/prepare UTM Lite | Candidate | Candidate | Candidate if policy allows | Candidate if policy allows | Denied unless separately authorized | Denied | Denied |
