@@ -2254,6 +2254,8 @@ Sprint 1 قابل للتنفيذ بشرط أن يتضمن:
 | WhiteLabelConfig | بعد ثبوت طلب تجاري |
 | Advanced Media Pipeline tables | بعد Controlled Image/Video Pilot |
 
+ملاحظة: منع Advanced MetricConfidenceScore tables لا يتعارض مع جدول Patch 002 المحدود `metric_confidence_scores` المستخدم فقط لتسجيل basic confidence scoring لبيانات `campaign_metric_snapshots`. هذا لا يفتح AttributionDecision أو advanced attribution أو Phase 2 analytics.
+
 ### استثناء محدود
 
 يمكن بناء Provider foundation وMediaJob/MediaAsset كتصميم عام في Phase 0/1، لكن لا يتم تفعيل image/video production jobs.
