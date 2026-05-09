@@ -2252,6 +2252,8 @@ Sprint 1 قابل للتنفيذ بشرط أن يتضمن:
 | AI Agent tables | Post V1 |
 | WebhookEventInbox / DLQ للمنصات الاجتماعية | Phase 4، لا حاجة له قبل تكاملات حقيقية |
 | WhiteLabelConfig | بعد ثبوت طلب تجاري |
+
+ملاحظة: منع Advanced MetricConfidenceScore tables لا يتعارض مع جدول Patch 002 المحدود `metric_confidence_scores` المستخدم فقط لتسجيل basic confidence scoring لبيانات `campaign_metric_snapshots`. هذا لا يفتح AttributionDecision أو advanced attribution أو Phase 2 analytics.
 | Advanced Media Pipeline tables | بعد Controlled Image/Video Pilot |
 
 ### استثناء محدود

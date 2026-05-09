@@ -315,6 +315,8 @@ Hard SQL rules:
 - No advanced attribution decision table is allowed in Phase 0/1.
 ```
 
+Patch 002 `metric_confidence_scores` is limited to basic confidence scoring for `campaign_metric_snapshots`. It is not advanced attribution and does not authorize `AttributionDecision`, multi-touch attribution, uplift modeling, ROI prediction, autonomous optimization, or any Phase 2 analytics scope.
+
 ### 4.3 CRM-lite tables
 
 Required tables:
