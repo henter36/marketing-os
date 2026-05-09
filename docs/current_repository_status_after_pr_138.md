@@ -7,13 +7,13 @@
 | PR | #138 |
 | PR status | Merged |
 | Merge commit | `8fe194c782d021272fc677f1c910510e4f92a631` |
-| Scope | Documentation-only Nashir audit event payload, ErrorModel mapping, and material-change specification |
+| Scope | Documentation-only Nashir audit event payload, ErrorModel mapping, material-change specification, evidence handling, UTM Lite, and readiness behavior |
 | Implementation approved | NO |
 | Executable tests approved | NO |
 
 ## Summary
 
-PR #138 was merged as a documentation-only specification update for Nashir audit event payload candidates, ErrorModel mapping candidates, and material-change criteria.
+PR #138 was merged as a documentation-only specification update for Nashir audit event payload candidates, ErrorModel mapping candidates, material-change criteria, evidence handling, UTM Lite, and readiness behavior.
 
 This status note does not approve implementation, executable tests, runtime behavior, backend behavior, UI behavior, API behavior, SQL changes, OpenAPI changes, generated-client updates, package changes, workflow changes, migration changes, routing, serving, linking, Pilot readiness, or Production readiness.
 
@@ -23,6 +23,10 @@ This status note does not approve implementation, executable tests, runtime beha
 - `nashir.process.blocked`
 - Canonical permission constants where aligned
 - Material-change criteria including offer or CTA
+- Evidence handling and invalidation rules
+- UTM Lite handling
+- Readiness behavior and gate-state semantics
+- Invalid transition mappings
 
 ## Boundaries Preserved
 
