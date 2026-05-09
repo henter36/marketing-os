@@ -83,9 +83,9 @@ The following mapping is a planning candidate only. It does not implement ErrorM
 
 | Condition | Suggested code | Suggested HTTP status | User-facing message intent | Actor-facing action | Audit event candidate | Implementation approval status |
 |---|---|---:|---|---|---|---|
-| Permission denied | `NASHIR_PERMISSION_DENIED` | 403 | The actor is not allowed to perform this action. | Request access or use an authorized actor. | `nashir.permission.denied` | NO |
-| Tenant mismatch | `NASHIR_TENANT_MISMATCH` | 403 | The requested item is not available in this workspace. | Use route-derived workspace context. | `nashir.tenant.denied` | NO |
-| Body `workspace_id` conflict | `NASHIR_BODY_WORKSPACE_CONFLICT` | 400 | Workspace context is invalid for this request. | Remove or correct untrusted body workspace data. | `nashir.tenant.denied` | NO |
+| Permission denied | `PERMISSION_DENIED` | 403 | The actor is not allowed to perform this action. | Request access or use an authorized actor. | `nashir.permission.denied` | NO |
+| Tenant mismatch | `WORKSPACE_ACCESS_DENIED` | 403 | The requested item is not available in this workspace. | Use route-derived workspace context. | `nashir.tenant.denied` | NO |
+| Body `workspace_id` conflict | `TENANT_CONTEXT_MISMATCH` | 422 | Workspace context is invalid for this request. | Remove or correct untrusted body workspace data. | `nashir.tenant.denied` | NO |
 | Missing intake fields | `NASHIR_INTAKE_REQUIRED_FIELDS_MISSING` | 422 | Required intake information is missing. | Complete the required manual fields. | `nashir.readiness.recalculated` | NO |
 | Invalid destination | `NASHIR_INVALID_DESTINATION` | 422 | The landing destination cannot be used as entered. | Correct the destination. | `nashir.readiness.recalculated` | NO |
 | Missing rights confirmation | `NASHIR_RIGHTS_CONFIRMATION_REQUIRED` | 409 | Creative rights must be confirmed before proceeding. | Confirm rights or route for review. | `nashir.rights.confirmed` or `nashir.nogo.blocked` | NO |
@@ -301,9 +301,9 @@ The following remain forbidden:
 - `migrations/**`
 - `scripts/**`
 - `prototype/**`
-- `router.js`
-- `store.js`
-- `server.js`
+- `src/router.js`
+- `src/store.js`
+- `src/server.js`
 - runtime files
 - external integrations
 - analytics/attribution files
