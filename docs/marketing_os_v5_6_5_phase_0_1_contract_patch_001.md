@@ -280,12 +280,22 @@ DELETE fails.
 
 ## 7. Codex Instruction Clarification
 
-Codex must apply schema files in this order:
+At the time of Contract Patch 001, Codex applied schema files in this order:
 
 ```text
 1. docs/marketing_os_v5_6_5_phase_0_1_schema.sql
 2. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
 ```
+
+Current active strict migration verification now applies Patch 002 after Patch 001:
+
+```text
+1. docs/marketing_os_v5_6_5_phase_0_1_schema.sql
+2. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
+3. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql
+```
+
+This documentation reconciliation does not change Patch 001 behavior or migration execution. It records that the active migration runner now includes Patch 002 after Patch 001.
 
 Codex must treat this patch as binding.
 
