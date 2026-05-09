@@ -75,8 +75,8 @@ Common candidate payload fields:
 | `nashir.permission.denied` | Permission denial candidate. | Common fields plus `campaign_id` where applicable, `source_action`, `denial_category`, `reason`, `correlation_id`, `occurred_at`. |
 | `nashir.tenant.denied` | Tenant/workspace boundary denial candidate. | Common fields plus `entity_type`, `entity_id`, `source_action`, `denial_category`, `reason`, `correlation_id`, `occurred_at`; body `workspace_id` conflict must be captured only as untrusted input context. |
 | `nashir.nogo.blocked` | NO-GO attempt blocked candidate. | Common fields plus `campaign_id` where applicable, `source_action`, `no_go_category`, `reason`, `correlation_id`, `occurred_at`. |
-| `nashir.idempotency.conflict` | Idempotency conflict candidate. | Common fields plus `source_action`, `correlation_id`, `idempotency_key` where applicable, `occurred_at`, `notes`. |
 | `nashir.ai.advisory_output.generated` | Advisory AI output generated candidate. | Common fields plus `campaign_id`, `brief_version_id` where applicable, `content_hash` where applicable, `source_action`, `correlation_id`, `occurred_at`, `notes`; must not imply protected action execution. |
+| `nashir.idempotency.conflict` | Idempotency conflict candidate. | Common fields plus `source_action`, `correlation_id`, `idempotency_key` where applicable, `occurred_at`, `notes`. |
 
 ## 4. Planning-Only ErrorModel Mapping
 
