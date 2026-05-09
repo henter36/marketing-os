@@ -111,10 +111,10 @@ These are planning-only invalid transition candidates. They do not create state 
 |---|---|---|---|
 | Draft to approved | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.permission.denied` |
 | Generated to approved without review | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.permission.denied` |
-| Blocked_until_review to approved | Block until human review clears blocker. | `NASHIR_APPROVAL_BLOCKED` | `nashir.nogo.blocked` |
+| Blocked_until_review to approved | Block until human review clears blocker. | `NASHIR_APPROVAL_BLOCKED` | `nashir.permission.denied` |
 | Rejected to approved | Block; revised content must return through generated and in_review. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.permission.denied` |
-| Requires_reapproval bypass | Block; submit changed version for review. | `NASHIR_REAPPROVAL_REQUIRED` | `nashir.approval.invalidated_by_material_change` |
-| Invalid evidence state transition | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.manual_publish.evidence.reviewed` |
+| Requires_reapproval bypass | Block; submit changed version for review. | `NASHIR_REAPPROVAL_REQUIRED` | `nashir.permission.denied` |
+| Invalid evidence state transition | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.permission.denied` |
 | Unauthorized evidence acceptance | Block. | `NASHIR_PERMISSION_DENIED` | `nashir.permission.denied` |
 | Unauthorized evidence invalidation | Block. | `NASHIR_PERMISSION_DENIED` | `nashir.permission.denied` |
 | Direct publishing attempt | Block as NO-GO. | `NASHIR_NOGO_BLOCKED` | `nashir.nogo.blocked` |
