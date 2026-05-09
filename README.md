@@ -2,7 +2,7 @@
 
 Marketing OS is a Phase 0/1 execution repository for a governed AI-assisted marketing operating system.
 
-This repository remains a contract-first implementation package. It contains a verified backend baseline through Sprint 4, a limited Patch 002 in-memory runtime baseline with strict SQL migration activation, DB-backed Slice 0 repository verification for Workspace/Membership/RBAC read paths, repository-only DB-backed Brand Slice 1 modules for BrandProfileRepository and BrandVoiceRuleRepository, and later documentation-only governance records for consolidated PRD intake, agent runtime portability, source-of-truth precedence, and progressive automation / governed agentic execution. HTTP/runtime product routes still default to the in-memory runtime. It is not approved for Pilot or Production.
+This repository remains a contract-first implementation package. It contains a verified backend baseline through Sprint 4, a limited Patch 002 in-memory runtime baseline with strict SQL migration activation, DB-backed Slice 0 repository verification for Workspace/Membership/RBAC read paths, repository-only DB-backed Brand Slice 1 modules for BrandProfileRepository and BrandVoiceRuleRepository, a gated Brand-only repository runtime mode with in-memory default preserved, verified config validation hardening, and later documentation-only governance records for consolidated PRD intake, agent runtime portability, source-of-truth precedence, progressive automation / governed agentic execution, DB-backed Slice 2 planning, and Nashir Core V1 planning/specification. HTTP/runtime product routes still default to the in-memory runtime unless explicitly configured under approved gates. It is not approved for Pilot or Production.
 
 ## Verified Status
 
@@ -34,10 +34,17 @@ Current repository status after consolidated PRD: Merged as governance/status re
 Agent runtime constraints and portability governance: Merged as documentation-only adapter/setup-data governance
 Progressive Automation and Governed Agentic Execution Strategy: Merged as documentation-only strategy in PR #79
 Source-of-Truth Precedence Decision Record: Added as documentation-only governance record in the current reconciliation PR
-Latest merged main commit: 9e81f12
+Brand Slice 1 Runtime Switch: GO / implemented as gated Brand-only repository mode with in-memory default preserved
+Brand Runtime Switch Post-Merge Verification: Documented
+Config validation hardening: GO / implemented and post-merge verified for invalid explicit BRAND_RUNTIME_MODE only
+DB-backed Slice 2 Candidate Planning: Merged as documentation only
+DB-backed Slice 2 Template Planning and mapping artifacts: Merged as documentation only
+Nashir Core V1 planning/specification records: Merged as documentation only
+Nashir minimal static UI surface: GO / standalone static read-only UI only / not routed or served by backend
+Latest merged main commit: bd001f5
 PR #24 / Patch 003 competitive feature contract reconciliation: Draft / NO-GO / not part of main
 Current HTTP/runtime product routes: In-memory unless explicitly switched by a future approved PR
-Brand runtime route switch: NO-GO
+Brand runtime route switch beyond gated Brand-only repository mode: NO-GO
 Public Brand get/update routes: NO-GO
 DB-backed full persistence: NO-GO
 Runtime agents: NO-GO
@@ -51,7 +58,7 @@ Pilot: NO-GO
 Production: NO-GO
 ```
 
-The latest merged main commit after PR #79 is `9e81f127b91c911373972efc4baf1960a344a617`.
+The latest merged main commit is `bd001f5dae3b6b530a1bada2b2648668d8480667`.
 
 ## Current Repository Structure
 
@@ -287,9 +294,11 @@ DB-backed Repository Slice 0 Implementation: Passed as Workspace/Membership/RBAC
 pg Adapter Implementation: Passed for Slice 0 only
 DB-backed Brand Slice 1 repository-only implementation: Passed and merged
 DB-backed Brand Slice 1 post-merge verification: Passed and merged
+Brand Slice 1 Runtime Switch: Passed as gated Brand-only repository mode with in-memory default preserved
+Config validation hardening: Passed and post-merge verified for invalid explicit BRAND_RUNTIME_MODE only
 Current HTTP/runtime product routes: In-memory
 DB-backed full persistence: NO-GO
-Brand runtime route switch: NO-GO
+Brand runtime route switch beyond gated Brand-only repository mode: NO-GO
 Public Brand get/update routes: NO-GO
 ```
 
@@ -335,9 +344,10 @@ The InPactAI fit-gap study and near-term candidates are documentation only. They
 
 ```text
 Documentation-only reconciliation: GO.
-Runtime changes: NO-GO.
+Runtime changes beyond verified config validation hardening and gated Brand-only repository mode: NO-GO.
 Brand Slice 1 repository-only implementation: GO / merged / verified.
-Brand runtime route switch: NO-GO until separately planned and approved.
+Brand Slice 1 Runtime Switch: GO / implemented as gated Brand-only repository mode with in-memory default preserved.
+Brand runtime route switch beyond gated Brand-only repository mode: NO-GO until separately planned and approved.
 Patch 002 DB persistence: NO-GO.
 Patch 003 / PR #24 competitive track: Draft / NO-GO / not part of main.
 DB-backed full persistence: NO-GO.
@@ -373,7 +383,7 @@ No Creator Marketplace implementation.
 No InPactAI implementation.
 No Patch 002 DB persistence.
 No Patch 003 activation or merge while PR #24 remains Draft / NO-GO.
-No Brand runtime route switch without separate review and approval.
+No Brand runtime route switch beyond gated Brand-only repository mode without separate review and approval.
 No public Brand get/update routes without separate contract approval.
 ```
 

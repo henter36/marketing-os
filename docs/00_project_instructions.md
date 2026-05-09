@@ -25,6 +25,10 @@ This project must follow the approved V1 scope.
 - Sprint execution: docs/11_sprint_plan.md
 - Tests: docs/12_qa_test_plan.md
 
+The numbered docs above remain navigation and governance sources. Where a numbered doc explicitly defers to a `docs/marketing_os_v5_6_5_phase_0_1_*` file, the deferred file is the executable contract source for that area. In particular, the Phase 0/1 ERD, SQL schema, OpenAPI contract, backlog, and QA contract files remain the executable sources for implementation details where referenced by their numbered wrappers.
+
+Agents must not treat a wrapper/index document as permission to invent implementation details. If a wrapper and its deferred contract source conflict, stop and report the conflict before planning or coding.
+
 ## Execution Policy
 
 Codex or any coding agent must not implement the full system at once.
