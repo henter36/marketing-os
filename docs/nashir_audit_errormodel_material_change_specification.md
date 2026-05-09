@@ -75,6 +75,7 @@ Common candidate payload fields:
 | `nashir.permission.denied` | Permission denial candidate. | Common fields plus `campaign_id` where applicable, `source_action`, `denial_category`, `reason`, `correlation_id`, `occurred_at`. |
 | `nashir.tenant.denied` | Tenant/workspace boundary denial candidate. | Common fields plus `entity_type`, `entity_id`, `source_action`, `denial_category`, `reason`, `correlation_id`, `occurred_at`; body `workspace_id` conflict must be captured only as untrusted input context. |
 | `nashir.nogo.blocked` | NO-GO attempt blocked candidate. | Common fields plus `campaign_id` where applicable, `source_action`, `no_go_category`, `reason`, `correlation_id`, `occurred_at`. |
+| `nashir.process.blocked` | In-scope workflow, prerequisite, or state-transition block candidate. | Common fields plus `campaign_id`, `brief_version_id` where applicable, `media_asset_version_id` where applicable, `previous_state`, `new_state`, `source_action`, `reason`, `correlation_id` where applicable, `occurred_at`, `notes`. |
 | `nashir.ai.advisory_output.generated` | Advisory AI output generated candidate. | Common fields plus `campaign_id`, `brief_version_id` where applicable, `content_hash` where applicable, `source_action`, `correlation_id`, `occurred_at`, `notes`; must not imply protected action execution. |
 | `nashir.idempotency.conflict` | Idempotency conflict candidate. | Common fields plus `source_action`, `correlation_id`, `idempotency_key` where applicable, `occurred_at`, `notes`. |
 
@@ -89,7 +90,7 @@ The following mapping is a planning candidate only. It does not implement ErrorM
 | Body `workspace_id` conflict | `TENANT_CONTEXT_MISMATCH` | 422 | Workspace context is invalid for this request. | Remove or correct untrusted body workspace data. | `nashir.tenant.denied` | NO |
 | Missing intake fields | `NASHIR_INTAKE_REQUIRED_FIELDS_MISSING` | 422 | Required intake information is missing. | Complete the required manual fields. | `nashir.readiness.recalculated` | NO |
 | Invalid destination | `NASHIR_INVALID_DESTINATION` | 422 | The landing destination cannot be used as entered. | Correct the destination. | `nashir.readiness.recalculated` | NO |
-| Missing rights confirmation | `NASHIR_RIGHTS_CONFIRMATION_REQUIRED` | 409 | Creative rights must be confirmed before proceeding. | Confirm rights or route for review. | `nashir.rights.confirmed` or `nashir.nogo.blocked` | NO |
+| Missing rights confirmation | `NASHIR_RIGHTS_CONFIRMATION_REQUIRED` | 409 | Creative rights must be confirmed before proceeding. | Confirm rights or route for review. | `nashir.process.blocked` | NO |
 | Approval blocked | `NASHIR_APPROVAL_BLOCKED` | 409 | This item cannot be approved in its current state. | Resolve blockers and resubmit for review. | `nashir.nogo.blocked` | NO |
 | Reapproval required | `NASHIR_REAPPROVAL_REQUIRED` | 409 | Material changes require reapproval. | Submit the changed version for review. | `nashir.approval.invalidated_by_material_change` | NO |
 | Evidence missing | `NASHIR_EVIDENCE_REQUIRED` | 422 | Publishing evidence is missing. | Submit user-provided evidence. | `nashir.manual_publish.evidence.submitted` | NO |
@@ -101,7 +102,7 @@ The following mapping is a planning candidate only. It does not implement ErrorM
 | Readiness-as-approval attempt | `NASHIR_READINESS_IS_NOT_APPROVAL` | 409 | Readiness does not approve content. | Request explicit human approval. | `nashir.nogo.blocked` | NO |
 | Evidence-as-authorization attempt | `NASHIR_EVIDENCE_IS_NOT_AUTHORIZATION` | 409 | Evidence does not authorize publishing. | Use the approved manual process. | `nashir.nogo.blocked` | NO |
 | NO-GO attempt | `NASHIR_NOGO_BLOCKED` | 403 | This capability is outside approved Nashir Core V1 scope. | Stop and request a separate approved gate. | `nashir.nogo.blocked` | NO |
-| Invalid state transition | `NASHIR_INVALID_STATE_TRANSITION` | 409 | This state change is not allowed. | Follow the approved review/evidence flow. | `nashir.permission.denied` or `nashir.nogo.blocked` | NO |
+| Invalid state transition | `NASHIR_INVALID_STATE_TRANSITION` | 409 | This state change is not allowed. | Follow the approved review/evidence flow. | `nashir.process.blocked` | NO |
 | Idempotency conflict | `NASHIR_IDEMPOTENCY_CONFLICT` | 409 | This request conflicts with an earlier request key. | Use a new key or reconcile the prior request. | `nashir.idempotency.conflict` | NO |
 
 ## 5. Invalid Transition Mapping
@@ -110,14 +111,14 @@ These are planning-only invalid transition candidates. They do not create state 
 
 | Invalid transition or attempt | Expected planning outcome | ErrorModel candidate | Audit event candidate |
 |---|---|---|---|
-| Draft to approved | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.permission.denied` |
-| Generated to approved without review | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.permission.denied` |
-| Blocked_until_review to approved | Block until human review clears blocker. | `NASHIR_APPROVAL_BLOCKED` | `nashir.permission.denied` |
-| Rejected to approved | Block; revised content must return through generated and in_review. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.permission.denied` |
-| Requires_reapproval bypass | Block; submit changed version for review. | `NASHIR_REAPPROVAL_REQUIRED` | `nashir.permission.denied` |
-| Invalid evidence state transition | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.permission.denied` |
-| Unauthorized evidence acceptance | Block. | `NASHIR_PERMISSION_DENIED` | `nashir.permission.denied` |
-| Unauthorized evidence invalidation | Block. | `NASHIR_PERMISSION_DENIED` | `nashir.permission.denied` |
+| Draft to approved | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.process.blocked` |
+| Generated to approved without review | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.process.blocked` |
+| Blocked_until_review to approved | Block until human review clears blocker. | `NASHIR_APPROVAL_BLOCKED` | `nashir.process.blocked` |
+| Rejected to approved | Block; revised content must return through generated and in_review. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.process.blocked` |
+| Requires_reapproval bypass | Block; submit changed version for review. | `NASHIR_REAPPROVAL_REQUIRED` | `nashir.process.blocked` |
+| Invalid evidence state transition | Block. | `NASHIR_INVALID_STATE_TRANSITION` | `nashir.process.blocked` |
+| Unauthorized evidence acceptance | Block. | `PERMISSION_DENIED` | `nashir.permission.denied` |
+| Unauthorized evidence invalidation | Block. | `PERMISSION_DENIED` | `nashir.permission.denied` |
 | Direct publishing attempt | Block as NO-GO. | `NASHIR_NOGO_BLOCKED` | `nashir.nogo.blocked` |
 | Social OAuth attempt | Block as NO-GO. | `NASHIR_NOGO_BLOCKED` | `nashir.nogo.blocked` |
 | Scheduling attempt | Block as NO-GO. | `NASHIR_NOGO_BLOCKED` | `nashir.nogo.blocked` |
