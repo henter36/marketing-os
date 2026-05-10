@@ -71,15 +71,20 @@ const NASHIR_SLICE0_READINESS_BOUNDARIES = Object.freeze({
   productionApproved: false
 });
 
+const NASHIR_SLICE0_PLANNING_CONTRACT = Object.freeze({
+  scope: NASHIR_SLICE0_SCOPE,
+  allowedCapabilities: NASHIR_SLICE0_ALLOWED_CAPABILITIES,
+  forbiddenCapabilities: NASHIR_SLICE0_FORBIDDEN_CAPABILITIES,
+  auditEvents: NASHIR_SLICE0_AUDIT_EVENTS,
+  errorCodes: NASHIR_SLICE0_ERROR_CODES,
+  readinessBoundaries: NASHIR_SLICE0_READINESS_BOUNDARIES
+});
+
+/**
+ * Return the inert Nashir Slice 0 planning contract.
+ */
 function getNashirSlice0PlanningContract() {
-  return Object.freeze({
-    scope: NASHIR_SLICE0_SCOPE,
-    allowedCapabilities: NASHIR_SLICE0_ALLOWED_CAPABILITIES,
-    forbiddenCapabilities: NASHIR_SLICE0_FORBIDDEN_CAPABILITIES,
-    auditEvents: NASHIR_SLICE0_AUDIT_EVENTS,
-    errorCodes: NASHIR_SLICE0_ERROR_CODES,
-    readinessBoundaries: NASHIR_SLICE0_READINESS_BOUNDARIES
-  });
+  return NASHIR_SLICE0_PLANNING_CONTRACT;
 }
 
 module.exports = {
@@ -87,6 +92,7 @@ module.exports = {
   NASHIR_SLICE0_AUDIT_EVENTS,
   NASHIR_SLICE0_ERROR_CODES,
   NASHIR_SLICE0_FORBIDDEN_CAPABILITIES,
+  NASHIR_SLICE0_PLANNING_CONTRACT,
   NASHIR_SLICE0_READINESS_BOUNDARIES,
   NASHIR_SLICE0_SCOPE,
   getNashirSlice0PlanningContract
