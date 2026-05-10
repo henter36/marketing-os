@@ -2,19 +2,19 @@
 
 const NASHIR_SLICE0_SCOPE = Object.freeze({
   name: "Nashir Backend Slice 0 planning contract skeleton",
-  status: "inert_planning_contract",
-  implementationReadiness: false,
+  status: "inert_planning_contract"
+});
+
+const NASHIR_SLICE0_BOUNDARIES = Object.freeze({
   routeExposure: false,
   sqlRequired: false,
   openApiRequired: false,
   testsApproved: false,
-  productionReadiness: false,
   pilotReadiness: false,
-  importedByRuntime: false,
+  productionReadiness: false,
+  runtimeWiring: false,
   mutatesGlobalState: false,
   performsIo: false,
-  usesDatabase: false,
-  definesRoutes: false,
   usesExternalPackages: false
 });
 
@@ -49,35 +49,29 @@ const NASHIR_SLICE0_AUDIT_EVENTS = Object.freeze([
   "nashir.process.blocked"
 ]);
 
-const NASHIR_SLICE0_ERROR_CODES = Object.freeze([
-  "PERMISSION_DENIED",
-  "WORKSPACE_ACCESS_DENIED",
-  "TENANT_CONTEXT_MISMATCH",
-  "NASHIR_IDEMPOTENCY_CONFLICT",
-  "NASHIR_INVALID_STATE_TRANSITION"
-]);
+const NASHIR_SLICE0_ERROR_CODES = Object.freeze({
+  PERMISSION_DENIED: "PERMISSION_DENIED",
+  WORKSPACE_ACCESS_DENIED: "WORKSPACE_ACCESS_DENIED",
+  TENANT_CONTEXT_MISMATCH: "TENANT_CONTEXT_MISMATCH",
+  NASHIR_IDEMPOTENCY_CONFLICT: "NASHIR_IDEMPOTENCY_CONFLICT",
+  NASHIR_INVALID_STATE_TRANSITION: "NASHIR_INVALID_STATE_TRANSITION"
+});
 
-const NASHIR_SLICE0_READINESS_BOUNDARIES = Object.freeze({
+const NASHIR_SLICE0_READINESS_RULES = Object.freeze({
   readinessIsApproval: false,
   evidenceIsPublishingAuthorization: false,
   utmLiteIsAnalyticsAttribution: false,
-  aiMayPerformProtectedActions: false,
-  publishingApproved: false,
-  analyticsApproved: false,
-  attributionApproved: false,
-  paymentApproved: false,
-  autonomousAiApproved: false,
-  pilotApproved: false,
-  productionApproved: false
+  aiMayPerformProtectedActions: false
 });
 
 const NASHIR_SLICE0_PLANNING_CONTRACT = Object.freeze({
   scope: NASHIR_SLICE0_SCOPE,
+  boundaries: NASHIR_SLICE0_BOUNDARIES,
   allowedCapabilities: NASHIR_SLICE0_ALLOWED_CAPABILITIES,
   forbiddenCapabilities: NASHIR_SLICE0_FORBIDDEN_CAPABILITIES,
   auditEvents: NASHIR_SLICE0_AUDIT_EVENTS,
   errorCodes: NASHIR_SLICE0_ERROR_CODES,
-  readinessBoundaries: NASHIR_SLICE0_READINESS_BOUNDARIES
+  readinessRules: NASHIR_SLICE0_READINESS_RULES
 });
 
 /**
@@ -88,12 +82,6 @@ function getNashirSlice0PlanningContract() {
 }
 
 module.exports = {
-  NASHIR_SLICE0_ALLOWED_CAPABILITIES,
-  NASHIR_SLICE0_AUDIT_EVENTS,
-  NASHIR_SLICE0_ERROR_CODES,
-  NASHIR_SLICE0_FORBIDDEN_CAPABILITIES,
   NASHIR_SLICE0_PLANNING_CONTRACT,
-  NASHIR_SLICE0_READINESS_BOUNDARIES,
-  NASHIR_SLICE0_SCOPE,
   getNashirSlice0PlanningContract
 };
