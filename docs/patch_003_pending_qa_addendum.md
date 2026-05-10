@@ -10,7 +10,7 @@ This addendum records future QA coverage requirements only. It is not passing ev
 
 | Test ID | Pending QA case | Status |
 |---|---|---|
-| QA-PATCH003-TENANT-001 | Workspace A cannot access Patch 003 creators, tracking links, suggestions, publish intents, or video-planning artifacts from Workspace B. | Pending / not-yet-implemented |
+| QA-PATCH003-TENANT-001 | Workspace A cannot access Patch 003 creators, tracked links, suggestions, publish intents, or video-planning artifacts from Workspace B. | Pending / not-yet-implemented |
 | QA-PATCH003-RBAC-001 | Users without Patch 003 permissions cannot access or mutate Patch 003 resources. | Pending / not-yet-implemented |
 | QA-PATCH003-AI-001 | AI-generated brief suggestions must store model name, model version, prompt version, confidence metadata, and review status. | Pending / not-yet-implemented |
 | QA-PATCH003-AI-002 | AI suggestions and outreach drafts must not overwrite or send anything automatically. | Pending / not-yet-implemented |

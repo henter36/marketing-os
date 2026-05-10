@@ -40,7 +40,7 @@ The following are candidate families only and must not be treated as activated s
 
 - `tracking_domains`
 - `campaign_utm_templates`
-- `tracking_links`
+- `tracked_links`
 - `click_events`
 - `conversion_events`
 - `attribution_snapshots`
@@ -92,11 +92,11 @@ Candidate permission codes must be reconciled before implementation:
 brief.ai_suggest
 brief.suggestion.accept
 brief.suggestion.reject
-tracking_link.create
-tracking_link.view
+tracked_link.create
+tracked_link.read
 tracking_event.ingest
-tracking_event.view
-creator.view
+tracking_event.read
+creator.read
 creator.create
 creator.edit
 creator.match
@@ -104,13 +104,13 @@ creator.outreach.generate
 creator.collaboration.create
 creator.collaboration.update_status
 content.variant.create
-content.variant.view
+content.variant.read
 publish.intent.create
 publish.intent.approve
 publish.attempt.create
-publish.status.view
+publish.status.read
 video_planning.generate
-video_planning.view
+video_planning.read
 ```
 
 ## 6. Required Audit Planning
@@ -126,7 +126,7 @@ audience_insight_snapshot.created
 brand_fit_signal.created
 tracking_domain.created
 campaign_utm_template.created
-tracking_link.created
+tracked_link.created
 click_event.ingested
 conversion_event.ingested
 attribution_snapshot.created

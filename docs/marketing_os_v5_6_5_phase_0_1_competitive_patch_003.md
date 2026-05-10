@@ -34,7 +34,7 @@ The following groups are candidates for future reconciliation only.
 
 | Capability group | Candidate status | Notes |
 |---|---|---|
-| Attribution Backbone Expansion | Draft candidate | Tracking links, UTM governance, click/conversion capture, attribution snapshots. |
+| Attribution Backbone Expansion | Draft candidate | Tracked links, UTM governance, click/conversion capture, attribution snapshots. |
 | Brief Intelligence | Draft candidate | Keyword suggestions, brief refinement, audience/account insight snapshots, messaging angles. |
 | Creator Marketplace Lite | Draft candidate | Creator directory, profiles, matching, outreach drafts, collaboration status. No payments/contracts. |
 | Governed Publishing Expansion | Draft candidate | Channel variants, publish intents, manual approval, evidence linkage. No autonomous posting. |
