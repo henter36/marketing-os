@@ -91,7 +91,7 @@ function assertFileIsInert(relPath, label) {
   assert.ok(!/\bdb\b/.test(src),            label + " must not reference db");
   assert.ok(!/\brbac\b/.test(src),          label + " must not reference rbac");
   assert.ok(!/\bguards\b/.test(src),        label + " must not reference guards");
-  assert.ok(!/error-model/.test(src),       label + " must not reference error-model");
+  assert.ok(!/\berror-model\b/.test(src),    label + " must not reference error-model");
   assert.ok(!/\bconfig\b/.test(src),        label + " must not reference config");
   assert.ok(!/\bintegrity\b/.test(src),     label + " must not reference integrity");
   assert.ok(!/\bprototype\b/.test(src),     label + " must not reference prototype");
