@@ -14,12 +14,25 @@ test("getNashirSlice0PlanningContract returns the exact NASHIR_SLICE0_PLANNING_C
 
 test("boundaries are all false", () => {
   const { boundaries } = NASHIR_SLICE0_PLANNING_CONTRACT;
-  assert.strictEqual(boundaries.routeExposure, false);
-  assert.strictEqual(boundaries.sqlRequired, false);
-  assert.strictEqual(boundaries.openApiRequired, false);
-  assert.strictEqual(boundaries.testsApproved, false);
-  assert.strictEqual(boundaries.pilotReadiness, false);
-  assert.strictEqual(boundaries.productionReadiness, false);
+
+  const expectedBoundaryKeys = [
+    "routeExposure",
+    "sqlRequired",
+    "openApiRequired",
+    "testsApproved",
+    "pilotReadiness",
+    "productionReadiness",
+    "runtimeWiring",
+    "mutatesGlobalState",
+    "performsIo",
+    "usesExternalPackages"
+  ].sort();
+
+  assert.deepStrictEqual(Object.keys(boundaries).sort(), expectedBoundaryKeys);
+
+  for (const [key, value] of Object.entries(boundaries)) {
+    assert.strictEqual(value, false, "Boundary " + key + " should be false");
+  }
 });
 
 test("audit events match planned string identifiers", () => {
@@ -39,6 +52,12 @@ test("error codes match planned string values", () => {
 
 test("error HTTP status map covers all error codes with intended status codes", () => {
   const { errorCodes, errorHttpStatus } = NASHIR_SLICE0_PLANNING_CONTRACT;
+
+  assert.deepStrictEqual(
+    Object.keys(errorHttpStatus).sort(),
+    Object.values(errorCodes).sort()
+  );
+
   assert.strictEqual(errorHttpStatus[errorCodes.PERMISSION_DENIED], 403);
   assert.strictEqual(errorHttpStatus[errorCodes.WORKSPACE_ACCESS_DENIED], 403);
   assert.strictEqual(errorHttpStatus[errorCodes.TENANT_CONTEXT_MISMATCH], 422);
