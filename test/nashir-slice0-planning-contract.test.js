@@ -15,6 +15,21 @@ test("getNashirSlice0PlanningContract returns the exact NASHIR_SLICE0_PLANNING_C
 test("boundaries are all false", () => {
   const { boundaries } = NASHIR_SLICE0_PLANNING_CONTRACT;
 
+  const expectedBoundaryKeys = [
+    "routeExposure",
+    "sqlRequired",
+    "openApiRequired",
+    "testsApproved",
+    "pilotReadiness",
+    "productionReadiness",
+    "runtimeWiring",
+    "mutatesGlobalState",
+    "performsIo",
+    "usesExternalPackages"
+  ].sort();
+
+  assert.deepStrictEqual(Object.keys(boundaries).sort(), expectedBoundaryKeys);
+
   for (const [key, value] of Object.entries(boundaries)) {
     assert.strictEqual(value, false, "Boundary " + key + " should be false");
   }
