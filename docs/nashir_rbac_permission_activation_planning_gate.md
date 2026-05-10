@@ -106,6 +106,7 @@ Additional candidate codes that may be needed depending on final Nashir Core V1 
 |---|---|---|
 | `nashir.evidence.read` | Read submitted evidence records | Separate read gate if evidence is access-controlled beyond campaign read |
 | `nashir.approval.read` | Read approval state and history | Separate read gate if approval state is access-controlled beyond campaign read |
+| `nashir.intake.create` | Create a new Nashir campaign intake record | Candidate if intake creation is scoped separately from campaign write (see Q4 in 7.2) |
 
 These additional codes are lower-priority candidates. They should be resolved alongside the primary four in the same implementation gate.
 
