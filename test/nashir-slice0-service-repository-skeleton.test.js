@@ -83,7 +83,9 @@ test("NashirSlice0Repository methods reject with not-implemented — no live beh
 });
 
 function assertFileIsInert(relPath, label) {
-  const src = fs.readFileSync(path.join(__dirname, relPath), "utf8");
+  const src = fs.readFileSync(path.join(__dirname, relPath), "utf8")
+    .replace(/\/\/.*/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "");
   assert.ok(!/\b(require|import)\b/.test(src), label + " must have no require() or import statements");
   assert.ok(!/\brouter\b/.test(src),        label + " must not reference router");
   assert.ok(!/\bserver\b/.test(src),        label + " must not reference server");

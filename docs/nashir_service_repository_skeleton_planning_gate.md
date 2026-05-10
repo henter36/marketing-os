@@ -3,7 +3,7 @@
 ## 1. Executive Status
 
 ```text
-This PR (PR #158):     GO — documentation-only planning gate inspection.
+Planning Gate (PR #158): GO — documentation-only planning gate inspection.
 Implementation:        GO — separately approved inert skeleton implementation PR (D-073).
 Service skeleton:      GO — src/nashir/backend-slice0-service.js created as inert skeleton (D-073).
 Repository skeleton:   GO — src/nashir/backend-slice0-repository.js created as inert skeleton (D-073).
