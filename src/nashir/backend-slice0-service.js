@@ -1,23 +1,23 @@
 "use strict";
 
 class NashirSlice0Service {
-  createCampaign() {
+  createCampaign(campaignData) {
     throw new Error("not implemented");
   }
 
-  getCampaignById() {
+  getCampaignById(id) {
     throw new Error("not implemented");
   }
 
-  scoreReadiness() {
+  scoreReadiness(id) {
     throw new Error("not implemented");
   }
 
-  submitForApproval() {
+  submitForApproval(id) {
     throw new Error("not implemented");
   }
 
-  recordManualEvidence() {
+  recordManualEvidence(id, evidenceData) {
     throw new Error("not implemented");
   }
 }

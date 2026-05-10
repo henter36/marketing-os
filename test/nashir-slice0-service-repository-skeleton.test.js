@@ -88,7 +88,7 @@ test("backend-slice0-service.js has no require() calls", () => {
     "utf8"
   );
   assert.ok(
-    !src.includes("require("),
+    !/\brequire\s*\(/.test(src),
     "Service file must have no require() calls"
   );
 });
@@ -99,7 +99,7 @@ test("backend-slice0-repository.js has no require() calls", () => {
     "utf8"
   );
   assert.ok(
-    !src.includes("require("),
+    !/\brequire\s*\(/.test(src),
     "Repository file must have no require() calls"
   );
 });
@@ -109,13 +109,13 @@ test("backend-slice0-service.js does not reference router/server/store/db/rbac/g
     path.join(__dirname, "../src/nashir/backend-slice0-service.js"),
     "utf8"
   );
-  const forbidden = ["router", "server", "store", "/db", "rbac", "guards", "error-model"];
-  for (const token of forbidden) {
-    assert.ok(
-      !src.includes(token),
-      "Service file must not reference " + token
-    );
-  }
+  assert.ok(!/\brouter\b/.test(src), "Service file must not reference router");
+  assert.ok(!/\bserver\b/.test(src), "Service file must not reference server");
+  assert.ok(!/\bstore\b/.test(src), "Service file must not reference store");
+  assert.ok(!/\bdb\b/.test(src), "Service file must not reference db");
+  assert.ok(!/\brbac\b/.test(src), "Service file must not reference rbac");
+  assert.ok(!/\bguards\b/.test(src), "Service file must not reference guards");
+  assert.ok(!/error-model/.test(src), "Service file must not reference error-model");
 });
 
 test("backend-slice0-repository.js does not reference router/server/store/db/rbac/guards/error-model — inertness assertion", () => {
@@ -123,11 +123,11 @@ test("backend-slice0-repository.js does not reference router/server/store/db/rba
     path.join(__dirname, "../src/nashir/backend-slice0-repository.js"),
     "utf8"
   );
-  const forbidden = ["router", "server", "store", "/db", "rbac", "guards", "error-model"];
-  for (const token of forbidden) {
-    assert.ok(
-      !src.includes(token),
-      "Repository file must not reference " + token
-    );
-  }
+  assert.ok(!/\brouter\b/.test(src), "Repository file must not reference router");
+  assert.ok(!/\bserver\b/.test(src), "Repository file must not reference server");
+  assert.ok(!/\bstore\b/.test(src), "Repository file must not reference store");
+  assert.ok(!/\bdb\b/.test(src), "Repository file must not reference db");
+  assert.ok(!/\brbac\b/.test(src), "Repository file must not reference rbac");
+  assert.ok(!/\bguards\b/.test(src), "Repository file must not reference guards");
+  assert.ok(!/error-model/.test(src), "Repository file must not reference error-model");
 });
