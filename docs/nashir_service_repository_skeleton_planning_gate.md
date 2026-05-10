@@ -50,7 +50,7 @@ This document is a documentation-only planning gate. It inspects the current Nas
 
 The only files under `src/nashir/` are:
 
-```
+```text
 src/nashir/backend-slice0-planning.js
 ```
 
