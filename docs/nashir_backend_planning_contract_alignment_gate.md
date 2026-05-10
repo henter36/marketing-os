@@ -40,9 +40,6 @@ Before implementation can be considered, the following must be aligned:
 - Evidence handling.
 - UTM Lite boundaries.
 - Readiness behavior and gate-state semantics.
-- No route exposure.
-- No persistence/schema approval.
-- No OpenAPI approval.
 
 Alignment must preserve route-derived workspace context and must not trust `workspace_id` from request bodies. It must also preserve AuthGuard, WorkspaceContextGuard, MembershipCheck, PermissionGuard, and ErrorModel behavior unless a later approved contract explicitly changes them.
 
@@ -58,7 +55,7 @@ A future implementation PR must include:
 - ErrorModel impact declaration.
 - Test strategy.
 - Rollback criteria.
-- Sprint 0 Strict Verification expectations.
+- Strict Verification expectations.
 
 Any future implementation PR must also name expected CI gates, reviewer acceptance criteria, and explicit NO-GO conditions before work begins.
 
