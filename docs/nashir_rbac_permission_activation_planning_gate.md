@@ -55,7 +55,7 @@ This section records observations from reading `src/rbac.js`. No modification is
 
 All existing permission codes follow the pattern `<domain>.<action>`:
 
-```
+```text
 campaign.read           campaign.write
 brand.read              brand.write
 manual_evidence.read    manual_evidence.submit    manual_evidence.invalidate
@@ -69,7 +69,7 @@ notification_rule.read  notification_rule.write
 notification_delivery.read
 ```
 
-The domain prefix is always the resource name (singular or underscore-separated). The action suffix uses verbs: `read`, `write`, `create`, `update`, `submit`, `invalidate`, `decide`, `generate`, `assign`, `record`, `rotate_secret`, `event_create`, `snapshot_create`, `consent_update`.
+The domain prefix is always the resource name (singular or underscore-separated). The action suffix uses verbs: `read`, `write`, `create`, `update`, `submit`, `invalidate`, `decide`, `generate`, `assign`, `record`, `rotate_secret`, `manage`, `manage_members`, `update_status`, `version_create`, `safe_mode`, `receive`, `event_create`, `snapshot_create`, `consent_update`.
 
 ### 5.2 Role Names
 
