@@ -114,6 +114,8 @@ These additional codes are lower-priority candidates. They should be resolved al
 
 The following table proposes how candidate codes might map to existing roles. This is planning-level only. No mapping is approved. The final mapping must be reviewed against the approved Nashir Role & Permission Matrix (`docs/nashir_role_permission_matrix.md`) before any implementation PR opens.
 
+Primary candidates (NOT APPROVED):
+
 | Role | `nashir.campaign.read` | `nashir.campaign.write` | `nashir.evidence.submit` | `nashir.approval.decide` |
 |---|---|---|---|---|
 | `owner` | YES | YES | YES | YES |
@@ -123,6 +125,18 @@ The following table proposes how candidate codes might map to existing roles. Th
 | `publisher` | YES | NO | YES | NO |
 | `billing_admin` | NO | NO | NO | NO |
 | `viewer` | YES | NO | NO | NO |
+
+Secondary candidates (NOT APPROVED):
+
+| Role | `nashir.evidence.read` | `nashir.approval.read` | `nashir.intake.create` |
+|---|---|---|---|
+| `owner` | YES | YES | YES |
+| `admin` | YES | YES | YES |
+| `creator` | YES | YES | YES |
+| `reviewer` | YES | YES | NO |
+| `publisher` | YES | YES | NO |
+| `billing_admin` | NO | NO | NO |
+| `viewer` | YES | YES | NO |
 
 ### 7.1 Rationale
 
