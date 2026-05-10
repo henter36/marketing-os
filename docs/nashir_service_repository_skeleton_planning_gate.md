@@ -3,10 +3,10 @@
 ## 1. Executive Status
 
 ```text
-This PR:               GO — documentation-only planning gate inspection.
-Implementation:        NO-GO — not approved by this PR.
-Service skeleton:      NO-GO — not approved by this PR.
-Repository skeleton:   NO-GO — not approved by this PR.
+Planning Gate (PR #158): GO — documentation-only planning gate inspection.
+Implementation:        GO — separately approved inert skeleton implementation PR (D-073).
+Service skeleton:      GO — src/nashir/backend-slice0-service.js created as inert skeleton (D-073).
+Repository skeleton:   GO — src/nashir/backend-slice0-repository.js created as inert skeleton (D-073).
 Runtime wiring:        NO-GO.
 Route exposure:        NO-GO.
 SQL activation:        NO-GO.
@@ -19,7 +19,17 @@ Pilot:                 NO-GO.
 Production:            NO-GO.
 ```
 
-This document is a documentation-only planning gate. It inspects the current Nashir backend state and defines the future gate question and prerequisites for a possible next implementation step. It does not authorize any implementation.
+This document is a documentation-only planning gate. It inspects the current Nashir backend state and defines the future gate question and prerequisites for a possible next implementation step. It does not authorize any implementation beyond the separately approved inert skeleton (D-073).
+
+## 1a. Separately Approved Implementation Record
+
+Decision D-073 (2026-05-10) records that the inert service/repository skeleton was separately approved and implemented:
+
+- `src/nashir/backend-slice0-service.js` — inert `NashirSlice0Service` class and `createNashirSlice0Service` factory; no `require()` calls, no IO, no forbidden references.
+- `src/nashir/backend-slice0-repository.js` — inert `NashirSlice0Repository` class and `createNashirSlice0Repository` factory; no `require()` calls, no IO, no forbidden references.
+- `test/nashir-slice0-service-repository-skeleton.test.js` — focused tests verifying module load, export surface, not-implemented behavior, and absence of forbidden references.
+
+All NO-GO boundaries from §8 remain in force. This record does not broaden scope beyond the inert skeleton.
 
 ## 2. Governance References
 
