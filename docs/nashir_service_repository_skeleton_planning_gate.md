@@ -81,8 +81,8 @@ The following represents the candidate scope for a possible future implementatio
 ### 6.1 Candidate Allowed Files
 
 ```text
-src/nashir/nashir-slice0-service.js      — inert service skeleton candidate
-src/nashir/nashir-slice0-repository.js   — inert repository skeleton candidate
+src/nashir/backend-slice0-service.js      — inert service skeleton candidate
+src/nashir/backend-slice0-repository.js   — inert repository skeleton candidate
 ```
 
 Both candidates must remain inert if implemented:
@@ -142,7 +142,7 @@ Before any future implementation PR may add a service/repository skeleton, all o
 | PR #155 Nashir active roadmap guard conditions satisfied | Yes |
 | PR #156 repository-level guard conditions satisfied | Yes |
 | All PR #157 status record NO-GO boundaries remain unviolated | Yes |
-| Exact allowed files identified and approved (not just candidated) | Yes |
+| Exact allowed files identified and approved (not just listed as candidates) | Yes |
 | Exact forbidden files confirmed | Yes |
 | Inertness verified: no route exposure | Yes |
 | Inertness verified: no SQL or OpenAPI | Yes |
