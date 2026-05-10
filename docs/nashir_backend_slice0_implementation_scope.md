@@ -110,4 +110,4 @@ NO-GO if:
 
 The next PR after this one may be the first actual implementation PR only if reviewers approve this Slice 0 scope.
 
-That future PR must remain backend-only, exact-file scoped, and explicitly bounded by the approved verification commands and rollback/no-go criteria.
+That future PR must remain backend-only, exact-file scoped, and explicitly bounded by the approved verification expectations and rollback/no-go criteria.
