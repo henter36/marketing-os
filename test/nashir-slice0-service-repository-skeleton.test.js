@@ -52,7 +52,7 @@ test("createNashirSlice0Repository factory returns a NashirSlice0Repository inst
   assert.ok(repo instanceof NashirSlice0Repository);
 });
 
-test("NashirSlice0Service methods throw not-implemented — no live behavior", () => {
+test("NashirSlice0Service methods reject with not-implemented — no live behavior", async () => {
   const svc = new NashirSlice0Service();
   const methods = [
     "createCampaign",
@@ -62,29 +62,29 @@ test("NashirSlice0Service methods throw not-implemented — no live behavior", (
     "recordManualEvidence"
   ];
   for (const method of methods) {
-    assert.throws(
+    await assert.rejects(
       () => svc[method](),
       /not implemented/,
-      method + " must throw not implemented"
+      method + " must reject with not implemented"
     );
   }
 });
 
-test("NashirSlice0Repository methods throw not-implemented — no live behavior", () => {
+test("NashirSlice0Repository methods reject with not-implemented — no live behavior", async () => {
   const repo = new NashirSlice0Repository();
   const methods = ["findCampaignById", "saveCampaign", "findEvidenceById", "saveEvidence"];
   for (const method of methods) {
-    assert.throws(
+    await assert.rejects(
       () => repo[method](),
       /not implemented/,
-      method + " must throw not implemented"
+      method + " must reject with not implemented"
     );
   }
 });
 
 function assertFileIsInert(relPath, label) {
   const src = fs.readFileSync(path.join(__dirname, relPath), "utf8");
-  assert.ok(!/\brequire\s*\(/.test(src),   label + " must have no require() calls");
+  assert.ok(!/\b(require|import)\b/.test(src), label + " must have no require() or import statements");
   assert.ok(!/\brouter\b/.test(src),        label + " must not reference router");
   assert.ok(!/\bserver\b/.test(src),        label + " must not reference server");
   assert.ok(!/\bstore\b/.test(src),         label + " must not reference store");

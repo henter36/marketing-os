@@ -1,19 +1,19 @@
 "use strict";
 
 class NashirSlice0Repository {
-  findCampaignById(id) {
+  async findCampaignById(id) {
     throw new Error("not implemented");
   }
 
-  saveCampaign(campaign) {
+  async saveCampaign(campaign) {
     throw new Error("not implemented");
   }
 
-  findEvidenceById(id) {
+  async findEvidenceById(id) {
     throw new Error("not implemented");
   }
 
-  saveEvidence(evidence) {
+  async saveEvidence(evidence) {
     throw new Error("not implemented");
   }
 }

@@ -1,23 +1,23 @@
 "use strict";
 
 class NashirSlice0Service {
-  createCampaign(campaignData) {
+  async createCampaign(campaignData) {
     throw new Error("not implemented");
   }
 
-  getCampaignById(id) {
+  async getCampaignById(id) {
     throw new Error("not implemented");
   }
 
-  scoreReadiness(id) {
+  async scoreReadiness(id) {
     throw new Error("not implemented");
   }
 
-  submitForApproval(id) {
+  async submitForApproval(id) {
     throw new Error("not implemented");
   }
 
-  recordManualEvidence(id, evidenceData) {
+  async recordManualEvidence(id, evidenceData) {
     throw new Error("not implemented");
   }
 }
