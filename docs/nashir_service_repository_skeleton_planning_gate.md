@@ -111,7 +111,7 @@ src/integrity.js
 src/config.js
 src/db.js
 test/
-docs/
+docs/ (except for 03_decision_log.md and 17_change_log.md)
 prototype/
 scripts/
 SQL files
@@ -155,7 +155,7 @@ Before any future implementation PR may add a service/repository skeleton, all o
 | Inertness verified: no prototype usage | Yes |
 | Focused tests approved separately (if added) | Yes |
 | All open review threads on this gate document resolved | Yes |
-| Sprint 0 Strict Verification passes after candidate implementation | Yes |
+| Latest Strict Verification passes after candidate implementation | Yes |
 
 ## 8. Explicit NO-GO List
 
@@ -197,7 +197,7 @@ Before a future implementation PR can open, a reviewer must confirm:
 - [ ] The forbidden file list in §6.2 is accepted.
 - [ ] Inertness rules in §7 are accepted.
 - [ ] No open review threads remain on this gate document.
-- [ ] Sprint 0 Strict Verification is confirmed to pass.
+- [ ] Latest Strict Verification is confirmed to pass.
 
 ## 11. Patch 003 Separation
 
