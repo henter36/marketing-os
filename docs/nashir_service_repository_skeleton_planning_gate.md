@@ -110,8 +110,8 @@ src/rbac.js
 src/integrity.js
 src/config.js
 src/db.js
-test/
-docs/ (except for 03_decision_log.md and 17_change_log.md)
+test/ (except for separately approved focused inert-skeleton tests)
+docs/ (except for 03_decision_log.md, 17_change_log.md, nashir_service_repository_skeleton_planning_gate.md, and a separately approved Nashir implementation report)
 prototype/
 scripts/
 SQL files
