@@ -132,8 +132,8 @@ Secondary candidates (NOT APPROVED):
 |---|---|---|---|
 | `owner` | YES | YES | YES |
 | `admin` | YES | YES | YES |
-| `creator` | YES | YES | YES |
-| `reviewer` | YES | YES | NO |
+| `creator` | NO | YES | YES |
+| `reviewer` | NO | YES | NO |
 | `publisher` | YES | YES | NO |
 | `billing_admin` | NO | NO | NO |
 | `viewer` | YES | YES | NO |
