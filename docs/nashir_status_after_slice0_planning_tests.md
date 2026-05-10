@@ -11,6 +11,8 @@ OpenAPI activation:   NO-GO.
 Route exposure:       NO-GO.
 Package / workflow:   NO-GO.
 Migration:            NO-GO.
+Generated clients:    NO-GO.
+Prototype usage:      NO-GO.
 Pilot:                NO-GO.
 Production:           NO-GO.
 ```
@@ -65,6 +67,8 @@ Internal constants (not exported):
 | Package script changes | None |
 | Workflow changes | None |
 | Migration runner changes | None |
+| Generated clients | None |
+| Prototype usage | None |
 | Pilot readiness | None |
 | Production readiness | None |
 
@@ -99,6 +103,8 @@ NO-GO:  SQL activation.
 NO-GO:  OpenAPI activation.
 NO-GO:  Package or workflow changes.
 NO-GO:  Migration activation.
+NO-GO:  Generated clients.
+NO-GO:  Prototype usage.
 NO-GO:  Pilot readiness.
 NO-GO:  Production readiness.
 NO-GO:  Any next Nashir PR without satisfying PR #155 and PR #156 guard conditions.
