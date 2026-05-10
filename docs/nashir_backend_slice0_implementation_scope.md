@@ -99,10 +99,11 @@ GO for a future implementation PR only if:
 
 NO-GO if:
 
-- Route/serve/link readiness appears.
-- SQL/OpenAPI/tests/package/workflow/migration changes appear without explicit approval.
-- `prototype/` is used.
-- Publishing/analytics/attribution/payment/autonomous AI/production readiness is implied.
+- Route/serve/link/Pilot/Production readiness appears or is implied.
+- SQL/OpenAPI/tests/package/workflow/migration/script/deployment changes appear without explicit approval.
+- `prototype/` or UI routes/components are used.
+- Generated clients or unrelated runtime files are modified.
+- Publishing/analytics/attribution/payment/autonomous AI readiness is implied.
 - Implementation exceeds Slice 0.
 
 ## 8. Recommendation
