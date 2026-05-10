@@ -82,52 +82,25 @@ test("NashirSlice0Repository methods throw not-implemented — no live behavior"
   }
 });
 
-test("backend-slice0-service.js has no require() calls", () => {
-  const src = fs.readFileSync(
-    path.join(__dirname, "../src/nashir/backend-slice0-service.js"),
-    "utf8"
-  );
-  assert.ok(
-    !/\brequire\s*\(/.test(src),
-    "Service file must have no require() calls"
-  );
+function assertFileIsInert(relPath, label) {
+  const src = fs.readFileSync(path.join(__dirname, relPath), "utf8");
+  assert.ok(!/\brequire\s*\(/.test(src),   label + " must have no require() calls");
+  assert.ok(!/\brouter\b/.test(src),        label + " must not reference router");
+  assert.ok(!/\bserver\b/.test(src),        label + " must not reference server");
+  assert.ok(!/\bstore\b/.test(src),         label + " must not reference store");
+  assert.ok(!/\bdb\b/.test(src),            label + " must not reference db");
+  assert.ok(!/\brbac\b/.test(src),          label + " must not reference rbac");
+  assert.ok(!/\bguards\b/.test(src),        label + " must not reference guards");
+  assert.ok(!/error-model/.test(src),       label + " must not reference error-model");
+  assert.ok(!/\bconfig\b/.test(src),        label + " must not reference config");
+  assert.ok(!/\bintegrity\b/.test(src),     label + " must not reference integrity");
+  assert.ok(!/\bprototype\b/.test(src),     label + " must not reference prototype");
+}
+
+test("backend-slice0-service.js is inert — no require() or forbidden references", () => {
+  assertFileIsInert("../src/nashir/backend-slice0-service.js", "backend-slice0-service.js");
 });
 
-test("backend-slice0-repository.js has no require() calls", () => {
-  const src = fs.readFileSync(
-    path.join(__dirname, "../src/nashir/backend-slice0-repository.js"),
-    "utf8"
-  );
-  assert.ok(
-    !/\brequire\s*\(/.test(src),
-    "Repository file must have no require() calls"
-  );
-});
-
-test("backend-slice0-service.js does not reference router/server/store/db/rbac/guards/error-model — inertness assertion", () => {
-  const src = fs.readFileSync(
-    path.join(__dirname, "../src/nashir/backend-slice0-service.js"),
-    "utf8"
-  );
-  assert.ok(!/\brouter\b/.test(src), "Service file must not reference router");
-  assert.ok(!/\bserver\b/.test(src), "Service file must not reference server");
-  assert.ok(!/\bstore\b/.test(src), "Service file must not reference store");
-  assert.ok(!/\bdb\b/.test(src), "Service file must not reference db");
-  assert.ok(!/\brbac\b/.test(src), "Service file must not reference rbac");
-  assert.ok(!/\bguards\b/.test(src), "Service file must not reference guards");
-  assert.ok(!/error-model/.test(src), "Service file must not reference error-model");
-});
-
-test("backend-slice0-repository.js does not reference router/server/store/db/rbac/guards/error-model — inertness assertion", () => {
-  const src = fs.readFileSync(
-    path.join(__dirname, "../src/nashir/backend-slice0-repository.js"),
-    "utf8"
-  );
-  assert.ok(!/\brouter\b/.test(src), "Repository file must not reference router");
-  assert.ok(!/\bserver\b/.test(src), "Repository file must not reference server");
-  assert.ok(!/\bstore\b/.test(src), "Repository file must not reference store");
-  assert.ok(!/\bdb\b/.test(src), "Repository file must not reference db");
-  assert.ok(!/\brbac\b/.test(src), "Repository file must not reference rbac");
-  assert.ok(!/\bguards\b/.test(src), "Repository file must not reference guards");
-  assert.ok(!/error-model/.test(src), "Repository file must not reference error-model");
+test("backend-slice0-repository.js is inert — no require() or forbidden references", () => {
+  assertFileIsInert("../src/nashir/backend-slice0-repository.js", "backend-slice0-repository.js");
 });
