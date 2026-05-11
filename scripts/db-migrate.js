@@ -139,7 +139,7 @@ function runMigrationsWithLock({ root, env, spawnSyncRunner = spawnSync }) {
     childEnv.PGSERVICEFILE = serviceFilePath;
     childEnv.PGSERVICE = SERVICE_NAME;
 
-    const result = spawnSyncRunner("psql", ["-v", "ON_ERROR_STOP=1", "-f", driverPath], {
+    const result = spawnSyncRunner("psql", ["service=marketing_os_migration", "-v", "ON_ERROR_STOP=1", "-f", driverPath], {
       stdio: "inherit",
       env: childEnv
     });

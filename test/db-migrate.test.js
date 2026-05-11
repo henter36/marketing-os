@@ -76,12 +76,13 @@ test("psql argv does not expose DSN; service file contains decomposed fields; DA
   // psql argv must not contain the DSN or password
   assert.ok(!capturedArgs.some(arg => arg.includes("postgres://")), "DSN must not appear in argv");
   assert.ok(!capturedArgs.some(arg => arg.includes("secret")), "password must not appear in argv");
-  // argv is exactly ["-v", "ON_ERROR_STOP=1", "-f", driverPath]
-  assert.deepStrictEqual(capturedArgs.slice(0, 3), ["-v", "ON_ERROR_STOP=1", "-f"]);
-  assert.equal(capturedArgs.length, 4);
-  assert.equal(typeof capturedArgs[3], "string");
-  assert.ok(capturedArgs[3].length > 0, "psql must receive a generated migration driver path after -f");
-  assert.ok(capturedArgs[3].endsWith(".sql"), "generated migration driver path must be a SQL file");
+  // argv is exactly ["service=marketing_os_migration", "-v", "ON_ERROR_STOP=1", "-f", driverPath]
+  assert.equal(capturedArgs[0], "service=marketing_os_migration");
+  assert.deepStrictEqual(capturedArgs.slice(1, 4), ["-v", "ON_ERROR_STOP=1", "-f"]);
+  assert.equal(capturedArgs.length, 5);
+  assert.equal(typeof capturedArgs[4], "string");
+  assert.ok(capturedArgs[4].length > 0, "psql must receive a generated migration driver path after -f");
+  assert.ok(capturedArgs[4].endsWith(".sql"), "generated migration driver path must be a SQL file");
   // DATABASE_URL must not be in child env
   assert.equal(capturedOptions.env.DATABASE_URL, undefined);
   // DATABASE_URI must not be in child env
