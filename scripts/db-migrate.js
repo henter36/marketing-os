@@ -44,16 +44,104 @@ function buildMigrationDriver(root = defaultRoot) {
   return lines.join("\n");
 }
 
+const SERVICE_NAME = "marketing_os_migration";
+const FORBIDDEN_SERVICE_CHARS = /[\r\n\x00]/;
+const SUPPORTED_PARAMS = ["sslmode", "application_name", "connect_timeout"];
+
+function parseDatabaseUrl(databaseUrl) {
+  let url;
+  try {
+    url = new URL(databaseUrl);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "postgres:" && url.protocol !== "postgresql:") {
+    return null;
+  }
+
+  const safe = (val) => (FORBIDDEN_SERVICE_CHARS.test(val) ? null : val);
+
+  const fields = {};
+
+  if (url.hostname) {
+    const host = safe(decodeURIComponent(url.hostname));
+    if (host === null) return null;
+    fields.host = host;
+  }
+
+  if (url.port) {
+    const port = safe(url.port);
+    if (port === null) return null;
+    fields.port = port;
+  }
+
+  const dbname = decodeURIComponent(url.pathname.slice(1));
+  if (dbname) {
+    const safeName = safe(dbname);
+    if (safeName === null) return null;
+    fields.dbname = safeName;
+  }
+
+  if (url.username) {
+    const user = safe(decodeURIComponent(url.username));
+    if (user === null) return null;
+    fields.user = user;
+  }
+
+  if (url.password) {
+    const password = safe(decodeURIComponent(url.password));
+    if (password === null) return null;
+    fields.password = password;
+  }
+
+  for (const param of SUPPORTED_PARAMS) {
+    const val = url.searchParams.get(param);
+    if (val !== null) {
+      const safeVal = safe(val);
+      if (safeVal === null) return null;
+      fields[param] = safeVal;
+    }
+  }
+
+  return fields;
+}
+
 function runMigrationsWithLock({ root, env, spawnSyncRunner = spawnSync }) {
+  const databaseUrl = env.DATABASE_URL;
+  if (!databaseUrl) {
+    console.error("DATABASE_URL is required.");
+    return 1;
+  }
+
+  const parsed = parseDatabaseUrl(databaseUrl);
+  if (!parsed) {
+    console.error("DATABASE_URL must be a valid postgres:// or postgresql:// URL.");
+    return 1;
+  }
+
   const tempDir = mkdtempSync(path.join(tmpdir(), "marketing-os-migrations-"));
   const driverPath = path.join(tempDir, "migration-driver.sql");
+  const serviceFilePath = path.join(tempDir, "pgservice.conf");
 
   try {
     writeFileSync(driverPath, buildMigrationDriver(root), "utf8");
 
-    const result = spawnSyncRunner("psql", [env.DATABASE_URL, "-v", "ON_ERROR_STOP=1", "-f", driverPath], {
+    const serviceLines = [`[${SERVICE_NAME}]`];
+    for (const [key, value] of Object.entries(parsed)) {
+      serviceLines.push(`${key}=${value}`);
+    }
+    serviceLines.push("");
+    writeFileSync(serviceFilePath, serviceLines.join("\n"), { encoding: "utf8", mode: 0o600 });
+
+    const childEnv = { ...process.env, ...env };
+    delete childEnv.DATABASE_URL;
+    delete childEnv.DATABASE_URI;
+    childEnv.PGSERVICEFILE = serviceFilePath;
+    childEnv.PGSERVICE = SERVICE_NAME;
+
+    const result = spawnSyncRunner("psql", ["service=marketing_os_migration", "-v", "ON_ERROR_STOP=1", "-f", driverPath], {
       stdio: "inherit",
-      env: { ...process.env, ...env }
+      env: childEnv
     });
 
     return result.status ?? 1;
@@ -109,6 +197,7 @@ module.exports = {
   isStrictMode,
   migrations,
   migrationLockKey,
+  parseDatabaseUrl,
   run,
   runMigrationsWithLock,
   validateMigrationFiles
