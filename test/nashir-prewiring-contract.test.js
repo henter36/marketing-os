@@ -124,139 +124,37 @@ test("docs/nashir_openapi_activation_planning_gate.md exists", () => {
   );
 });
 
-// ─── Group 6: NO-GO language preserved in runtime wiring readiness gate ─────
-// [\s\S]*? matches across newlines so layout changes in the doc don't break assertions.
+// ─── Groups 6-9: NO-GO language preserved in gate documents ─────────────────
+// All patterns require NO-GO to appear before the guarded phrase.
+// [\s\S]*? crosses newlines so layout changes in the doc don't break assertions.
 
-test("runtime wiring gate preserves NO-GO for runtime wiring", () => {
-  const doc = docText("nashir_runtime_wiring_readiness_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?[Rr]untime wiring|[Rr]untime wiring[\s\S]*?NO-GO/.test(doc),
-    "nashir_runtime_wiring_readiness_gate.md must preserve NO-GO for runtime wiring"
-  );
-});
-
-test("runtime wiring gate preserves NO-GO for route exposure", () => {
-  const doc = docText("nashir_runtime_wiring_readiness_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?[Rr]oute exposure|[Rr]oute exposure[\s\S]*?NO-GO/.test(doc),
-    "nashir_runtime_wiring_readiness_gate.md must preserve NO-GO for route exposure"
-  );
-});
-
-test("runtime wiring gate preserves NO-GO for OpenAPI activation", () => {
-  const doc = docText("nashir_runtime_wiring_readiness_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?OpenAPI|OpenAPI[\s\S]*?NO-GO/.test(doc),
-    "nashir_runtime_wiring_readiness_gate.md must preserve NO-GO for OpenAPI activation"
-  );
-});
-
-test("runtime wiring gate preserves NO-GO for SQL or DB access", () => {
-  const doc = docText("nashir_runtime_wiring_readiness_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?SQL|SQL[\s\S]*?NO-GO|NO-GO[\s\S]*?DB access|DB access[\s\S]*?NO-GO/i.test(doc),
-    "nashir_runtime_wiring_readiness_gate.md must preserve NO-GO for SQL/DB access"
-  );
-});
-
-// ─── Group 7: NO-GO language preserved in RBAC permission activation gate ───
-
-test("RBAC gate preserves NO-GO for src/rbac.js modification", () => {
-  const doc = docText("nashir_rbac_permission_activation_planning_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?rbac|rbac[\s\S]*?NO-GO/i.test(doc),
-    "nashir_rbac_permission_activation_planning_gate.md must preserve NO-GO for src/rbac.js modification"
-  );
-});
-
-test("RBAC gate preserves NO-GO for route exposure", () => {
-  const doc = docText("nashir_rbac_permission_activation_planning_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?[Rr]oute exposure|[Rr]oute exposure[\s\S]*?NO-GO/.test(doc),
-    "nashir_rbac_permission_activation_planning_gate.md must preserve NO-GO for route exposure"
-  );
-});
-
-test("RBAC gate preserves NO-GO for runtime wiring", () => {
-  const doc = docText("nashir_rbac_permission_activation_planning_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?[Rr]untime wiring|[Rr]untime wiring[\s\S]*?NO-GO/.test(doc),
-    "nashir_rbac_permission_activation_planning_gate.md must preserve NO-GO for runtime wiring"
-  );
-});
-
-test("RBAC gate preserves NO-GO for OpenAPI activation", () => {
-  const doc = docText("nashir_rbac_permission_activation_planning_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?OpenAPI|OpenAPI[\s\S]*?NO-GO/.test(doc),
-    "nashir_rbac_permission_activation_planning_gate.md must preserve NO-GO for OpenAPI activation"
-  );
-});
-
-// ─── Group 8: NO-GO language preserved in OpenAPI activation planning gate ──
-
-test("OpenAPI gate preserves NO-GO for OpenAPI YAML modification", () => {
-  const doc = docText("nashir_openapi_activation_planning_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?OpenAPI YAML|OpenAPI YAML[\s\S]*?NO-GO/.test(doc),
-    "nashir_openapi_activation_planning_gate.md must preserve NO-GO for OpenAPI YAML modification"
-  );
-});
-
-test("OpenAPI gate preserves NO-GO for route exposure", () => {
-  const doc = docText("nashir_openapi_activation_planning_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?[Rr]oute exposure|[Rr]oute exposure[\s\S]*?NO-GO/.test(doc),
-    "nashir_openapi_activation_planning_gate.md must preserve NO-GO for route exposure"
-  );
-});
-
-test("OpenAPI gate preserves NO-GO for runtime wiring", () => {
-  const doc = docText("nashir_openapi_activation_planning_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?[Rr]untime wiring|[Rr]untime wiring[\s\S]*?NO-GO/.test(doc),
-    "nashir_openapi_activation_planning_gate.md must preserve NO-GO for runtime wiring"
-  );
-});
-
-test("OpenAPI gate preserves NO-GO for RBAC implementation", () => {
-  const doc = docText("nashir_openapi_activation_planning_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?RBAC|RBAC[\s\S]*?NO-GO/.test(doc),
-    "nashir_openapi_activation_planning_gate.md must preserve NO-GO for RBAC implementation"
-  );
-});
-
-test("OpenAPI gate preserves NO-GO for SQL or DB access", () => {
-  const doc = docText("nashir_openapi_activation_planning_gate.md");
-  assert.ok(
-    /NO-GO[\s\S]*?SQL|SQL[\s\S]*?NO-GO|NO-GO[\s\S]*?DB access|DB access[\s\S]*?NO-GO/i.test(doc),
-    "nashir_openapi_activation_planning_gate.md must preserve NO-GO for SQL/DB access"
-  );
-});
-
-// ─── Group 9: Pilot and Production NO-GO preserved in all three gate docs ───
-
-const GATE_DOCS = [
-  "nashir_runtime_wiring_readiness_gate.md",
-  "nashir_rbac_permission_activation_planning_gate.md",
-  "nashir_openapi_activation_planning_gate.md"
+const NO_GO_CHECKS = [
+  // Runtime wiring readiness gate
+  { doc: "nashir_runtime_wiring_readiness_gate.md",            phrase: "runtime wiring",           re: /NO-GO[\s\S]*?[Rr]untime wiring/ },
+  { doc: "nashir_runtime_wiring_readiness_gate.md",            phrase: "route exposure",            re: /NO-GO[\s\S]*?[Rr]oute exposure/ },
+  { doc: "nashir_runtime_wiring_readiness_gate.md",            phrase: "OpenAPI activation",        re: /NO-GO[\s\S]*?OpenAPI/i },
+  { doc: "nashir_runtime_wiring_readiness_gate.md",            phrase: "SQL or DB access",          re: /NO-GO[\s\S]*?(?:SQL|DB access)/i },
+  { doc: "nashir_runtime_wiring_readiness_gate.md",            phrase: "Pilot readiness",           re: /NO-GO[\s\S]*?[Pp]ilot/ },
+  { doc: "nashir_runtime_wiring_readiness_gate.md",            phrase: "Production readiness",      re: /NO-GO[\s\S]*?[Pp]roduction/ },
+  // RBAC permission activation gate
+  { doc: "nashir_rbac_permission_activation_planning_gate.md", phrase: "rbac.js modification",      re: /NO-GO[\s\S]*?rbac/i },
+  { doc: "nashir_rbac_permission_activation_planning_gate.md", phrase: "route exposure",            re: /NO-GO[\s\S]*?[Rr]oute exposure/ },
+  { doc: "nashir_rbac_permission_activation_planning_gate.md", phrase: "runtime wiring",            re: /NO-GO[\s\S]*?[Rr]untime wiring/ },
+  { doc: "nashir_rbac_permission_activation_planning_gate.md", phrase: "OpenAPI activation",        re: /NO-GO[\s\S]*?OpenAPI/ },
+  { doc: "nashir_rbac_permission_activation_planning_gate.md", phrase: "Pilot readiness",           re: /NO-GO[\s\S]*?[Pp]ilot/ },
+  { doc: "nashir_rbac_permission_activation_planning_gate.md", phrase: "Production readiness",      re: /NO-GO[\s\S]*?[Pp]roduction/ },
+  // OpenAPI activation planning gate
+  { doc: "nashir_openapi_activation_planning_gate.md",         phrase: "OpenAPI YAML modification", re: /NO-GO[\s\S]*?OpenAPI YAML/ },
+  { doc: "nashir_openapi_activation_planning_gate.md",         phrase: "route exposure",            re: /NO-GO[\s\S]*?[Rr]oute exposure/ },
+  { doc: "nashir_openapi_activation_planning_gate.md",         phrase: "runtime wiring",            re: /NO-GO[\s\S]*?[Rr]untime wiring/ },
+  { doc: "nashir_openapi_activation_planning_gate.md",         phrase: "RBAC implementation",       re: /NO-GO[\s\S]*?RBAC/ },
+  { doc: "nashir_openapi_activation_planning_gate.md",         phrase: "SQL or DB access",          re: /NO-GO[\s\S]*?(?:SQL|DB access)/i },
+  { doc: "nashir_openapi_activation_planning_gate.md",         phrase: "Pilot readiness",           re: /NO-GO[\s\S]*?[Pp]ilot/ },
+  { doc: "nashir_openapi_activation_planning_gate.md",         phrase: "Production readiness",      re: /NO-GO[\s\S]*?[Pp]roduction/ },
 ];
 
-for (const doc of GATE_DOCS) {
-  test(`${doc} preserves NO-GO for Pilot readiness`, () => {
-    const content = docText(doc);
-    assert.ok(
-      /NO-GO[\s\S]*?[Pp]ilot|[Pp]ilot[\s\S]*?NO-GO/.test(content),
-      `${doc} must preserve NO-GO for Pilot readiness`
-    );
-  });
-
-  test(`${doc} preserves NO-GO for Production readiness`, () => {
-    const content = docText(doc);
-    assert.ok(
-      /NO-GO[\s\S]*?[Pp]roduction|[Pp]roduction[\s\S]*?NO-GO/.test(content),
-      `${doc} must preserve NO-GO for Production readiness`
-    );
+for (const { doc, phrase, re } of NO_GO_CHECKS) {
+  test(`${doc} preserves NO-GO for ${phrase}`, () => {
+    assert.ok(re.test(docText(doc)), `${doc} must preserve NO-GO for ${phrase}`);
   });
 }
