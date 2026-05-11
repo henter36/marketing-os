@@ -80,15 +80,25 @@ test("src/store.js has no nashir keyword", () => {
   );
 });
 
-// ─── Group 4: OpenAPI YAML files — non-Nashir YAMLs must have no Nashir ──────
+// ─── Group 4: OpenAPI YAML files — content-based classification ──────────────
+// A YAML is OpenAPI if its content contains a top-level `openapi:` key.
+// A Nashir OpenAPI file is an OpenAPI file whose content also contains "nashir".
 
-const OPENAPI_DOCS = fs
-  .readdirSync(path.join(ROOT, "docs"))
-  .filter(f => f.endsWith(".yaml") && f.includes("openapi") && !f.includes("nashir"));
+function isOpenApiSpec(f) {
+  return /^\s*openapi\s*:/m.test(docText(f));
+}
 
-const NASHIR_OPENAPI_DOCS = fs
+const ALL_YAML_FILES = fs
   .readdirSync(path.join(ROOT, "docs"))
-  .filter(f => f.endsWith(".yaml") && f.includes("nashir") && f.includes("openapi"));
+  .filter(f => f.endsWith(".yaml"));
+
+const OPENAPI_DOCS = ALL_YAML_FILES.filter(
+  f => isOpenApiSpec(f) && !/\bnashir\b/i.test(docText(f))
+);
+
+const NASHIR_OPENAPI_DOCS = ALL_YAML_FILES.filter(
+  f => isOpenApiSpec(f) && /\bnashir\b/i.test(docText(f))
+);
 
 const NASHIR_OPENAPI_WHITELIST = ["nashir_openapi_patch.yaml"];
 
@@ -116,6 +126,12 @@ const DEFERRED_NASHIR_PERMISSIONS = [
   "nashir.intake.create"
 ];
 
+// Regex-based x-permission check — tolerates optional whitespace and quotes.
+function matchesXPermission(yaml, code) {
+  const escaped = code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^\\s*x-permission\\s*:\\s*["']?${escaped}["']?\\s*$`, "m").test(yaml);
+}
+
 for (const yamlFile of NASHIR_OPENAPI_DOCS) {
   test(`${yamlFile} contains nashir content`, () => {
     assert.ok(
@@ -128,7 +144,7 @@ for (const yamlFile of NASHIR_OPENAPI_DOCS) {
     const yaml = docText(yamlFile);
     for (const code of DEFERRED_NASHIR_PERMISSIONS) {
       assert.ok(
-        !yaml.includes(`x-permission: ${code}`),
+        !matchesXPermission(yaml, code),
         `${yamlFile} must not expose deferred permission: ${code}`
       );
     }
