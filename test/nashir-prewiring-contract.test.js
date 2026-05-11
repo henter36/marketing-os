@@ -90,8 +90,14 @@ const NASHIR_OPENAPI_DOCS = fs
   .readdirSync(path.join(ROOT, "docs"))
   .filter(f => f.endsWith(".yaml") && f.includes("nashir") && f.includes("openapi"));
 
+const NASHIR_OPENAPI_WHITELIST = ["nashir_openapi_patch.yaml"];
+
 assert.ok(OPENAPI_DOCS.length > 0, "At least one non-Nashir OpenAPI specification must be present for verification");
-assert.ok(NASHIR_OPENAPI_DOCS.length > 0, "At least one Nashir OpenAPI specification must be present for verification");
+assert.deepStrictEqual(
+  [...NASHIR_OPENAPI_DOCS].sort(),
+  [...NASHIR_OPENAPI_WHITELIST].sort(),
+  "Nashir OpenAPI docs must exactly match the approved whitelist"
+);
 
 for (const yamlFile of OPENAPI_DOCS) {
   test(`${yamlFile} has no nashir path or schema`, () => {

@@ -25,6 +25,9 @@ info:
       nashir readiness/scoring paths
       nashir state-transition paths
 
+security:
+  - bearerAuth: []
+
 x-contract-rules:
   source_authority: Nashir Slice 0 planning gate chain (PRs #161 through #167)
   rbac_codes_source: PR #166 (src/rbac.js)
@@ -144,6 +147,12 @@ paths:
           $ref: '#/components/responses/ErrorResponse'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   parameters:
     WorkspaceId:
       name: workspaceId

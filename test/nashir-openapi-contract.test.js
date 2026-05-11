@@ -98,8 +98,13 @@ test("CreateNashirCampaignRequest schema does not include workspace_id property"
   const yaml = patchText();
   const schemaStart = yaml.indexOf("CreateNashirCampaignRequest:");
   assert.ok(schemaStart !== -1, "CreateNashirCampaignRequest schema must be defined");
-  // Extract a window around the schema definition and verify workspace_id is absent
-  const schemaBlock = yaml.slice(schemaStart, schemaStart + 800);
+  // Extract until the next sibling schema key at the same indentation level (4 spaces).
+  // Sibling keys match /\n    \S/ — a newline followed by exactly 4 spaces then a non-space.
+  const rest = yaml.slice(schemaStart + "CreateNashirCampaignRequest:".length);
+  const siblingMatch = rest.match(/\n    \S/);
+  const schemaBlock = siblingMatch
+    ? rest.slice(0, siblingMatch.index)
+    : rest;
   assert.ok(
     !schemaBlock.includes("workspace_id:"),
     "CreateNashirCampaignRequest must not include workspace_id as a property"
