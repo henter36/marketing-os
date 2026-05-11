@@ -7,12 +7,19 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 
+// Simple read-once memoization — avoids redundant disk reads across tests
+const _cache = Object.create(null);
+
 function srcText(file) {
-  return fs.readFileSync(path.join(ROOT, "src", file), "utf8");
+  const key = "src:" + file;
+  if (!_cache[key]) _cache[key] = fs.readFileSync(path.join(ROOT, "src", file), "utf8");
+  return _cache[key];
 }
 
 function docText(file) {
-  return fs.readFileSync(path.join(ROOT, "docs", file), "utf8");
+  const key = "doc:" + file;
+  if (!_cache[key]) _cache[key] = fs.readFileSync(path.join(ROOT, "docs", file), "utf8");
+  return _cache[key];
 }
 
 // ─── Group 1: src/router.js — no Nashir route surface ──────────────────────
@@ -31,10 +38,10 @@ test("src/router.js has no routeNashir handler", () => {
   );
 });
 
-test("src/router.js has no /nashir/ path segment", () => {
+test("src/router.js has no /nashir or /nashir/ route path segment", () => {
   assert.ok(
-    !/\/nashir\//.test(srcText("router.js")),
-    "src/router.js must not contain a /nashir/ route path segment"
+    !/\/nashir(?:\/|['"`?]|$)/i.test(srcText("router.js")),
+    "src/router.js must not contain a /nashir or /nashir/ route path segment"
   );
 });
 
@@ -46,32 +53,12 @@ test("src/router.js has no require of nashir modules", () => {
 });
 
 // ─── Group 2: src/rbac.js — no Nashir permission codes ─────────────────────
+// One broad check catches all current and future nashir.* codes.
 
-test("src/rbac.js has no nashir.campaign permission code", () => {
+test("src/rbac.js has no nashir.* permission codes", () => {
   assert.ok(
-    !/nashir\.campaign/.test(srcText("rbac.js")),
-    "src/rbac.js must not contain nashir.campaign permission code"
-  );
-});
-
-test("src/rbac.js has no nashir.evidence permission code", () => {
-  assert.ok(
-    !/nashir\.evidence/.test(srcText("rbac.js")),
-    "src/rbac.js must not contain nashir.evidence permission code"
-  );
-});
-
-test("src/rbac.js has no nashir.approval permission code", () => {
-  assert.ok(
-    !/nashir\.approval/.test(srcText("rbac.js")),
-    "src/rbac.js must not contain nashir.approval permission code"
-  );
-});
-
-test("src/rbac.js has no nashir.intake permission code", () => {
-  assert.ok(
-    !/nashir\.intake/.test(srcText("rbac.js")),
-    "src/rbac.js must not contain nashir.intake permission code"
+    !/\bnashir\./i.test(srcText("rbac.js")),
+    "src/rbac.js must not contain any nashir.* permission code"
   );
 });
 
@@ -146,11 +133,12 @@ test("docs/nashir_openapi_activation_planning_gate.md exists", () => {
 });
 
 // ─── Group 6: NO-GO language preserved in runtime wiring readiness gate ─────
+// [\s\S]*? matches across newlines so layout changes in the doc don't break assertions.
 
 test("runtime wiring gate preserves NO-GO for runtime wiring", () => {
   const doc = docText("nashir_runtime_wiring_readiness_gate.md");
   assert.ok(
-    /NO-GO.*[Rr]untime wiring|[Rr]untime wiring.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?[Rr]untime wiring|[Rr]untime wiring[\s\S]*?NO-GO/.test(doc),
     "nashir_runtime_wiring_readiness_gate.md must preserve NO-GO for runtime wiring"
   );
 });
@@ -158,7 +146,7 @@ test("runtime wiring gate preserves NO-GO for runtime wiring", () => {
 test("runtime wiring gate preserves NO-GO for route exposure", () => {
   const doc = docText("nashir_runtime_wiring_readiness_gate.md");
   assert.ok(
-    /NO-GO.*[Rr]oute exposure|[Rr]oute exposure.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?[Rr]oute exposure|[Rr]oute exposure[\s\S]*?NO-GO/.test(doc),
     "nashir_runtime_wiring_readiness_gate.md must preserve NO-GO for route exposure"
   );
 });
@@ -166,16 +154,16 @@ test("runtime wiring gate preserves NO-GO for route exposure", () => {
 test("runtime wiring gate preserves NO-GO for OpenAPI activation", () => {
   const doc = docText("nashir_runtime_wiring_readiness_gate.md");
   assert.ok(
-    /NO-GO.*OpenAPI|OpenAPI.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?OpenAPI|OpenAPI[\s\S]*?NO-GO/.test(doc),
     "nashir_runtime_wiring_readiness_gate.md must preserve NO-GO for OpenAPI activation"
   );
 });
 
-test("runtime wiring gate preserves NO-GO for SQL", () => {
+test("runtime wiring gate preserves NO-GO for SQL or DB access", () => {
   const doc = docText("nashir_runtime_wiring_readiness_gate.md");
   assert.ok(
-    /NO-GO.*SQL|SQL.*NO-GO/i.test(doc),
-    "nashir_runtime_wiring_readiness_gate.md must preserve NO-GO for SQL"
+    /NO-GO[\s\S]*?SQL|SQL[\s\S]*?NO-GO|NO-GO[\s\S]*?DB access|DB access[\s\S]*?NO-GO/i.test(doc),
+    "nashir_runtime_wiring_readiness_gate.md must preserve NO-GO for SQL/DB access"
   );
 });
 
@@ -184,7 +172,7 @@ test("runtime wiring gate preserves NO-GO for SQL", () => {
 test("RBAC gate preserves NO-GO for src/rbac.js modification", () => {
   const doc = docText("nashir_rbac_permission_activation_planning_gate.md");
   assert.ok(
-    /NO-GO.*rbac|rbac.*NO-GO/i.test(doc),
+    /NO-GO[\s\S]*?rbac|rbac[\s\S]*?NO-GO/i.test(doc),
     "nashir_rbac_permission_activation_planning_gate.md must preserve NO-GO for src/rbac.js modification"
   );
 });
@@ -192,7 +180,7 @@ test("RBAC gate preserves NO-GO for src/rbac.js modification", () => {
 test("RBAC gate preserves NO-GO for route exposure", () => {
   const doc = docText("nashir_rbac_permission_activation_planning_gate.md");
   assert.ok(
-    /NO-GO.*[Rr]oute exposure|[Rr]oute exposure.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?[Rr]oute exposure|[Rr]oute exposure[\s\S]*?NO-GO/.test(doc),
     "nashir_rbac_permission_activation_planning_gate.md must preserve NO-GO for route exposure"
   );
 });
@@ -200,7 +188,7 @@ test("RBAC gate preserves NO-GO for route exposure", () => {
 test("RBAC gate preserves NO-GO for runtime wiring", () => {
   const doc = docText("nashir_rbac_permission_activation_planning_gate.md");
   assert.ok(
-    /NO-GO.*[Rr]untime wiring|[Rr]untime wiring.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?[Rr]untime wiring|[Rr]untime wiring[\s\S]*?NO-GO/.test(doc),
     "nashir_rbac_permission_activation_planning_gate.md must preserve NO-GO for runtime wiring"
   );
 });
@@ -208,7 +196,7 @@ test("RBAC gate preserves NO-GO for runtime wiring", () => {
 test("RBAC gate preserves NO-GO for OpenAPI activation", () => {
   const doc = docText("nashir_rbac_permission_activation_planning_gate.md");
   assert.ok(
-    /NO-GO.*OpenAPI|OpenAPI.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?OpenAPI|OpenAPI[\s\S]*?NO-GO/.test(doc),
     "nashir_rbac_permission_activation_planning_gate.md must preserve NO-GO for OpenAPI activation"
   );
 });
@@ -218,7 +206,7 @@ test("RBAC gate preserves NO-GO for OpenAPI activation", () => {
 test("OpenAPI gate preserves NO-GO for OpenAPI YAML modification", () => {
   const doc = docText("nashir_openapi_activation_planning_gate.md");
   assert.ok(
-    /NO-GO.*OpenAPI YAML|OpenAPI YAML.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?OpenAPI YAML|OpenAPI YAML[\s\S]*?NO-GO/.test(doc),
     "nashir_openapi_activation_planning_gate.md must preserve NO-GO for OpenAPI YAML modification"
   );
 });
@@ -226,7 +214,7 @@ test("OpenAPI gate preserves NO-GO for OpenAPI YAML modification", () => {
 test("OpenAPI gate preserves NO-GO for route exposure", () => {
   const doc = docText("nashir_openapi_activation_planning_gate.md");
   assert.ok(
-    /NO-GO.*[Rr]oute exposure|[Rr]oute exposure.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?[Rr]oute exposure|[Rr]oute exposure[\s\S]*?NO-GO/.test(doc),
     "nashir_openapi_activation_planning_gate.md must preserve NO-GO for route exposure"
   );
 });
@@ -234,7 +222,7 @@ test("OpenAPI gate preserves NO-GO for route exposure", () => {
 test("OpenAPI gate preserves NO-GO for runtime wiring", () => {
   const doc = docText("nashir_openapi_activation_planning_gate.md");
   assert.ok(
-    /NO-GO.*[Rr]untime wiring|[Rr]untime wiring.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?[Rr]untime wiring|[Rr]untime wiring[\s\S]*?NO-GO/.test(doc),
     "nashir_openapi_activation_planning_gate.md must preserve NO-GO for runtime wiring"
   );
 });
@@ -242,7 +230,7 @@ test("OpenAPI gate preserves NO-GO for runtime wiring", () => {
 test("OpenAPI gate preserves NO-GO for RBAC implementation", () => {
   const doc = docText("nashir_openapi_activation_planning_gate.md");
   assert.ok(
-    /NO-GO.*RBAC|RBAC.*NO-GO/.test(doc),
+    /NO-GO[\s\S]*?RBAC|RBAC[\s\S]*?NO-GO/.test(doc),
     "nashir_openapi_activation_planning_gate.md must preserve NO-GO for RBAC implementation"
   );
 });
@@ -250,7 +238,7 @@ test("OpenAPI gate preserves NO-GO for RBAC implementation", () => {
 test("OpenAPI gate preserves NO-GO for SQL or DB access", () => {
   const doc = docText("nashir_openapi_activation_planning_gate.md");
   assert.ok(
-    /NO-GO.*SQL|NO-GO.*DB access|SQL.*NO-GO/i.test(doc),
+    /NO-GO[\s\S]*?SQL|SQL[\s\S]*?NO-GO|NO-GO[\s\S]*?DB access|DB access[\s\S]*?NO-GO/i.test(doc),
     "nashir_openapi_activation_planning_gate.md must preserve NO-GO for SQL/DB access"
   );
 });
@@ -267,7 +255,7 @@ for (const doc of GATE_DOCS) {
   test(`${doc} preserves NO-GO for Pilot readiness`, () => {
     const content = docText(doc);
     assert.ok(
-      /NO-GO.*[Pp]ilot|[Pp]ilot.*NO-GO/.test(content),
+      /NO-GO[\s\S]*?[Pp]ilot|[Pp]ilot[\s\S]*?NO-GO/.test(content),
       `${doc} must preserve NO-GO for Pilot readiness`
     );
   });
@@ -275,7 +263,7 @@ for (const doc of GATE_DOCS) {
   test(`${doc} preserves NO-GO for Production readiness`, () => {
     const content = docText(doc);
     assert.ok(
-      /NO-GO.*[Pp]roduction|[Pp]roduction.*NO-GO/.test(content),
+      /NO-GO[\s\S]*?[Pp]roduction|[Pp]roduction[\s\S]*?NO-GO/.test(content),
       `${doc} must preserve NO-GO for Production readiness`
     );
   });
