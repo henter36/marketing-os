@@ -205,7 +205,7 @@ GO:     Unresolved future question recorded — RBAC implementation not answered
 GO:     Candidate future scope defined as NOT YET IMPLEMENTED.
 GO:     Candidate codes and role mapping from PR #162 preserved as pending review.
 GO:     Open questions for final code list recorded.
-GO:     Eight implementation prerequisites defined.
+GO:     Nine implementation prerequisites defined.
 GO:     Forbidden files for the future RBAC implementation PR listed.
 NO-GO:  RBAC implementation.
 NO-GO:  src/rbac.js modification.
@@ -222,5 +222,5 @@ NO-GO:  Pilot readiness.
 NO-GO:  Production readiness.
 NO-GO:  Any next Nashir PR without satisfying PR #155 and PR #156 guard conditions.
 NO-GO:  Any src/rbac.js change without a separately approved implementation gate that
-        satisfies all eight prerequisites in Section 8.
+        satisfies all nine prerequisites in Section 8.
 ```
