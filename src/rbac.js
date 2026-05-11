@@ -70,7 +70,11 @@ const permissions = [
   "lead_capture.create",
   "notification_rule.read",
   "notification_rule.write",
-  "notification_delivery.read"
+  "notification_delivery.read",
+  "nashir.campaign.read",
+  "nashir.campaign.write",
+  "nashir.evidence.submit",
+  "nashir.approval.decide"
 ].map((permission_code) => ({
   permission_code,
   permission_name: permission_code,
@@ -112,7 +116,9 @@ const rolePermissions = {
     "lead_capture.read",
     "lead_capture.create",
     "notification_rule.read",
-    "notification_delivery.read"
+    "notification_delivery.read",
+    "nashir.campaign.read",
+    "nashir.campaign.write"
   ],
   reviewer: [
     "workspace.read",
@@ -126,7 +132,9 @@ const rolePermissions = {
     "contact.read",
     "lead_capture.read",
     "notification_rule.read",
-    "notification_delivery.read"
+    "notification_delivery.read",
+    "nashir.campaign.read",
+    "nashir.approval.decide"
   ],
   publisher: [
     "workspace.read",
@@ -149,7 +157,9 @@ const rolePermissions = {
     "lead_capture.read",
     "lead_capture.create",
     "notification_rule.read",
-    "notification_delivery.read"
+    "notification_delivery.read",
+    "nashir.campaign.read",
+    "nashir.evidence.submit"
   ],
   billing_admin: [
     "workspace.read",
@@ -186,7 +196,8 @@ const rolePermissions = {
     "contact.read",
     "lead_capture.read",
     "notification_rule.read",
-    "notification_delivery.read"
+    "notification_delivery.read",
+    "nashir.campaign.read"
   ]
 };
 

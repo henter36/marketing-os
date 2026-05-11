@@ -45,12 +45,29 @@ test("src/router.js has no nashir keyword", () => {
   );
 });
 
-// ─── Group 2: src/rbac.js — no Nashir keyword ──────────────────────────────
+// ─── Group 2: src/rbac.js — approved Nashir permission codes only ───────────
 
-test("src/rbac.js has no nashir keyword", () => {
-  assert.ok(
-    !/nashir/i.test(srcText("rbac.js")),
-    "src/rbac.js must not reference nashir in any form"
+const APPROVED_NASHIR_CODES = [
+  "nashir.campaign.read",
+  "nashir.campaign.write",
+  "nashir.evidence.submit",
+  "nashir.approval.decide"
+];
+
+function nashirCodesInRbac() {
+  const rbac = srcText("rbac.js");
+  return new Set(
+    [...rbac.matchAll(/["'`](nashir\.[a-z_]+\.[a-z_]+)["'`]/g)].map((m) => m[1])
+  );
+}
+
+test("src/rbac.js contains only approved Nashir permission codes", () => {
+  const actual = [...nashirCodesInRbac()].sort();
+  const expected = [...APPROVED_NASHIR_CODES].sort();
+  assert.deepStrictEqual(
+    actual,
+    expected,
+    "src/rbac.js must include only approved Nashir codes"
   );
 });
 
