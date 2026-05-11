@@ -54,24 +54,21 @@ const APPROVED_NASHIR_CODES = [
   "nashir.approval.decide"
 ];
 
-const DEFERRED_NASHIR_CODES = [
-  "nashir.evidence.read",
-  "nashir.approval.read",
-  "nashir.intake.create"
-];
-
-test("src/rbac.js contains all four approved Nashir permission codes", () => {
+function nashirCodesInRbac() {
   const rbac = srcText("rbac.js");
-  for (const code of APPROVED_NASHIR_CODES) {
-    assert.ok(rbac.includes(`"${code}"`), `src/rbac.js must contain approved Nashir code: ${code}`);
-  }
-});
+  return new Set(
+    [...rbac.matchAll(/["'`](nashir\.[a-z_]+\.[a-z_]+)["'`]/g)].map((m) => m[1])
+  );
+}
 
-test("src/rbac.js does not contain deferred Nashir permission codes", () => {
-  const rbac = srcText("rbac.js");
-  for (const code of DEFERRED_NASHIR_CODES) {
-    assert.ok(!rbac.includes(`"${code}"`), `src/rbac.js must not contain deferred Nashir code: ${code}`);
-  }
+test("src/rbac.js contains only approved Nashir permission codes", () => {
+  const actual = [...nashirCodesInRbac()].sort();
+  const expected = [...APPROVED_NASHIR_CODES].sort();
+  assert.deepStrictEqual(
+    actual,
+    expected,
+    "src/rbac.js must include only approved Nashir codes"
+  );
 });
 
 // ─── Group 3: src/store.js — no Nashir keyword ─────────────────────────────
