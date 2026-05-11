@@ -31,7 +31,7 @@ function noGoSection(file) {
   const lines = docText(file).split("\n");
   const hi = lines.findIndex(l => /^##\s.*go\s*\/\s*no-go/i.test(l));
   if (hi === -1) { _cache[key] = ""; return ""; }
-  const ni = lines.findIndex((l, i) => i > hi && /^##\s/.test(l));
+  const ni = lines.findIndex((l, i) => i > hi && /^#{1,2}\s/.test(l));
   _cache[key] = lines.slice(hi, ni === -1 ? undefined : ni).join("\n");
   return _cache[key];
 }
@@ -68,6 +68,8 @@ test("src/store.js has no nashir keyword", () => {
 const OPENAPI_DOCS = fs
   .readdirSync(path.join(ROOT, "docs"))
   .filter(f => f.endsWith(".yaml") && f.includes("openapi"));
+
+assert.ok(OPENAPI_DOCS.length > 0, "At least one OpenAPI specification must be present for verification");
 
 for (const yamlFile of OPENAPI_DOCS) {
   test(`${yamlFile} has no nashir path or schema`, () => {
