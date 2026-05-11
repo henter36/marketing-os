@@ -140,7 +140,7 @@ Before any PR that modifies OpenAPI YAML files for Nashir may open, all of the f
 
 3. **Response schemas** — the exact response schema name, HTTP status code, and payload shape for each success case. Must confirm `ErrorModel` / `ErrorResponse` is used for all failure cases.
 
-4. **ErrorModel mapping** — the exact Nashir error codes (`NASHIR_IDEMPOTENCY_CONFLICT`, `NASHIR_INVALID_STATE_TRANSITION`, `PERMISSION_DENIED`, `WORKSPACE_ACCESS_DENIED`, `TENANT_CONTEXT_MISMATCH`, and any others) mapped to HTTP status codes and response shapes, consistent with the existing `ErrorModel` contract.
+4. **ErrorModel mapping** — the exact Nashir error codes (NASHIR_IDEMPOTENCY_CONFLICT, NASHIR_PROCESS_BLOCKED, NASHIR_INVALID_STATE_TRANSITION, PERMISSION_DENIED, WORKSPACE_ACCESS_DENIED, TENANT_CONTEXT_MISMATCH, and any others) mapped to HTTP status codes and response shapes, consistent with the existing ErrorModel contract.
 
 5. **RBAC permission mapping** — the exact permission code (from the candidate codes defined in `docs/nashir_rbac_permission_activation_planning_gate.md`) required for each operation. RBAC implementation in `src/rbac.js` must be separately approved and merged before any route can enforce permissions.
 
