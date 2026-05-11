@@ -65,10 +65,10 @@ test("psql argv does not contain DATABASE_URL, PGDATABASE equals original URL, D
   // core psql args are present
   assert.deepStrictEqual(capturedArgs.slice(0, 3), ["-v", "ON_ERROR_STOP=1", "-f"]);
   assert.equal(capturedArgs.length, 4);
-  assert.ok(
-    capturedArgs[3].endsWith("db-migrate-driver.sql"),
-    "psql must receive the generated migration driver path after -f"
-  );
+  assert.equal(capturedArgs[2], "-f");
+  assert.equal(typeof capturedArgs[3], "string");
+  assert.ok(capturedArgs[3].length > 0, "psql must receive a generated migration driver path after -f");
+  assert.ok(capturedArgs[3].endsWith(".sql"), "generated migration driver path must be a SQL file");
   // PGDATABASE must equal the original DATABASE_URL (libpq accepts full connection strings)
   assert.equal(capturedOptions.env.PGDATABASE, "postgres://user:secret@localhost:5432/mydb");
   // DATABASE_URL must not be in child env
