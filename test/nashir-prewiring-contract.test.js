@@ -80,13 +80,18 @@ test("src/store.js has no nashir keyword", () => {
   );
 });
 
-// ─── Group 4: OpenAPI YAML files — no Nashir paths or schemas ───────────────
+// ─── Group 4: OpenAPI YAML files — non-Nashir YAMLs must have no Nashir ──────
 
 const OPENAPI_DOCS = fs
   .readdirSync(path.join(ROOT, "docs"))
-  .filter(f => f.endsWith(".yaml") && f.includes("openapi"));
+  .filter(f => f.endsWith(".yaml") && f.includes("openapi") && !f.includes("nashir"));
 
-assert.ok(OPENAPI_DOCS.length > 0, "At least one OpenAPI specification must be present for verification");
+const NASHIR_OPENAPI_DOCS = fs
+  .readdirSync(path.join(ROOT, "docs"))
+  .filter(f => f.endsWith(".yaml") && f.includes("nashir") && f.includes("openapi"));
+
+assert.ok(OPENAPI_DOCS.length > 0, "At least one non-Nashir OpenAPI specification must be present for verification");
+assert.ok(NASHIR_OPENAPI_DOCS.length > 0, "At least one Nashir OpenAPI specification must be present for verification");
 
 for (const yamlFile of OPENAPI_DOCS) {
   test(`${yamlFile} has no nashir path or schema`, () => {
@@ -94,6 +99,31 @@ for (const yamlFile of OPENAPI_DOCS) {
       !/nashir/i.test(docText(yamlFile)),
       `${yamlFile} must not contain nashir paths or schemas`
     );
+  });
+}
+
+const DEFERRED_NASHIR_PERMISSIONS = [
+  "nashir.evidence.read",
+  "nashir.approval.read",
+  "nashir.intake.create"
+];
+
+for (const yamlFile of NASHIR_OPENAPI_DOCS) {
+  test(`${yamlFile} contains nashir content`, () => {
+    assert.ok(
+      /nashir/i.test(docText(yamlFile)),
+      `${yamlFile} must contain Nashir paths or schemas`
+    );
+  });
+
+  test(`${yamlFile} does not expose deferred Nashir permission codes`, () => {
+    const yaml = docText(yamlFile);
+    for (const code of DEFERRED_NASHIR_PERMISSIONS) {
+      assert.ok(
+        !yaml.includes(`x-permission: ${code}`),
+        `${yamlFile} must not expose deferred permission: ${code}`
+      );
+    }
   });
 }
 

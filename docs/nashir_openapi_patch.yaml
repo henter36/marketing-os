@@ -1,0 +1,272 @@
+openapi: 3.1.0
+info:
+  title: Marketing OS — Nashir Slice 0 OpenAPI Patch
+  version: 0.1.0-nashir-slice0
+  description: |
+    Nashir Slice 0 OpenAPI patch. Defines the minimum campaign/intake path surface
+    required before any Nashir route can be registered in src/router.js.
+
+    This patch does NOT activate routes. Route registration in src/router.js remains
+    NO-GO until a separately approved route implementation scope gate is merged and
+    store entities and service/repository behavior are separately approved.
+
+    No generated client update is included in this patch.
+    Generated-client changes require a separately approved gate.
+
+    Nashir RBAC codes implemented in PR #166:
+      nashir.campaign.read   — used by GET operations in this patch
+      nashir.campaign.write  — used by POST operation in this patch
+      nashir.evidence.submit — deferred; not exposed in this patch
+      nashir.approval.decide — deferred; not exposed in this patch
+
+    Deferred paths (not in this patch):
+      nashir evidence paths
+      nashir approval/review paths
+      nashir readiness/scoring paths
+      nashir state-transition paths
+
+x-contract-rules:
+  source_authority: Nashir Slice 0 planning gate chain (PRs #161 through #167)
+  rbac_codes_source: PR #166 (src/rbac.js)
+  no_code_before_contracts: true
+  global_guards:
+    - AuthGuard
+    - WorkspaceContextGuard
+    - MembershipCheck
+    - PermissionGuard
+  body_workspace_id_trusted: false
+  no_go_rules:
+    - workspace_id accepted from body as trusted source
+    - endpoint reads or writes workspace-scoped record without workspace path context
+    - nashir evidence paths exposed before separate approval
+    - nashir approval/review paths exposed before separate approval
+    - nashir readiness paths exposed before separate approval
+    - generated clients updated without separate approval
+    - routes registered in src/router.js without route implementation scope gate
+
+x-error-codes:
+  PERMISSION_DENIED:
+    status: 403
+    description: >
+      Role does not have the required Nashir permission code.
+      permissionGuard throws this when hasPermission returns false for the
+      requested nashir.* code.
+  WORKSPACE_ACCESS_DENIED:
+    status: 403
+    description: >
+      User is not a member of this workspace. membershipCheck throws this
+      when no active membership exists for the requesting user.
+  TENANT_CONTEXT_MISMATCH:
+    status: 422
+    description: >
+      workspace_id in request body does not match the route workspace context.
+      rejectBodyWorkspaceId throws this when the body contains a conflicting
+      workspace_id value.
+  NASHIR_IDEMPOTENCY_CONFLICT:
+    status: 409
+    description: >
+      Idempotent operation repeated with a conflicting payload.
+      Corresponds to audit event nashir.idempotency.conflict.
+  NASHIR_PROCESS_BLOCKED:
+    status: 409
+    description: >
+      Nashir process is blocked pending review or governance action.
+      Corresponds to audit event nashir.process.blocked.
+  NASHIR_INVALID_STATE_TRANSITION:
+    status: 409
+    description: >
+      Attempted invalid Nashir campaign state transition.
+
+tags:
+  - name: NashirCampaigns
+    description: >
+      Nashir Slice 0 campaign/intake surface. These paths use nashir.campaign.*
+      permission codes and are gated separately from the non-Nashir campaign paths.
+
+paths:
+  /workspaces/{workspaceId}/nashir-campaigns:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [NashirCampaigns]
+      summary: List Nashir campaigns for workspace
+      operationId: listNashirCampaigns
+      x-permission: nashir.campaign.read
+      responses:
+        '200':
+          description: Nashir campaigns returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [NashirCampaigns]
+      summary: Create Nashir campaign intake record
+      operationId: createNashirCampaign
+      x-permission: nashir.campaign.write
+      x-audit-event: nashir.campaign.created
+      x-no-go: workspace_id_accepted_from_body_as_trusted_source
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNashirCampaignRequest'
+      responses:
+        '201':
+          description: Nashir campaign intake record created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/NashirCampaignId'
+    get:
+      tags: [NashirCampaigns]
+      summary: Get Nashir campaign by ID
+      operationId: getNashirCampaign
+      x-permission: nashir.campaign.read
+      responses:
+        '200':
+          description: Nashir campaign returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+components:
+  parameters:
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: >
+        Workspace context identifier. Must be authorized by route path.
+        Must not be trusted from request body (body_workspace_id_trusted: false).
+
+    NashirCampaignId:
+      name: nashirCampaignId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Nashir campaign record identifier.
+
+  schemas:
+    NashirCampaign:
+      type: object
+      required:
+        - nashir_campaign_id
+        - workspace_id
+        - campaign_name
+        - campaign_status
+        - created_at
+      properties:
+        nashir_campaign_id:
+          type: string
+          format: uuid
+          description: Nashir campaign record identifier.
+        workspace_id:
+          type: string
+          format: uuid
+          description: >
+            Route-derived workspace context. Populated from the {workspaceId}
+            route parameter. Never accepted from the request body as trusted input.
+        campaign_name:
+          type: string
+          description: Name of the Nashir campaign intake record.
+        campaign_status:
+          type: string
+          enum:
+            - draft
+            - submitted_for_review
+            - approved
+            - rejected
+            - archived
+          description: Current campaign lifecycle state.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateNashirCampaignRequest:
+      type: object
+      required:
+        - campaign_name
+      additionalProperties: false
+      properties:
+        campaign_name:
+          type: string
+          description: Name of the Nashir campaign intake record.
+      x-rule: >
+        workspace_id must not appear in this request body. Workspace authority
+        is derived exclusively from the {workspaceId} route parameter.
+        rejectBodyWorkspaceId must be called before any state mutation.
+
+    NashirCampaignResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NashirCampaign'
+
+    NashirCampaignListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NashirCampaign'
+
+    ErrorModel:
+      type: object
+      required: [code, message, user_action, correlation_id]
+      properties:
+        code:
+          type: string
+          description: >
+            Machine-readable error code. Nashir-specific codes:
+            PERMISSION_DENIED (403), WORKSPACE_ACCESS_DENIED (403),
+            TENANT_CONTEXT_MISMATCH (422), NASHIR_IDEMPOTENCY_CONFLICT (409),
+            NASHIR_PROCESS_BLOCKED (409), NASHIR_INVALID_STATE_TRANSITION (409).
+          examples:
+            - PERMISSION_DENIED
+            - WORKSPACE_ACCESS_DENIED
+            - TENANT_CONTEXT_MISMATCH
+            - NASHIR_IDEMPOTENCY_CONFLICT
+            - NASHIR_PROCESS_BLOCKED
+            - NASHIR_INVALID_STATE_TRANSITION
+        message:
+          type: string
+          description: Human-readable error description.
+        user_action:
+          type: string
+          description: Suggested corrective action for the caller.
+        correlation_id:
+          type: string
+          description: Request correlation identifier for traceability.
+
+  responses:
+    ErrorResponse:
+      description: Error response using ErrorModel shape
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
