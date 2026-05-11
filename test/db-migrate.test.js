@@ -34,33 +34,49 @@ test("migration runner returns non-zero for signal-terminated psql", () => {
   assert.equal(status, 1);
 });
 
-test("migration runner passes env overrides to psql", () => {
+test("missing DATABASE_URL returns 1", () => {
+  const status = runMigrationsWithLock({
+    root: "/repo/root",
+    env: {},
+    spawnSyncRunner: () => ({ status: 0 }),
+  });
+
+  assert.equal(status, 1);
+});
+
+test("psql argv does not contain DATABASE_URL, PGDATABASE equals original URL, DATABASE_URL and DATABASE_URI excluded from child env", () => {
   let capturedArgs;
-  let spawnOptions;
+  let capturedOptions;
 
   const status = runMigrationsWithLock({
     root: "/repo/root",
-    env: { DATABASE_URL: "postgres://example/db", PGSSLMODE: "require" },
+    env: { DATABASE_URL: "postgres://user:secret@localhost:5432/mydb", DATABASE_URI: "postgres://other/db", PGSSLMODE: "require" },
     spawnSyncRunner: (command, args, options) => {
       capturedArgs = args;
-      spawnOptions = options;
+      capturedOptions = options;
       return { status: 0 };
     },
   });
 
   assert.equal(status, 0);
-  // env forwarding still works
-  assert.equal(spawnOptions.env.DATABASE_URL, "postgres://example/db");
-  assert.equal(spawnOptions.env.PGSSLMODE, "require");
-  // parsed PG vars are injected into env
-  assert.equal(spawnOptions.env.PGHOST, "example");
-  assert.equal(spawnOptions.env.PGDATABASE, "db");
-  // DATABASE_URL must not appear as a positional argv argument
-  assert.ok(!capturedArgs.some(arg => arg.includes("postgres://example/db")), "DATABASE_URL must not be in argv");
-  // core psql options are present
-  assert.ok(capturedArgs.includes("-v"));
-  assert.ok(capturedArgs.includes("ON_ERROR_STOP=1"));
-  assert.ok(capturedArgs.includes("-f"));
+  // DATABASE_URL must not appear in psql argv
+  assert.ok(!capturedArgs.some(arg => arg.includes("postgres://")), "DSN must not appear in argv");
+  assert.ok(!capturedArgs.some(arg => arg.includes("secret")), "password must not appear in argv");
+  // core psql args are present
+  assert.deepStrictEqual(capturedArgs.slice(0, 3), ["-v", "ON_ERROR_STOP=1", "-f"]);
+  assert.equal(capturedArgs.length, 4);
+  assert.ok(
+    capturedArgs[3].endsWith("db-migrate-driver.sql"),
+    "psql must receive the generated migration driver path after -f"
+  );
+  // PGDATABASE must equal the original DATABASE_URL (libpq accepts full connection strings)
+  assert.equal(capturedOptions.env.PGDATABASE, "postgres://user:secret@localhost:5432/mydb");
+  // DATABASE_URL must not be in child env
+  assert.equal(capturedOptions.env.DATABASE_URL, undefined);
+  // DATABASE_URI must not be in child env
+  assert.equal(capturedOptions.env.DATABASE_URI, undefined);
+  // safe env vars are forwarded
+  assert.equal(capturedOptions.env.PGSSLMODE, "require");
 });
 
 test("psql include path escaping normalizes backslashes and escapes single quotes", () => {
@@ -74,32 +90,4 @@ test("db-migrate-retry runCommand returns non-zero when spawnSync status is null
   });
 
   assert.notEqual(exitCode, 0);
-});
-
-test("psql argv does not contain DATABASE_URL and credentials are in env", () => {
-  let capturedArgs;
-  let capturedOptions;
-
-  const status = runMigrationsWithLock({
-    root: "/repo/root",
-    env: { DATABASE_URL: "postgres://user:secret@localhost:5432/mydb" },
-    spawnSyncRunner: (command, args, options) => {
-      capturedArgs = args;
-      capturedOptions = options;
-      return { status: 0 };
-    },
-  });
-
-  assert.equal(status, 0);
-  // DATABASE_URL must not appear in argv
-  assert.ok(!capturedArgs.some(arg => arg.includes("secret")), "password must not appear in argv");
-  assert.ok(!capturedArgs.some(arg => arg.includes("postgres://")), "DSN must not appear in argv");
-  // psql core options are present
-  assert.deepStrictEqual(capturedArgs.slice(0, 3), ["-v", "ON_ERROR_STOP=1", "-f"]);
-  // credentials are forwarded via env
-  assert.equal(capturedOptions.env.PGHOST, "localhost");
-  assert.equal(capturedOptions.env.PGPORT, "5432");
-  assert.equal(capturedOptions.env.PGDATABASE, "mydb");
-  assert.equal(capturedOptions.env.PGUSER, "user");
-  assert.equal(capturedOptions.env.PGPASSWORD, "secret");
 });
