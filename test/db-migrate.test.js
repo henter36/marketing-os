@@ -1,4 +1,5 @@
 const assert = require("assert");
+const { readFileSync } = require("fs");
 const { test } = require("node:test");
 
 const { buildMigrationDriver, escapePsqlIncludePath, migrations, migrationLockKey, runMigrationsWithLock } = require("../scripts/db-migrate");
@@ -44,9 +45,10 @@ test("missing DATABASE_URL returns 1", () => {
   assert.equal(status, 1);
 });
 
-test("psql argv does not contain DATABASE_URL, PGDATABASE equals original URL, DATABASE_URL and DATABASE_URI excluded from child env", () => {
+test("psql argv does not expose DSN; child env uses PGSERVICE/PGSERVICEFILE and excludes DATABASE_URL/DATABASE_URI/PGDATABASE", () => {
   let capturedArgs;
   let capturedOptions;
+  let serviceFileContent;
 
   const status = runMigrationsWithLock({
     root: "/repo/root",
@@ -54,27 +56,34 @@ test("psql argv does not contain DATABASE_URL, PGDATABASE equals original URL, D
     spawnSyncRunner: (command, args, options) => {
       capturedArgs = args;
       capturedOptions = options;
+      // Read service file while temp dir still exists (before finally cleanup)
+      serviceFileContent = readFileSync(options.env.PGSERVICEFILE, "utf8");
       return { status: 0 };
     },
   });
 
   assert.equal(status, 0);
-  // DATABASE_URL must not appear in psql argv
+  // psql argv must not contain the DSN or password
   assert.ok(!capturedArgs.some(arg => arg.includes("postgres://")), "DSN must not appear in argv");
   assert.ok(!capturedArgs.some(arg => arg.includes("secret")), "password must not appear in argv");
-  // core psql args are present
+  // argv is exactly ["-v", "ON_ERROR_STOP=1", "-f", driverPath]
   assert.deepStrictEqual(capturedArgs.slice(0, 3), ["-v", "ON_ERROR_STOP=1", "-f"]);
   assert.equal(capturedArgs.length, 4);
-  assert.equal(capturedArgs[2], "-f");
   assert.equal(typeof capturedArgs[3], "string");
   assert.ok(capturedArgs[3].length > 0, "psql must receive a generated migration driver path after -f");
   assert.ok(capturedArgs[3].endsWith(".sql"), "generated migration driver path must be a SQL file");
-  // PGDATABASE must equal the original DATABASE_URL (libpq accepts full connection strings)
-  assert.equal(capturedOptions.env.PGDATABASE, "postgres://user:secret@localhost:5432/mydb");
   // DATABASE_URL must not be in child env
   assert.equal(capturedOptions.env.DATABASE_URL, undefined);
   // DATABASE_URI must not be in child env
   assert.equal(capturedOptions.env.DATABASE_URI, undefined);
+  // PGDATABASE must not carry the full DSN
+  assert.notEqual(capturedOptions.env.PGDATABASE, "postgres://user:secret@localhost:5432/mydb");
+  // PGSERVICE and PGSERVICEFILE must be present
+  assert.equal(capturedOptions.env.PGSERVICE, "marketing_os_migration");
+  assert.ok(capturedOptions.env.PGSERVICEFILE, "PGSERVICEFILE must be set in child env");
+  // service file must contain the correct libpq service entry
+  assert.ok(serviceFileContent.includes("[marketing_os_migration]"), "service file must contain the service stanza header");
+  assert.ok(serviceFileContent.includes("dbname=postgres://user:secret@localhost:5432/mydb"), "service file must contain the full DSN");
   // safe env vars are forwarded
   assert.equal(capturedOptions.env.PGSSLMODE, "require");
 });

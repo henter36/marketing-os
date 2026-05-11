@@ -44,6 +44,8 @@ function buildMigrationDriver(root = defaultRoot) {
   return lines.join("\n");
 }
 
+const SERVICE_NAME = "marketing_os_migration";
+
 function runMigrationsWithLock({ root, env, spawnSyncRunner = spawnSync }) {
   const databaseUrl = env.DATABASE_URL;
   if (!databaseUrl) {
@@ -53,16 +55,21 @@ function runMigrationsWithLock({ root, env, spawnSyncRunner = spawnSync }) {
 
   const tempDir = mkdtempSync(path.join(tmpdir(), "marketing-os-migrations-"));
   const driverPath = path.join(tempDir, "migration-driver.sql");
+  const serviceFilePath = path.join(tempDir, "pgservice.conf");
 
   try {
     writeFileSync(driverPath, buildMigrationDriver(root), "utf8");
+    writeFileSync(serviceFilePath, `[${SERVICE_NAME}]\ndbname=${databaseUrl}\n`, "utf8");
 
-    // Strip DATABASE_URL and DATABASE_URI from child env; pass the full
-    // connection string via PGDATABASE so libpq handles all parsing.
-    const { DATABASE_URL: _url, DATABASE_URI: _uri, ...safeEnv } = { ...process.env, ...env };
+    const childEnv = { ...process.env, ...env };
+    delete childEnv.DATABASE_URL;
+    delete childEnv.DATABASE_URI;
+    childEnv.PGSERVICEFILE = serviceFilePath;
+    childEnv.PGSERVICE = SERVICE_NAME;
+
     const result = spawnSyncRunner("psql", ["-v", "ON_ERROR_STOP=1", "-f", driverPath], {
       stdio: "inherit",
-      env: { ...safeEnv, PGDATABASE: databaseUrl }
+      env: childEnv
     });
 
     return result.status ?? 1;
