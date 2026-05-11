@@ -30,7 +30,7 @@ function noGoSection(file) {
   if (_cache[key] !== undefined) return _cache[key];
   const lines = docText(file).split("\n");
   const hi = lines.findIndex(l => /^##\s.*go\s*\/\s*no-go/i.test(l));
-  if (hi === -1) { _cache[key] = docText(file); return _cache[key]; }
+  if (hi === -1) { _cache[key] = ""; return ""; }
   const ni = lines.findIndex((l, i) => i > hi && /^##\s/.test(l));
   _cache[key] = lines.slice(hi, ni === -1 ? undefined : ni).join("\n");
   return _cache[key];
@@ -65,10 +65,9 @@ test("src/store.js has no nashir keyword", () => {
 
 // ─── Group 4: OpenAPI YAML files — no Nashir paths or schemas ───────────────
 
-const OPENAPI_DOCS = [
-  "marketing_os_v5_6_5_phase_0_1_openapi.yaml",
-  "marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml"
-];
+const OPENAPI_DOCS = fs
+  .readdirSync(path.join(ROOT, "docs"))
+  .filter(f => f.endsWith(".yaml") && f.includes("openapi"));
 
 for (const yamlFile of OPENAPI_DOCS) {
   test(`${yamlFile} has no nashir path or schema`, () => {
