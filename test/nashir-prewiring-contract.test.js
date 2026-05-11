@@ -109,6 +109,8 @@ for (const yamlFile of OPENAPI_DOCS) {
 }
 
 const DEFERRED_NASHIR_PERMISSIONS = [
+  "nashir.evidence.submit",
+  "nashir.approval.decide",
   "nashir.evidence.read",
   "nashir.approval.read",
   "nashir.intake.create"

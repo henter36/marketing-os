@@ -210,9 +210,10 @@ components:
           type: string
           format: date-time
         updated_at:
-          type: string
-          format: date-time
-          nullable: true
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
 
     CreateNashirCampaignRequest:
       type: object
