@@ -45,13 +45,33 @@ test("src/router.js has no nashir keyword", () => {
   );
 });
 
-// ─── Group 2: src/rbac.js — no Nashir keyword ──────────────────────────────
+// ─── Group 2: src/rbac.js — approved Nashir permission codes only ───────────
 
-test("src/rbac.js has no nashir keyword", () => {
-  assert.ok(
-    !/nashir/i.test(srcText("rbac.js")),
-    "src/rbac.js must not reference nashir in any form"
-  );
+const APPROVED_NASHIR_CODES = [
+  "nashir.campaign.read",
+  "nashir.campaign.write",
+  "nashir.evidence.submit",
+  "nashir.approval.decide"
+];
+
+const DEFERRED_NASHIR_CODES = [
+  "nashir.evidence.read",
+  "nashir.approval.read",
+  "nashir.intake.create"
+];
+
+test("src/rbac.js contains all four approved Nashir permission codes", () => {
+  const rbac = srcText("rbac.js");
+  for (const code of APPROVED_NASHIR_CODES) {
+    assert.ok(rbac.includes(`"${code}"`), `src/rbac.js must contain approved Nashir code: ${code}`);
+  }
+});
+
+test("src/rbac.js does not contain deferred Nashir permission codes", () => {
+  const rbac = srcText("rbac.js");
+  for (const code of DEFERRED_NASHIR_CODES) {
+    assert.ok(!rbac.includes(`"${code}"`), `src/rbac.js must not contain deferred Nashir code: ${code}`);
+  }
 });
 
 // ─── Group 3: src/store.js — no Nashir keyword ─────────────────────────────
