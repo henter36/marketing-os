@@ -2,7 +2,7 @@ const assert = require("assert");
 const { readFileSync } = require("fs");
 const { test } = require("node:test");
 
-const { buildMigrationDriver, escapePsqlIncludePath, migrations, migrationLockKey, runMigrationsWithLock } = require("../scripts/db-migrate");
+const { buildMigrationDriver, escapePsqlIncludePath, migrations, migrationLockKey, parseDatabaseUrl, runMigrationsWithLock } = require("../scripts/db-migrate");
 const { runCommand } = require("../scripts/db-migrate-retry");
 
 test("migration driver serializes approved SQL files behind advisory lock", () => {
@@ -45,7 +45,17 @@ test("missing DATABASE_URL returns 1", () => {
   assert.equal(status, 1);
 });
 
-test("psql argv does not expose DSN; child env uses PGSERVICE/PGSERVICEFILE and excludes DATABASE_URL/DATABASE_URI/PGDATABASE", () => {
+test("invalid DATABASE_URL returns 1 safely", () => {
+  const status = runMigrationsWithLock({
+    root: "/repo/root",
+    env: { DATABASE_URL: "not-a-valid-url" },
+    spawnSyncRunner: () => { throw new Error("psql must not be called for an invalid DATABASE_URL"); },
+  });
+
+  assert.equal(status, 1);
+});
+
+test("psql argv does not expose DSN; service file contains decomposed fields; DATABASE_URL/DATABASE_URI excluded from child env", () => {
   let capturedArgs;
   let capturedOptions;
   let serviceFileContent;
@@ -81,11 +91,32 @@ test("psql argv does not expose DSN; child env uses PGSERVICE/PGSERVICEFILE and 
   // PGSERVICE and PGSERVICEFILE must be present
   assert.equal(capturedOptions.env.PGSERVICE, "marketing_os_migration");
   assert.ok(capturedOptions.env.PGSERVICEFILE, "PGSERVICEFILE must be set in child env");
-  // service file must contain the correct libpq service entry
-  assert.ok(serviceFileContent.includes("[marketing_os_migration]"), "service file must contain the service stanza header");
-  assert.ok(serviceFileContent.includes("dbname=postgres://user:secret@localhost:5432/mydb"), "service file must contain the full DSN");
+  // service file must contain decomposed connection fields — not the full URI
+  assert.ok(serviceFileContent.includes("[marketing_os_migration]"), "service file must contain the service stanza");
+  assert.ok(serviceFileContent.includes("host=localhost"), "service file must contain host");
+  assert.ok(serviceFileContent.includes("port=5432"), "service file must contain port");
+  assert.ok(serviceFileContent.includes("dbname=mydb"), "service file must contain dbname");
+  assert.ok(serviceFileContent.includes("user=user"), "service file must contain user");
+  assert.ok(serviceFileContent.includes("password=secret"), "service file must contain password");
+  assert.ok(!serviceFileContent.includes("postgres://"), "service file must not contain the full DSN URI");
   // safe env vars are forwarded
   assert.equal(capturedOptions.env.PGSSLMODE, "require");
+});
+
+test("sslmode in DATABASE_URL is preserved in service file", () => {
+  let serviceFileContent;
+
+  const status = runMigrationsWithLock({
+    root: "/repo/root",
+    env: { DATABASE_URL: "postgres://user:pass@db.example.com:5432/mydb?sslmode=require" },
+    spawnSyncRunner: (command, args, options) => {
+      serviceFileContent = readFileSync(options.env.PGSERVICEFILE, "utf8");
+      return { status: 0 };
+    },
+  });
+
+  assert.equal(status, 0);
+  assert.ok(serviceFileContent.includes("sslmode=require"), "service file must contain sslmode from DATABASE_URL query param");
 });
 
 test("psql include path escaping normalizes backslashes and escapes single quotes", () => {
