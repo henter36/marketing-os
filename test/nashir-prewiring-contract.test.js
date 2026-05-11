@@ -12,13 +12,13 @@ const _cache = Object.create(null);
 
 function srcText(file) {
   const key = "src:" + file;
-  if (!_cache[key]) _cache[key] = fs.readFileSync(path.join(ROOT, "src", file), "utf8");
+  if (_cache[key] === undefined) _cache[key] = fs.readFileSync(path.join(ROOT, "src", file), "utf8");
   return _cache[key];
 }
 
 function docText(file) {
   const key = "doc:" + file;
-  if (!_cache[key]) _cache[key] = fs.readFileSync(path.join(ROOT, "docs", file), "utf8");
+  if (_cache[key] === undefined) _cache[key] = fs.readFileSync(path.join(ROOT, "docs", file), "utf8");
   return _cache[key];
 }
 
@@ -45,10 +45,10 @@ test("src/router.js has no /nashir or /nashir/ route path segment", () => {
   );
 });
 
-test("src/router.js has no require of nashir modules", () => {
+test("src/router.js has no nashir module wiring (require, import, dynamic import)", () => {
   assert.ok(
-    !/require\([^)]*nashir/.test(srcText("router.js")),
-    "src/router.js must not require any nashir module"
+    !/require\([^)]*nashir|import\b[^;]*nashir/i.test(srcText("router.js")),
+    "src/router.js must not wire nashir modules via require(), static import, or dynamic import()"
   );
 });
 
@@ -88,23 +88,15 @@ test("src/store.js has no nashir keyword", () => {
 // ─── Group 4: OpenAPI YAML files — no Nashir paths or schemas ───────────────
 
 test("OpenAPI phase 0/1 YAML has no nashir path or schema", () => {
-  const yaml = fs.readFileSync(
-    path.join(ROOT, "docs", "marketing_os_v5_6_5_phase_0_1_openapi.yaml"),
-    "utf8"
-  );
   assert.ok(
-    !/nashir/i.test(yaml),
+    !/nashir/i.test(docText("marketing_os_v5_6_5_phase_0_1_openapi.yaml")),
     "marketing_os_v5_6_5_phase_0_1_openapi.yaml must not contain nashir paths or schemas"
   );
 });
 
 test("OpenAPI Patch 002 YAML has no nashir path or schema", () => {
-  const yaml = fs.readFileSync(
-    path.join(ROOT, "docs", "marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml"),
-    "utf8"
-  );
   assert.ok(
-    !/nashir/i.test(yaml),
+    !/nashir/i.test(docText("marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml")),
     "marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml must not contain nashir paths or schemas"
   );
 });
