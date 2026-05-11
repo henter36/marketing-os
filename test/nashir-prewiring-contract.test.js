@@ -80,13 +80,34 @@ test("src/store.js has no nashir keyword", () => {
   );
 });
 
-// ─── Group 4: OpenAPI YAML files — no Nashir paths or schemas ───────────────
+// ─── Group 4: OpenAPI YAML files — content-based classification ──────────────
+// A YAML is OpenAPI if its content contains a top-level `openapi:` key.
+// A Nashir OpenAPI file is an OpenAPI file whose content also contains "nashir".
 
-const OPENAPI_DOCS = fs
+function isOpenApiSpec(f) {
+  return /^\s*openapi\s*:/m.test(docText(f));
+}
+
+const ALL_YAML_FILES = fs
   .readdirSync(path.join(ROOT, "docs"))
-  .filter(f => f.endsWith(".yaml") && f.includes("openapi"));
+  .filter(f => f.endsWith(".yaml"));
 
-assert.ok(OPENAPI_DOCS.length > 0, "At least one OpenAPI specification must be present for verification");
+const OPENAPI_DOCS = ALL_YAML_FILES.filter(
+  f => isOpenApiSpec(f) && !/\bnashir\b/i.test(docText(f))
+);
+
+const NASHIR_OPENAPI_DOCS = ALL_YAML_FILES.filter(
+  f => isOpenApiSpec(f) && /\bnashir\b/i.test(docText(f))
+);
+
+const NASHIR_OPENAPI_WHITELIST = ["nashir_openapi_patch.yaml"];
+
+assert.ok(OPENAPI_DOCS.length > 0, "At least one non-Nashir OpenAPI specification must be present for verification");
+assert.deepStrictEqual(
+  [...NASHIR_OPENAPI_DOCS].sort(),
+  [...NASHIR_OPENAPI_WHITELIST].sort(),
+  "Nashir OpenAPI docs must exactly match the approved whitelist"
+);
 
 for (const yamlFile of OPENAPI_DOCS) {
   test(`${yamlFile} has no nashir path or schema`, () => {
@@ -94,6 +115,39 @@ for (const yamlFile of OPENAPI_DOCS) {
       !/nashir/i.test(docText(yamlFile)),
       `${yamlFile} must not contain nashir paths or schemas`
     );
+  });
+}
+
+const DEFERRED_NASHIR_PERMISSIONS = [
+  "nashir.evidence.submit",
+  "nashir.approval.decide",
+  "nashir.evidence.read",
+  "nashir.approval.read",
+  "nashir.intake.create"
+];
+
+// Regex-based x-permission check — tolerates optional whitespace and quotes.
+function matchesXPermission(yaml, code) {
+  const escaped = code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^\\s*x-permission\\s*:\\s*["']?${escaped}["']?\\s*$`, "m").test(yaml);
+}
+
+for (const yamlFile of NASHIR_OPENAPI_DOCS) {
+  test(`${yamlFile} contains nashir content`, () => {
+    assert.ok(
+      /nashir/i.test(docText(yamlFile)),
+      `${yamlFile} must contain Nashir paths or schemas`
+    );
+  });
+
+  test(`${yamlFile} does not expose deferred Nashir permission codes`, () => {
+    const yaml = docText(yamlFile);
+    for (const code of DEFERRED_NASHIR_PERMISSIONS) {
+      assert.ok(
+        !matchesXPermission(yaml, code),
+        `${yamlFile} must not expose deferred permission: ${code}`
+      );
+    }
   });
 }
 
