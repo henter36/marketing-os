@@ -162,7 +162,7 @@ Before any PR that modifies OpenAPI YAML files for Nashir may open, all of the f
 
 2. **Exact first route identified** — the specific HTTP method, path template, handler behavior, and minimum viable request/response contract for the first Nashir route must be specified. The activation PR must map this to an existing or new OpenAPI operation.
 
-3. **All eight definitions in Section 8 satisfied** — every item in the required-definitions checklist must be documented in the activation PR's planning gate before the activation PR opens.
+3. **All ten definitions in Section 8 satisfied** — every item in the required-definitions checklist must be documented in the activation PR's planning gate before the activation PR opens.
 
 4. **Reuse-first review completed** — a review confirming that existing Phase 0/1 paths and schemas from `docs/nashir_openapi_patch_proposal.md` cannot represent the flow (if a new path is proposed) must be documented.
 
