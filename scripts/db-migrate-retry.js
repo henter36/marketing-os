@@ -5,7 +5,8 @@ const root = path.resolve(__dirname, "..");
 const migrationRunner = path.join(__dirname, "db-migrate.js");
 
 function runCommand(command, args, options = {}) {
-  const result = spawnSync(command, args, {
+  const spawnFn = options._spawnSync || spawnSync;
+  const result = spawnFn(command, args, {
     cwd: root,
     env: options.env || process.env,
     stdio: options.stdio || "inherit"
@@ -16,7 +17,7 @@ function runCommand(command, args, options = {}) {
     return 1;
   }
 
-  return result.status || 0;
+  return result.status ?? 1;
 }
 
 function run() {
@@ -51,4 +52,4 @@ if (require.main === module) {
   process.exit(run());
 }
 
-module.exports = { run };
+module.exports = { run, runCommand };

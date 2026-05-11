@@ -44,16 +44,42 @@ function buildMigrationDriver(root = defaultRoot) {
   return lines.join("\n");
 }
 
+function parseDatabaseUrl(databaseUrl) {
+  let url;
+  try {
+    url = new URL(databaseUrl);
+  } catch {
+    throw new Error("DATABASE_URL is not a valid URL");
+  }
+  const pgEnv = {};
+  if (url.hostname) pgEnv.PGHOST = url.hostname;
+  if (url.port) pgEnv.PGPORT = url.port;
+  if (url.pathname && url.pathname.length > 1) pgEnv.PGDATABASE = url.pathname.slice(1);
+  if (url.username) pgEnv.PGUSER = decodeURIComponent(url.username);
+  if (url.password) pgEnv.PGPASSWORD = decodeURIComponent(url.password);
+  const sslmode = url.searchParams.get("sslmode");
+  if (sslmode) pgEnv.PGSSLMODE = sslmode;
+  return pgEnv;
+}
+
 function runMigrationsWithLock({ root, env, spawnSyncRunner = spawnSync }) {
+  let pgEnv;
+  try {
+    pgEnv = parseDatabaseUrl(env.DATABASE_URL || "");
+  } catch (err) {
+    console.error(err.message);
+    return 1;
+  }
+
   const tempDir = mkdtempSync(path.join(tmpdir(), "marketing-os-migrations-"));
   const driverPath = path.join(tempDir, "migration-driver.sql");
 
   try {
     writeFileSync(driverPath, buildMigrationDriver(root), "utf8");
 
-    const result = spawnSyncRunner("psql", [env.DATABASE_URL, "-v", "ON_ERROR_STOP=1", "-f", driverPath], {
+    const result = spawnSyncRunner("psql", ["-v", "ON_ERROR_STOP=1", "-f", driverPath], {
       stdio: "inherit",
-      env: { ...process.env, ...env }
+      env: { ...process.env, ...env, ...pgEnv }
     });
 
     return result.status ?? 1;
@@ -109,6 +135,7 @@ module.exports = {
   isStrictMode,
   migrations,
   migrationLockKey,
+  parseDatabaseUrl,
   run,
   runMigrationsWithLock,
   validateMigrationFiles
