@@ -115,7 +115,7 @@ The current `src/store.js` is the Patch 002-era store. It layers on top of `src/
 **Rationale:**
 1. Directly resolves Blocker 2 without any SQL, DB, migration, or OpenAPI changes.
 2. Follows the exact same additive `store.field ||= [...]` pattern used for all Patch 002 entities.
-3. Establishes a stable entity shape (`nashir_campaign_id`, `workspace_id`, `campaign_name`, `campaign_status`, `created_at`, `updated_at`) that the service/repository implementation (Blocker 4) can build against.
+3. Establishes a stable entity shape (`nashir_campaign_id`, `workspace_id`, `campaign_name`, `campaign_status`, `created_by_user_id`, `created_at`, `updated_at`) that the service/repository implementation (Blocker 4) can build against.
 4. Contains no route exposure risk — `src/store.js` changes are not routed unless `src/router.js` explicitly dispatches to them.
 5. Does not authorize DB access, SQL changes, generated client updates, or route wiring.
 
@@ -135,7 +135,7 @@ The future implementation PR must use this entity shape, derived from the `Nashi
 }
 ```
 
-> **Scope note:** The `campaign_status` values are an internal store-readiness lifecycle envelope aligned with the D-009 state machine and existing decision-log lifecycle concepts (`draft → generated → in_review → approved/rejected`, with `requires_reapproval`, `blocked_until_review`, and `published` as additional envelope states). `created_by_user_id` is included for future ownership, audit, and RBAC-readiness only. Adding these fields to the in-memory entity shape does not authorize OpenAPI YAML changes, route exposure, publishing workflow implementation, or service/repository method implementation.
+> **Scope note:** The `campaign_status` values are an internal store-readiness lifecycle envelope aligned with the D-009 state machine and existing decision-log lifecycle concepts (`draft → generated → in_review → approved/rejected`, with `archived`, `requires_reapproval`, `blocked_until_review`, and `published` as additional envelope states). `created_by_user_id` is included for future ownership, audit, and RBAC-readiness only. Adding these fields to the in-memory entity shape does not authorize OpenAPI YAML changes, route exposure, publishing workflow implementation, service/repository method implementation, or DB-backed persistence.
 
 Seed data must include exactly **two records** — one for `workspace-a` and one for `workspace-b` — following the pattern established by all other seed entities in the store chain.
 
@@ -176,7 +176,7 @@ The future implementation PR is GO only if ALL of the following are satisfied:
 2. Each seed entity has all required fields: `nashir_campaign_id`, `workspace_id`, `campaign_name`, `campaign_status`, `created_by_user_id`, `created_at`, `updated_at`.
 3. Exactly two seed entities are present: one for `workspace-a`, one for `workspace-b`.
 4. `nashir_campaign_id` values are distinct from all existing `campaign_id` values (no cross-collection ID collision).
-5. `workspace_id` values in Nashir entities are never derived from a request body; they match the workspace scope of each seed entity.
+5. `workspace_id` values in Nashir seed entities match the workspace scope of each record (`workspace-a` or `workspace-b`).
 6. No Nashir route is registered in `src/router.js`.
 7. No Nashir keyword appears in `src/router.js` or `src/server.js`.
 8. All existing tests (148/148 as of PR #174 baseline) still pass.
