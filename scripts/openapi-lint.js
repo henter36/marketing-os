@@ -20,10 +20,15 @@ if (!existsSync(specPath)) {
   process.exit(0);
 }
 
+if (strict && !existsSync(nashirPatchPath)) {
+  console.error("Strict OpenAPI lint requires docs/nashir_openapi_patch.yaml, but it was not found.");
+  process.exit(1);
+}
+
 const baseSpec = readFileSync(specPath, "utf8");
 const sprint3Patch = existsSync(sprint3PatchPath) ? readFileSync(sprint3PatchPath, "utf8") : "";
 const patch002 = strict && existsSync(patch002Path) ? readFileSync(patch002Path, "utf8") : "";
-const nashirPatch = strict && existsSync(nashirPatchPath) ? readFileSync(nashirPatchPath, "utf8") : "";
+const nashirPatch = strict ? readFileSync(nashirPatchPath, "utf8") : "";
 const spec = `${baseSpec}\n${sprint3Patch}\n${patch002}\n${nashirPatch}`;
 const requiredFragments = [
   "openapi: 3.1.0",

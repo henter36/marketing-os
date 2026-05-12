@@ -35,10 +35,13 @@ function routeExistsInSpec(spec, route) {
   return false;
 }
 
-// ─── Nashir patch existence ──────────────────────────────────────────────────
+// ─── Nashir patch existence — strict lint exits with code 1 when absent ──────
 
-test("docs/nashir_openapi_patch.yaml exists for lint inclusion", () => {
-  assert.ok(fs.existsSync(NASHIR_PATCH_PATH), "docs/nashir_openapi_patch.yaml must exist");
+test("docs/nashir_openapi_patch.yaml exists — strict lint exits with code 1 when absent", () => {
+  assert.ok(
+    fs.existsSync(NASHIR_PATCH_PATH),
+    "docs/nashir_openapi_patch.yaml must exist — strict lint calls process.exit(1) when this file is missing"
+  );
 });
 
 // ─── Route coverage: base spec does NOT contain the nashir route ─────────────
@@ -110,7 +113,7 @@ test("x-permission values declared in nashir_openapi_patch.yaml are all present 
 // ─── patch002 route coverage still works (no regression) ────────────────────
 
 test("patch002 routes are still recognized when patch002 spec is appended to base spec", () => {
-  if (!fs.existsSync(PATCH002_PATH)) return;
+  assert.ok(fs.existsSync(PATCH002_PATH), "docs/marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml must exist");
   const baseSpec = fs.readFileSync(BASE_SPEC_PATH, "utf8");
   const patch002 = fs.readFileSync(PATCH002_PATH, "utf8");
   const combined = `${baseSpec}\n${patch002}`;
