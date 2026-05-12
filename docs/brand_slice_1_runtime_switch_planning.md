@@ -270,9 +270,9 @@ Do not start Slice 2 before proving runtime switching for Brand.
 ## 17. Final decision
 
 - Brand Slice 1 Runtime Switch Planning: GO.
-- Brand runtime switch implementation: NO-GO until reviewed.
+- Brand runtime switch implementation: GO after plan review; implemented as gated Brand-only mode in PR #48.
 - Brand repository-only Slice 1: GO / merged / verified.
-- Brand runtime route switch: NO-GO.
+- NO-GO for additional DB-backed route switching expansion beyond the approved four Brand routes unless explicitly approved.
 - Public Brand get/update routes: NO-GO.
 - DB-backed full persistence: NO-GO.
 - Campaign persistence: NO-GO.

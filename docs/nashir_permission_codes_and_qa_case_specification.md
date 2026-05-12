@@ -205,8 +205,8 @@ The following remain forbidden:
 - `migrations/**`
 - `scripts/**`
 - `prototype/**`
-- `router.js`
-- `store.js`
+- `src/router.js`
+- `src/store.js`
 - `server.js`
 - runtime files
 - external integrations
