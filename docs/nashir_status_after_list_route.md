@@ -34,7 +34,7 @@ Both routes use:
 
 - `workspaceContextGuard`
 - `authGuard`
-- non-disclosing active membership lookup returning `404` when membership is missing
+- Returns 404 for non-disclosure for an unknown workspace, missing active membership, or (on the read-by-id route) an unknown/cross-workspace campaign.
 - `permissionGuard` with `nashir.campaign.read`
 - `NashirSlice0Service`
 - `NashirSlice0Repository`
@@ -56,7 +56,7 @@ The read-by-id route uses:
 - List route returns `200` with `{ data: [...] }` for an authorized workspace member.
 - Read-by-id route returns `200` with `{ data: campaign }` for an authorized workspace member when the campaign exists in the route-derived workspace.
 - Empty existing workspaces return `200` with `{ data: [] }` only after authentication, active membership, and `nashir.campaign.read` permission are confirmed.
-- Unknown workspace, cross-workspace campaign, unknown campaign, or missing active membership returns `404` for non-disclosure.
+- Returns `404` for non-disclosure for an unknown workspace, missing active membership, or (on the read-by-id route) an unknown/cross-workspace campaign.
 - A valid active workspace member without `nashir.campaign.read` returns `403`.
 - Request body `workspace_id` is not trusted for workspace scoping.
 
