@@ -36,12 +36,34 @@ function noGoSection(file) {
   return _cache[key];
 }
 
-// ─── Group 1: src/router.js — no Nashir keyword ────────────────────────────
+// ─── Group 1: src/router.js — approved Nashir read-by-id route pattern only ──
+// PR #180 approved wiring of GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}.
+// Strip only the approved identifiers before checking for unauthorized Nashir references.
 
-test("src/router.js has no nashir keyword", () => {
+test("src/router.js exposes only the approved nashir read-by-id route pattern", () => {
+  const withoutApproved = srcText("router.js")
+    // Class names (PR #180 approved constructor injection)
+    .replace(/\bNashirSlice0Repository\b/g, "")
+    .replace(/\bNashirSlice0Service\b/g, "")
+    // Module require paths
+    .replace(/\.\/nashir\/backend-slice0-(?:repository|service)/g, "")
+    // Collection and URL identifiers
+    .replace(/\bnashirCampaigns\b/g, "")
+    .replace(/\bnashirCampaignId\b/g, "")
+    .replace(/\bnashir-campaigns\b/gi, "")
+    // Permission code
+    .replace(/\bnashir\.campaign\.read\b/g, "")
+    // Router function and variable names introduced by the approved wiring
+    .replace(/\bnashirRoutes\b/g, "")
+    .replace(/\brouteNashir\b/g, "")
+    .replace(/\bisNashirPath\b/g, "")
+    // Local variables inside the approved route handler
+    .replace(/\bnashirRepository\b/g, "")
+    .replace(/\bnashirService\b/g, "");
+
   assert.ok(
-    !/nashir/i.test(srcText("router.js")),
-    "src/router.js must not reference nashir in any form"
+    !/nashir/i.test(withoutApproved),
+    "src/router.js must not reference nashir beyond the approved read-by-id route pattern"
   );
 });
 
