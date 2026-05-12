@@ -203,12 +203,12 @@ The following transitions are planning-level candidates only:
 | `approved` | detect material change or new risk | `requires_reapproval` |
 | `requires_reapproval` | revise and generate updated reviewable version | `generated` |
 | `generated` | detect blocking risk | `blocked_until_review` |
-| `blocked_until_review` | Human review of blocking condition | `in_review` |
+| `blocked_until_review` | human review of blocking condition | `in_review` |
 | `rejected` | revise and generate updated reviewable version | `generated` |
 | `approved` | archive approved content | `archived` |
 | `rejected` | archive rejected content | `archived` |
 | `blocked_until_review` | archive blocked content | `archived` |
-| `requires_reapproval` | archive content | `archived` |
+| `requires_reapproval` | archive reapproval content | `archived` |
 
 `requires_reapproval` revisions move to `generated`, then follow the standard `generated` -> `in_review` path. Reapproval requires a new human review cycle. `blocked_until_review` cannot move directly to `approved`. `rejected` cannot move directly to `approved` without revision and a new review cycle.
 
