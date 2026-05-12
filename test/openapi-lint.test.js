@@ -101,7 +101,13 @@ test("x-permission values declared in nashir_openapi_patch.yaml are all present 
   const { permissions } = require("../src/rbac");
   const permissionCodes = new Set(permissions.map((p) => p.permission_code));
   const patch = fs.readFileSync(NASHIR_PATCH_PATH, "utf8");
-  const declaredPermissions = [...patch.matchAll(/x-permission:\s*([a-z0-9_.-]+)/g)].map((m) => m[1]);
+  const declaredPermissions = [
+    ...patch.matchAll(/x-permission:\s*["']?([A-Za-z0-9_.-]+)["']?/g),
+  ].map((m) => m[1].toLowerCase());
+  assert.ok(
+    declaredPermissions.length > 0,
+    "Expected at least one x-permission declaration in nashir_openapi_patch.yaml"
+  );
   const unknown = declaredPermissions.filter((code) => !permissionCodes.has(code));
   assert.deepStrictEqual(
     unknown,
