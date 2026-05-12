@@ -601,16 +601,25 @@ async function routeNashir(req, path, body, store, nashirService) {
   if (req.method !== "GET") throw notFound();
 
   const workspaceId = workspaceContextGuard({ workspaceId: workspaceMatch[1] });
+  const nashirCampaignId = workspaceMatch[2];
+  if (!nashirCampaignId) {
+    const user = authGuard(req, store);
+    const membership = store.memberships.find(
+      (candidate) =>
+        candidate.user_id === user.user_id &&
+        candidate.workspace_id === workspaceId &&
+        candidate.member_status === "active"
+    );
+    if (!membership) throw notFound();
+    permissionGuard(membership, "nashir.campaign.read");
+    const items = await nashirService.listCampaigns({ workspaceId });
+    return ok(items);
+  }
+
   findWorkspace(store, workspaceId);
   const user = authGuard(req, store);
   const membership = membershipCheck(user, workspaceId, store);
   permissionGuard(membership, "nashir.campaign.read");
-
-  const nashirCampaignId = workspaceMatch[2];
-  if (!nashirCampaignId) {
-    const items = await nashirService.listCampaigns({ workspaceId });
-    return ok(items);
-  }
 
   const result = await nashirService.getCampaignById({ workspaceId, nashirCampaignId });
   if (result === null) throw notFound();

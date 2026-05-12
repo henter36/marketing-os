@@ -60,9 +60,8 @@ Service behavior:
 The route uses the existing guard pattern:
 
 - `workspaceContextGuard`
-- `findWorkspace` for unknown workspace 404 handling
 - `authGuard`
-- `membershipCheck`
+- active membership lookup with non-disclosure behavior
 - `permissionGuard`
 
 Permission used:
@@ -72,6 +71,8 @@ nashir.campaign.read
 ```
 
 `workspaceId` is derived from the URL path only. Request body `workspace_id` is not used for filtering.
+
+For the list route, authentication runs before membership evaluation. Missing membership returns `404` rather than `403` so the route does not disclose whether a workspace exists to non-members. Unknown or non-existent workspaces also return `404`. Empty existing workspaces return `200` with `[]` only after active membership and `nashir.campaign.read` permission are confirmed.
 
 ## Scope Boundaries Preserved
 
@@ -97,9 +98,9 @@ nashir.campaign.read
 
 - List route returns 200 with `{ data: [...] }` for workspace-a.
 - List route returns only workspace-scoped Nashir campaigns.
-- Empty existing workspace returns `[]`.
+- Empty existing workspace returns `[]` only for callers with confirmed active membership and `nashir.campaign.read`.
 - Unknown workspace returns 404.
-- Missing membership returns 403.
+- Missing membership returns 404 for non-disclosure.
 - Missing `nashir.campaign.read` permission returns 403.
 - Request body `workspace_id` does not affect filtering.
 - POST list path remains unregistered.

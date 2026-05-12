@@ -58,10 +58,10 @@ test("GET nashir-campaigns returns 404 for unknown workspace", async () => {
   assert.strictEqual(res.status, 404);
 });
 
-test("GET nashir-campaigns returns 403 for user with no workspace membership", async () => {
+test("GET nashir-campaigns returns 404 for user with no workspace membership", async () => {
   const server = await createTestServer();
   const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, { userId: OUTSIDER });
-  assert.strictEqual(res.status, 403);
+  assert.strictEqual(res.status, 404);
 });
 
 test("GET nashir-campaigns returns 403 for user lacking nashir.campaign.read", async () => {
