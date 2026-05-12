@@ -108,10 +108,19 @@ test("nashir_campaign_id UUID format is the primary differentiator from human-re
 
 test("nashirCampaigns entities are workspace-scoped — no cross-workspace seed leakage", () => {
   const store = createSeedStore();
-  const wsA = store.nashirCampaigns.find((c) => c.workspace_id === "workspace-a");
-  const wsB = store.nashirCampaigns.find((c) => c.workspace_id === "workspace-b");
-  assert.ok(wsA, "workspace-a entity must exist");
-  assert.ok(wsB, "workspace-b entity must exist");
+
+  const allowedWorkspaceIds = new Set(["workspace-a", "workspace-b"]);
+  const actualWorkspaceIds = new Set(store.nashirCampaigns.map((c) => c.workspace_id));
+
+  assert.ok(actualWorkspaceIds.has("workspace-a"), "workspace-a entity must exist");
+  assert.ok(actualWorkspaceIds.has("workspace-b"), "workspace-b entity must exist");
+
+  for (const workspaceId of actualWorkspaceIds) {
+    assert.ok(
+      allowedWorkspaceIds.has(workspaceId),
+      `unexpected Nashir workspace_id seed value: ${workspaceId}`
+    );
+  }
 });
 
 test("store.nashirCampaigns is additive — existing collections are unchanged", () => {
