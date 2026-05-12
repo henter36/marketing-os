@@ -3,7 +3,7 @@
 ## 1. Status
 
 ```text
-Implementation PR:           docs/nashir-read-route-wiring (this branch)
+Implementation PR:           feat/nashir-read-route (this branch)
 Gate document:               docs/nashir_read_route_wiring_gate.md (PR #180)
 Route implemented:           GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}
 All tests pass:              195/195 (up from 185 baseline — 10 new route tests)
