@@ -18,6 +18,18 @@ class NashirSlice0Repository {
     return campaign ? { ...campaign } : null;
   }
 
+  async listCampaigns({ workspaceId } = {}) {
+    if (!this.store || !Array.isArray(this.store.nashirCampaigns)) {
+      return [];
+    }
+    if (!workspaceId) {
+      return [];
+    }
+    return this.store.nashirCampaigns
+      .filter((campaign) => campaign && campaign.workspace_id === workspaceId)
+      .map((campaign) => ({ ...campaign }));
+  }
+
   async saveCampaign(campaign) {
     throw new Error("not implemented");
   }

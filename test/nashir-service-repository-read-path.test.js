@@ -88,6 +88,75 @@ test("repository can find both workspace-a and workspace-b seed records independ
   assert.notStrictEqual(campaignA.nashir_campaign_id, campaignB.nashir_campaign_id);
 });
 
+// ─── Repository: listCampaigns ───────────────────────────────────────────────
+
+test("repository listCampaigns returns only campaigns for the requested workspace", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const campaigns = await repo.listCampaigns({ workspaceId: WORKSPACE_A });
+
+  assert.strictEqual(campaigns.length, 1);
+  assert.strictEqual(campaigns[0].nashir_campaign_id, CAMPAIGN_A_ID);
+  assert.ok(campaigns.every((campaign) => campaign.workspace_id === WORKSPACE_A));
+  assert.ok(!campaigns.some((campaign) => campaign.nashir_campaign_id === CAMPAIGN_B_ID));
+});
+
+test("repository listCampaigns returns [] when workspaceId is missing", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const campaigns = await repo.listCampaigns();
+
+  assert.deepStrictEqual(campaigns, []);
+});
+
+test("repository listCampaigns returns [] when no campaigns match", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const campaigns = await repo.listCampaigns({ workspaceId: "workspace-empty" });
+
+  assert.deepStrictEqual(campaigns, []);
+});
+
+test("repository listCampaigns returns shallow clones, not original store objects", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const campaigns = await repo.listCampaigns({ workspaceId: WORKSPACE_A });
+  const original = store.nashirCampaigns.find(
+    (campaign) => campaign.workspace_id === WORKSPACE_A && campaign.nashir_campaign_id === CAMPAIGN_A_ID
+  );
+
+  assert.notStrictEqual(campaigns[0], original);
+  assert.deepStrictEqual(campaigns[0], original);
+});
+
+test("mutating a listed campaign does not mutate store.nashirCampaigns", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const original = store.nashirCampaigns.find(
+    (campaign) => campaign.workspace_id === WORKSPACE_A && campaign.nashir_campaign_id === CAMPAIGN_A_ID
+  );
+  const originalName = original.campaign_name;
+
+  const campaigns = await repo.listCampaigns({ workspaceId: WORKSPACE_A });
+  campaigns[0].campaign_name = "MUTATED";
+
+  assert.strictEqual(original.campaign_name, originalName);
+});
+
+test("repository listCampaigns does not mutate store.nashirCampaigns", async () => {
+  const store = createSeedStore();
+  const originalLength = store.nashirCampaigns.length;
+  const repo = createNashirSlice0Repository({ store });
+
+  await repo.listCampaigns({ workspaceId: WORKSPACE_A });
+
+  assert.strictEqual(store.nashirCampaigns.length, originalLength);
+});
+
 // ─── Repository: inert write/evidence methods ────────────────────────────────
 
 test("repository saveCampaign remains not implemented", async () => {
@@ -161,6 +230,44 @@ test("service delegates to repository.findCampaignById with correct args", async
 
   assert.strictEqual(calls.length, 1, "findCampaignById must be called exactly once");
   assert.deepStrictEqual(calls[0], { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+});
+
+// ─── Service: listCampaigns ─────────────────────────────────────────────────
+
+test("service listCampaigns delegates to repository and returns matching campaigns", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+
+  const campaigns = await svc.listCampaigns({ workspaceId: WORKSPACE_A });
+
+  assert.strictEqual(campaigns.length, 1);
+  assert.strictEqual(campaigns[0].nashir_campaign_id, CAMPAIGN_A_ID);
+  assert.strictEqual(campaigns[0].workspace_id, WORKSPACE_A);
+});
+
+test("service listCampaigns returns [] when no repository is injected", async () => {
+  const svc = createNashirSlice0Service();
+
+  const campaigns = await svc.listCampaigns({ workspaceId: WORKSPACE_A });
+
+  assert.deepStrictEqual(campaigns, []);
+});
+
+test("service delegates to repository.listCampaigns with correct args", async () => {
+  const calls = [];
+  const fakeRepo = {
+    listCampaigns(args) {
+      calls.push(args);
+      return Promise.resolve([{ nashir_campaign_id: CAMPAIGN_A_ID, workspace_id: WORKSPACE_A }]);
+    },
+  };
+  const svc = createNashirSlice0Service({ repository: fakeRepo });
+
+  await svc.listCampaigns({ workspaceId: WORKSPACE_A });
+
+  assert.strictEqual(calls.length, 1, "listCampaigns must be called exactly once");
+  assert.deepStrictEqual(calls[0], { workspaceId: WORKSPACE_A });
 });
 
 // ─── Service: inert approval/evidence/create methods ────────────────────────
