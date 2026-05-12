@@ -126,9 +126,9 @@ The future implementation PR must use this entity shape, derived from the `Nashi
 ```js
 {
   nashir_campaign_id: "<string: uuid-format>",
-  workspace_id: "<string: uuid-format>",
+  workspace_id: "<string>",
   campaign_name: "<string>",
-  campaign_status: "draft" | "submitted_for_review" | "approved" | "rejected" | "archived",
+  campaign_status: "draft" | "generated" | "in_review" | "approved" | "rejected" | "archived",
   created_at: "<string: ISO 8601>",
   updated_at: "<string: ISO 8601>"
 }
