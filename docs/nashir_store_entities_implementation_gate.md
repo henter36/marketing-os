@@ -128,11 +128,14 @@ The future implementation PR must use this entity shape, derived from the `Nashi
   nashir_campaign_id: "<string: uuid-format>",
   workspace_id: "<string>",
   campaign_name: "<string>",
-  campaign_status: "draft" | "generated" | "in_review" | "approved" | "rejected" | "archived",
+  campaign_status: "draft" | "generated" | "in_review" | "approved" | "rejected" | "archived" | "requires_reapproval" | "blocked_until_review" | "published",
+  created_by_user_id: "<string>",
   created_at: "<string: ISO 8601>",
   updated_at: "<string: ISO 8601>"
 }
 ```
+
+> **Scope note:** The `campaign_status` values are an internal store-readiness lifecycle envelope aligned with the D-009 state machine and existing decision-log lifecycle concepts (`draft → generated → in_review → approved/rejected`, with `requires_reapproval`, `blocked_until_review`, and `published` as additional envelope states). `created_by_user_id` is included for future ownership, audit, and RBAC-readiness only. Adding these fields to the in-memory entity shape does not authorize OpenAPI YAML changes, route exposure, publishing workflow implementation, or service/repository method implementation.
 
 Seed data must include exactly **two records** — one for `workspace-a` and one for `workspace-b` — following the pattern established by all other seed entities in the store chain.
 
@@ -170,7 +173,7 @@ No other files are in scope.
 The future implementation PR is GO only if ALL of the following are satisfied:
 
 1. `store.nashirCampaigns` is initialized in `src/store.js` using `||=` pattern.
-2. Each seed entity has all required fields: `nashir_campaign_id`, `workspace_id`, `campaign_name`, `campaign_status`, `created_at`, `updated_at`.
+2. Each seed entity has all required fields: `nashir_campaign_id`, `workspace_id`, `campaign_name`, `campaign_status`, `created_by_user_id`, `created_at`, `updated_at`.
 3. Exactly two seed entities are present: one for `workspace-a`, one for `workspace-b`.
 4. `nashir_campaign_id` values are distinct from all existing `campaign_id` values (no cross-collection ID collision).
 5. `workspace_id` values in Nashir entities are never derived from a request body; they match the workspace scope of each seed entity.
@@ -180,7 +183,7 @@ The future implementation PR is GO only if ALL of the following are satisfied:
 9. The focused entity test covers:
    - Store initializes without error.
    - `nashirCampaigns` array is present and non-empty.
-   - Each entity has all required fields.
+   - Each entity has all required fields including `created_by_user_id`.
    - Entities are workspace-scoped (no cross-workspace leakage in the seed data).
    - `nashir_campaign_id` values are distinct from each other.
 10. `src/store.js` diff is additive only — no existing collections or behaviors changed.
@@ -194,7 +197,7 @@ The focused test file `test/nashir-store-entities.test.js` must cover:
 | Store initializes successfully | `createSeedStore()` does not throw |
 | nashirCampaigns array exists | `store.nashirCampaigns` is an Array |
 | nashirCampaigns is non-empty | At least two entries |
-| Entity has required fields | Each entity has `nashir_campaign_id`, `workspace_id`, `campaign_name`, `campaign_status`, `created_at`, `updated_at` |
+| Entity has required fields | Each entity has `nashir_campaign_id`, `workspace_id`, `campaign_name`, `campaign_status`, `created_by_user_id`, `created_at`, `updated_at` |
 | campaign_status is valid | Each entity's `campaign_status` is one of the approved enum values |
 | Workspace A entity exists | One entity has `workspace_id === "workspace-a"` |
 | Workspace B entity exists | One entity has `workspace_id === "workspace-b"` |
