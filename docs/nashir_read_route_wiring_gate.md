@@ -121,7 +121,7 @@ This uses the already-approved `store.nashirCampaigns` data. No DB access. No po
 
 ### 5.2 Accepted Paths List
 
-The `acceptedPaths` or equivalent list in `src/router.js` must include:
+The `implementedRoutes` or equivalent list in `src/router.js` must include:
 
 ```text
 GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}
