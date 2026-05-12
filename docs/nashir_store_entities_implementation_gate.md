@@ -189,6 +189,7 @@ The future implementation PR is GO only if ALL of the following are satisfied:
    - Entities are workspace-scoped (no cross-workspace leakage in the seed data).
    - `nashir_campaign_id` values use UUID format, are distinct from each other, and do not equal any existing human-readable `campaign_id` (e.g., `campaign-a`).
 10. `src/store.js` diff is additive only — no existing collections or behaviors changed.
+- Future implementation must handle revision transitions from `requires_reapproval` and `rejected` back to `generated` according to D-009; this is a future implementation requirement only and does not authorize route exposure, OpenAPI changes, service/repository implementation, publishing workflow implementation, or DB-backed persistence.
 
 ## 10. Required Tests
 
