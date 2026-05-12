@@ -258,13 +258,18 @@ test("repository returns a shallow clone — not the original store object", asy
 test("mutating the returned campaign does not mutate store.nashirCampaigns", async () => {
   const store = createSeedStore();
   const repo = createNashirSlice0Repository({ store });
-  const originalName = store.nashirCampaigns[0].campaign_name;
+  const original = store.nashirCampaigns.find(
+    (c) => c && c.workspace_id === WORKSPACE_A && c.nashir_campaign_id === CAMPAIGN_A_ID
+  );
+
+  assert.ok(original, "seed campaign must exist");
+  const originalName = original.campaign_name;
 
   const campaign = await repo.findCampaignById({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
   campaign.campaign_name = "MUTATED";
 
   assert.strictEqual(
-    store.nashirCampaigns[0].campaign_name,
+    original.campaign_name,
     originalName,
     "mutating the returned clone must not affect store.nashirCampaigns"
   );
