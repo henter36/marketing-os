@@ -207,7 +207,7 @@ The following remain forbidden:
 - `prototype/**`
 - `src/router.js`
 - `src/store.js`
-- `server.js`
+- `src/server.js`
 - runtime files
 - external integrations
 - analytics/attribution files
