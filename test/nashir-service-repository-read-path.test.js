@@ -184,3 +184,88 @@ test("service recordManualEvidence remains not implemented", async () => {
   const svc = createNashirSlice0Service();
   await assert.rejects(() => svc.recordManualEvidence("any", {}), /not implemented/);
 });
+
+// ─── Default-argument and missing-param guards ───────────────────────────────
+
+test("repository returns null when called without arguments", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const result = await repo.findCampaignById();
+
+  assert.strictEqual(result, null);
+});
+
+test("service returns null when called without arguments", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+
+  const result = await svc.getCampaignById();
+
+  assert.strictEqual(result, null);
+});
+
+test("repository returns null when workspaceId is missing", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const result = await repo.findCampaignById({ nashirCampaignId: CAMPAIGN_A_ID });
+
+  assert.strictEqual(result, null);
+});
+
+test("repository returns null when nashirCampaignId is missing", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const result = await repo.findCampaignById({ workspaceId: WORKSPACE_A });
+
+  assert.strictEqual(result, null);
+});
+
+// ─── Null/undefined entry guard and shallow-clone isolation ─────────────────
+
+test("repository ignores null and undefined entries in store.nashirCampaigns", async () => {
+  const store = {
+    nashirCampaigns: [
+      null,
+      undefined,
+      { nashir_campaign_id: CAMPAIGN_A_ID, workspace_id: WORKSPACE_A, campaign_name: "Test" }
+    ]
+  };
+  const repo = createNashirSlice0Repository({ store });
+
+  const campaign = await repo.findCampaignById({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+
+  assert.ok(campaign !== null, "must find the valid entry even when nulls are present");
+  assert.strictEqual(campaign.nashir_campaign_id, CAMPAIGN_A_ID);
+});
+
+test("repository returns a shallow clone — not the original store object", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const campaign = await repo.findCampaignById({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+  const original = store.nashirCampaigns.find(
+    (c) => c && c.nashir_campaign_id === CAMPAIGN_A_ID && c.workspace_id === WORKSPACE_A
+  );
+
+  assert.notStrictEqual(campaign, original, "returned object must not be the same reference as the store entry");
+  assert.deepStrictEqual(campaign, original, "returned object must have the same values");
+});
+
+test("mutating the returned campaign does not mutate store.nashirCampaigns", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const originalName = store.nashirCampaigns[0].campaign_name;
+
+  const campaign = await repo.findCampaignById({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+  campaign.campaign_name = "MUTATED";
+
+  assert.strictEqual(
+    store.nashirCampaigns[0].campaign_name,
+    originalName,
+    "mutating the returned clone must not affect store.nashirCampaigns"
+  );
+});

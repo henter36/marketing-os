@@ -9,7 +9,7 @@ class NashirSlice0Service {
     throw new Error("not implemented");
   }
 
-  async getCampaignById({ workspaceId, nashirCampaignId }) {
+  async getCampaignById({ workspaceId, nashirCampaignId } = {}) {
     if (!this.repository) {
       return null;
     }

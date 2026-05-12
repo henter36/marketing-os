@@ -5,14 +5,17 @@ class NashirSlice0Repository {
     this.store = store || null;
   }
 
-  async findCampaignById({ workspaceId, nashirCampaignId }) {
+  async findCampaignById({ workspaceId, nashirCampaignId } = {}) {
     if (!this.store || !Array.isArray(this.store.nashirCampaigns)) {
       return null;
     }
+    if (!workspaceId || !nashirCampaignId) {
+      return null;
+    }
     const campaign = this.store.nashirCampaigns.find(
-      (c) => c.workspace_id === workspaceId && c.nashir_campaign_id === nashirCampaignId
+      (c) => c && c.workspace_id === workspaceId && c.nashir_campaign_id === nashirCampaignId
     );
-    return campaign || null;
+    return campaign ? { ...campaign } : null;
   }
 
   async saveCampaign(campaign) {
