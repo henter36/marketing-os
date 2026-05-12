@@ -16,6 +16,13 @@ class NashirSlice0Service {
     return this.repository.findCampaignById({ workspaceId, nashirCampaignId });
   }
 
+  async listCampaigns({ workspaceId } = {}) {
+    if (!this.repository) {
+      return [];
+    }
+    return this.repository.listCampaigns({ workspaceId });
+  }
+
   async scoreReadiness(id) {
     throw new Error("not implemented");
   }

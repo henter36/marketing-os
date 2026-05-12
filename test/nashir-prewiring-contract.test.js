@@ -36,11 +36,12 @@ function noGoSection(file) {
   return _cache[key];
 }
 
-// ─── Group 1: src/router.js — approved Nashir read-by-id route pattern only ──
-// PR #180 approved wiring of GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}.
+// ─── Group 1: src/router.js — approved Nashir read route patterns only ───────
+// PR #180 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}.
+// PR #185 approved GET /workspaces/{workspaceId}/nashir-campaigns.
 // Strip only the approved identifiers before checking for unauthorized Nashir references.
 
-test("src/router.js exposes only the approved nashir read-by-id route pattern", () => {
+test("src/router.js exposes only the approved nashir read route patterns", () => {
   const withoutApproved = srcText("router.js")
     // Class names (PR #180 approved constructor injection)
     .replace(/\bNashirSlice0Repository\b/g, "")
@@ -63,7 +64,7 @@ test("src/router.js exposes only the approved nashir read-by-id route pattern", 
 
   assert.ok(
     !/nashir/i.test(withoutApproved),
-    "src/router.js must not reference nashir beyond the approved read-by-id route pattern"
+    "src/router.js must not reference nashir beyond the approved read route patterns"
   );
 });
 

@@ -47,6 +47,7 @@ const patch002Routes = [
   "GET /workspaces/{workspaceId}/notification-deliveries"
 ];
 const nashirRoutes = [
+  "GET /workspaces/{workspaceId}/nashir-campaigns",
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}"
 ];
 const implementedRoutes = [...base.implementedRoutes, ...sprint4Routes, ...patch002Routes, ...nashirRoutes];
@@ -595,23 +596,34 @@ function routeSprint4(req, path, body, store) {
 }
 
 async function routeNashir(req, path, body, store, nashirService) {
-  const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns\/([^/]+)$/);
+  const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns(?:\/([^/]+))?$/);
   if (!workspaceMatch) throw notFound();
   if (req.method !== "GET") throw notFound();
 
   const workspaceId = workspaceContextGuard({ workspaceId: workspaceMatch[1] });
   const user = authGuard(req, store);
-  const membership = membershipCheck(user, workspaceId, store);
+  const membership = store.memberships.find(
+    (candidate) =>
+      candidate.user_id === user.user_id &&
+      candidate.workspace_id === workspaceId &&
+      candidate.member_status === "active"
+  );
+  if (!membership) throw notFound();
   permissionGuard(membership, "nashir.campaign.read");
 
   const nashirCampaignId = workspaceMatch[2];
+  if (!nashirCampaignId) {
+    const items = await nashirService.listCampaigns({ workspaceId });
+    return ok(items);
+  }
+
   const result = await nashirService.getCampaignById({ workspaceId, nashirCampaignId });
   if (result === null) throw notFound();
   return ok(result);
 }
 
 function isNashirPath(path) {
-  return /^\/workspaces\/[^/]+\/nashir-campaigns\/[^/]+$/.test(path);
+  return /^\/workspaces\/[^/]+\/nashir-campaigns(?:\/[^/]+)?$/.test(path);
 }
 
 function isBrandPath(path) {
