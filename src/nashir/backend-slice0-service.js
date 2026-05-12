@@ -1,12 +1,19 @@
 "use strict";
 
 class NashirSlice0Service {
+  constructor({ repository } = {}) {
+    this.repository = repository || null;
+  }
+
   async createCampaign(campaignData) {
     throw new Error("not implemented");
   }
 
-  async getCampaignById(id) {
-    throw new Error("not implemented");
+  async getCampaignById({ workspaceId, nashirCampaignId }) {
+    if (!this.repository) {
+      return null;
+    }
+    return this.repository.findCampaignById({ workspaceId, nashirCampaignId });
   }
 
   async scoreReadiness(id) {
@@ -22,8 +29,8 @@ class NashirSlice0Service {
   }
 }
 
-function createNashirSlice0Service() {
-  return new NashirSlice0Service();
+function createNashirSlice0Service({ repository } = {}) {
+  return new NashirSlice0Service({ repository });
 }
 
 module.exports = {
