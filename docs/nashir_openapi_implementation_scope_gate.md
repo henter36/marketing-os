@@ -45,16 +45,17 @@ The following merged PRs establish the current Nashir state and governance chain
 | #164 | Nashir pre-wiring contract tests | Machine-enforced guards; router/store/OpenAPI checks active |
 | #165 | Nashir RBAC implementation scope gate | Defined nine implementation prerequisites for RBAC |
 | #166 | Nashir Slice 0 RBAC permission codes implemented | **Blocker 1 resolved**: four codes now in `src/rbac.js` |
+| #168 | Nashir Slice 0 OpenAPI patch added | **Blocker 3 resolved**: `docs/nashir_openapi_patch.yaml` added (documentation-only) |
 
 ### 3.1 Updated Blocker Status
 
-PR #166 resolved Blocker 1. Three blockers remain before any Nashir route can be exposed:
+PR #166 resolved Blocker 1. PR #168 added `docs/nashir_openapi_patch.yaml` and resolved Blocker 3. Two blockers remain before any Nashir route can be exposed:
 
 | # | Blocker | Location | State |
 |---|---|---|---|
 | 1 | No Nashir permission codes | `src/rbac.js` | **RESOLVED — PR #166** |
 | 2 | No Nashir store entities | `src/store.js` | Still missing — separately gated |
-| 3 | No Nashir OpenAPI path | OpenAPI contract | **This gate addresses Blocker 3** |
+| 3 | No Nashir OpenAPI path | OpenAPI contract | **RESOLVED — PR #168** |
 | 4 | Service/repository methods inert | `src/nashir/backend-slice0-*.js` | Still missing — separately gated |
 
 ## 4. Unresolved Future Question
@@ -232,7 +233,8 @@ PR #156 is the required repository roadmap index and governance guard. No PR of 
 GO:     Documentation-only OpenAPI implementation scope gate.
 GO:     Context from PRs #155, #156, #159, #161, #163, #164, #165, #166 recorded.
 GO:     Blocker 1 (RBAC) confirmed resolved by PR #166.
-GO:     Blockers 2, 3, 4 (store entities, OpenAPI, inert service/repository) confirmed active.
+GO:     Blocker 3 (OpenAPI path) confirmed resolved by PR #168.
+GO:     Blockers 2 and 4 (store entities, inert service/repository) remain active — separately gated.
 GO:     Unresolved future question recorded — OpenAPI implementation not answered YES or NO.
 GO:     Candidate future scope defined as NOT YET IMPLEMENTED.
 GO:     Candidate minimum OpenAPI surface (4 paths) defined as NOT APPROVED.
