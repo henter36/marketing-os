@@ -82,8 +82,8 @@ test("src/store.js and src/store_sprint3.js reference nashir only via approved s
   // Any other Nashir reference in store files remains unauthorized.
   for (const file of ["store.js", "store_sprint3.js"]) {
     const withoutApproved = srcText(file)
-      .replace(/nashirCampaigns/gi, "")
-      .replace(/nashir_campaign_id/gi, "");
+      .replace(/\bnashirCampaigns\b/gi, "")
+      .replace(/\bnashir_campaign_id\b/gi, "");
 
     const remainingMatch = withoutApproved.match(/nashir/i);
 
