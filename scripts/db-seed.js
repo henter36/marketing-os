@@ -24,7 +24,7 @@ function buildSeedSql() {
 
   for (const role of roles) {
     lines.push(
-      `INSERT INTO roles (role_code, role_name, role_scope, is_system_role) VALUES ('${escapeSql(role.role_code)}', '${escapeSql(role.role_name)}', '${escapeSql(role.role_scope)}', ${role.is_system_role}) ON CONFLICT (role_code) DO UPDATE SET role_name = EXCLUDED.role_name;`
+      `INSERT INTO roles (role_code, role_name, role_scope, is_system_role) VALUES ('${escapeSql(role.role_code)}', '${escapeSql(role.role_name)}', '${escapeSql(role.role_scope)}', ${role.is_system_role}) ON CONFLICT (role_code) DO UPDATE SET role_name = EXCLUDED.role_name, role_scope = EXCLUDED.role_scope, is_system_role = EXCLUDED.is_system_role;`
     );
   }
 
@@ -44,7 +44,7 @@ function buildSeedSql() {
   for (const [roleCode, permissionCodes] of Object.entries(rolePermissions)) {
     for (const permissionCode of permissionCodes) {
       lines.push(
-        `INSERT INTO role_permissions (role_id, permission_id)\nSELECT r.role_id, p.permission_id\nFROM roles r, permissions p\nWHERE r.role_code = '${escapeSql(roleCode)}' AND p.permission_code = '${escapeSql(permissionCode)}';`
+        `INSERT INTO role_permissions (role_id, permission_id)\nVALUES (\n  (SELECT role_id FROM roles WHERE role_code = '${escapeSql(roleCode)}'),\n  (SELECT permission_id FROM permissions WHERE permission_code = '${escapeSql(permissionCode)}')\n);`
       );
     }
   }

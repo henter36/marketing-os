@@ -19,8 +19,8 @@ test("role upserts are present for all system roles", () => {
       `role_code '${role.role_code}' must appear in seed SQL`
     );
     assert.ok(
-      sql.includes("ON CONFLICT (role_code) DO UPDATE SET role_name = EXCLUDED.role_name"),
-      "role INSERT must use upsert"
+      sql.includes("ON CONFLICT (role_code) DO UPDATE SET role_name = EXCLUDED.role_name, role_scope = EXCLUDED.role_scope, is_system_role = EXCLUDED.is_system_role"),
+      "role INSERT must upsert role_name, role_scope, and is_system_role"
     );
   }
 });
@@ -53,6 +53,27 @@ test("stale role_permissions are removed: DELETE scoped to system roles precedes
   );
 });
 
+test("role_permissions INSERT uses scalar subqueries in VALUES, not SELECT FROM cartesian join", () => {
+  const sql = buildSeedSql();
+  const afterDelete = sql.slice(sql.indexOf("DELETE FROM role_permissions"));
+  assert.ok(
+    !afterDelete.includes("FROM roles r, permissions p"),
+    "role_permissions must not use SELECT FROM cartesian join — missing lookup would silently insert 0 rows"
+  );
+  assert.ok(
+    afterDelete.includes("VALUES ("),
+    "role_permissions INSERT must use VALUES clause"
+  );
+  assert.ok(
+    afterDelete.includes("SELECT role_id FROM roles WHERE role_code ="),
+    "role_permissions INSERT must use scalar subquery for role_id"
+  );
+  assert.ok(
+    afterDelete.includes("SELECT permission_id FROM permissions WHERE permission_code ="),
+    "role_permissions INSERT must use scalar subquery for permission_id"
+  );
+});
+
 test("ON CONFLICT DO NOTHING is absent from role_permissions section", () => {
   const sql = buildSeedSql();
   const afterDelete = sql.slice(sql.indexOf("DELETE FROM role_permissions"));
@@ -62,14 +83,20 @@ test("ON CONFLICT DO NOTHING is absent from role_permissions section", () => {
   );
 });
 
-test("every rolePermissions entry from src/rbac.js is present in seed SQL", () => {
+test("every rolePermissions pair from src/rbac.js appears together in the same INSERT statement", () => {
   const sql = buildSeedSql();
+  // Split on INSERT INTO role_permissions so each chunk covers exactly one statement.
+  // Verifying both strings in the same chunk prevents false-positives where roleCode
+  // appears in one INSERT and permCode appears in a different one.
+  const stmts = sql.split("INSERT INTO role_permissions").slice(1);
   for (const [roleCode, permCodes] of Object.entries(rolePermissions)) {
     for (const permCode of permCodes) {
-      assert.ok(
-        sql.includes(`r.role_code = '${roleCode}'`) && sql.includes(`p.permission_code = '${permCode}'`),
-        `role_permission ${roleCode} → ${permCode} must be seeded`
+      const found = stmts.some(
+        (stmt) =>
+          stmt.includes(`role_code = '${roleCode}'`) &&
+          stmt.includes(`permission_code = '${permCode}'`)
       );
+      assert.ok(found, `role_permission ${roleCode} → ${permCode} must appear together in one INSERT`);
     }
   }
 });
