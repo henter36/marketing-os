@@ -24,7 +24,8 @@ class WorkspaceRepository {
           WHERE workspace_id = $1
           LIMIT 1
         `,
-        [workspaceId]
+        [workspaceId],
+        { workspaceId }
       );
 
       return rows[0] || null;
