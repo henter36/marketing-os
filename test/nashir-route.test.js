@@ -17,6 +17,7 @@ const UNKNOWN_ID = "00000000-0000-4000-8000-000000000000";
 const OWNER_A = "user-owner-a";
 const BILLING_A = "user-billing-a";
 const OUTSIDER = "user-outsider";
+const INVALID_USER = "user-missing";
 
 // ─── List route — workspace-scoped read-only collection ─────────────────────
 
@@ -56,6 +57,24 @@ test("GET nashir-campaigns returns 404 for unknown workspace", async () => {
   const server = await createTestServer();
   const res = await server.request("GET", "/workspaces/workspace-missing/nashir-campaigns", { userId: OWNER_A });
   assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir-campaigns returns 401 for unauthenticated callers without workspace disclosure", async () => {
+  const server = await createTestServer();
+  const existingWorkspace = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns`);
+  const unknownWorkspace = await server.request("GET", "/workspaces/workspace-missing/nashir-campaigns");
+
+  assert.strictEqual(existingWorkspace.status, 401);
+  assert.strictEqual(unknownWorkspace.status, 401);
+});
+
+test("GET nashir-campaigns returns 401 for invalid users without workspace disclosure", async () => {
+  const server = await createTestServer();
+  const existingWorkspace = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, { userId: INVALID_USER });
+  const unknownWorkspace = await server.request("GET", "/workspaces/workspace-missing/nashir-campaigns", { userId: INVALID_USER });
+
+  assert.strictEqual(existingWorkspace.status, 401);
+  assert.strictEqual(unknownWorkspace.status, 401);
 });
 
 test("GET nashir-campaigns returns 404 for user with no workspace membership", async () => {
@@ -112,6 +131,12 @@ test("GET nashir-campaigns/{nashirCampaignId} returns 404 for unknown campaign I
   assert.strictEqual(res.status, 404);
 });
 
+test("GET nashir-campaigns/{nashirCampaignId} returns 404 for unknown workspace", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/workspace-missing/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: OWNER_A });
+  assert.strictEqual(res.status, 404);
+});
+
 // ─── 404 — cross-workspace nashirCampaignId ───────────────────────────────────
 
 test("GET nashir-campaigns/{nashirCampaignId} returns 404 for cross-workspace campaign ID", async () => {
@@ -120,12 +145,12 @@ test("GET nashir-campaigns/{nashirCampaignId} returns 404 for cross-workspace ca
   assert.strictEqual(res.status, 404);
 });
 
-// ─── 403 — no workspace membership ───────────────────────────────────────────
+// ─── 404 — no workspace membership ───────────────────────────────────────────
 
-test("GET nashir-campaigns/{nashirCampaignId} returns 403 for user with no workspace membership", async () => {
+test("GET nashir-campaigns/{nashirCampaignId} returns 404 for user with no workspace membership", async () => {
   const server = await createTestServer();
   const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: OUTSIDER });
-  assert.strictEqual(res.status, 403);
+  assert.strictEqual(res.status, 404);
 });
 
 // ─── 403 — lacking nashir.campaign.read ──────────────────────────────────────
@@ -134,6 +159,24 @@ test("GET nashir-campaigns/{nashirCampaignId} returns 403 for user lacking nashi
   const server = await createTestServer();
   const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: BILLING_A });
   assert.strictEqual(res.status, 403);
+});
+
+test("GET nashir-campaigns/{nashirCampaignId} returns 401 for unauthenticated callers without workspace disclosure", async () => {
+  const server = await createTestServer();
+  const existingWorkspace = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`);
+  const unknownWorkspace = await server.request("GET", `/workspaces/workspace-missing/nashir-campaigns/${CAMPAIGN_A_ID}`);
+
+  assert.strictEqual(existingWorkspace.status, 401);
+  assert.strictEqual(unknownWorkspace.status, 401);
+});
+
+test("GET nashir-campaigns/{nashirCampaignId} returns 401 for invalid users without workspace disclosure", async () => {
+  const server = await createTestServer();
+  const existingWorkspace = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: INVALID_USER });
+  const unknownWorkspace = await server.request("GET", `/workspaces/workspace-missing/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: INVALID_USER });
+
+  assert.strictEqual(existingWorkspace.status, 401);
+  assert.strictEqual(unknownWorkspace.status, 401);
 });
 
 // ─── nashirCampaignId from path only — body is ignored ───────────────────────

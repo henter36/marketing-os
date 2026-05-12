@@ -57,7 +57,7 @@ Service behavior:
 
 ## Guards and Permission
 
-The route uses the existing guard pattern:
+Both approved Nashir GET routes use the same non-disclosing guard flow:
 
 - `workspaceContextGuard`
 - `authGuard`
@@ -72,7 +72,7 @@ nashir.campaign.read
 
 `workspaceId` is derived from the URL path only. Request body `workspace_id` is not used for filtering.
 
-For the list route, authentication runs before membership evaluation. Missing membership returns `404` rather than `403` so the route does not disclose whether a workspace exists to non-members. Unknown or non-existent workspaces also return `404`. Empty existing workspaces return `200` with `[]` only after active membership and `nashir.campaign.read` permission are confirmed.
+For both `GET /workspaces/{workspaceId}/nashir-campaigns` and `GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}`, authentication runs before membership evaluation. Missing membership returns `404` rather than `403` so the route does not disclose whether a workspace exists to non-members. Unknown or non-existent workspaces also return `404`. Permission denial after valid active membership remains `403`. Empty existing workspaces return `200` with `[]` only after active membership and `nashir.campaign.read` permission are confirmed.
 
 ## Scope Boundaries Preserved
 
@@ -100,8 +100,9 @@ For the list route, authentication runs before membership evaluation. Missing me
 - List route returns only workspace-scoped Nashir campaigns.
 - Empty existing workspace returns `[]` only for callers with confirmed active membership and `nashir.campaign.read`.
 - Unknown workspace returns 404.
-- Missing membership returns 404 for non-disclosure.
+- Missing membership returns 404 for non-disclosure on both list and read-by-id routes.
 - Missing `nashir.campaign.read` permission returns 403.
+- Unauthenticated and invalid-user requests return 401 before workspace existence is disclosed.
 - Request body `workspace_id` does not affect filtering.
 - POST list path remains unregistered.
 - Read-by-id route still works.
