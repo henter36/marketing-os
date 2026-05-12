@@ -48,7 +48,7 @@ This does not mean DB-backed full persistence, DB-backed product-domain routes, 
 Patch 002 is active only in these limited ways:
 
 - limited in-memory runtime baseline for connector/performance/contact/notification baseline scope;
-- SQL migration activation in strict migration order;
+- SQL migration activation in strict migration order (schema creation only; runtime DB read-write against Patch 002 tables is not activated and remains NO-GO);
 - migration retry verification under the strict gate.
 
 Patch 002 does not approve DB persistence for Patch 002 domains, external provider execution, live sync execution, advanced attribution, auto-publishing, paid execution, AI agents, BillingProvider, ProviderUsageLog, Pilot, or Production.

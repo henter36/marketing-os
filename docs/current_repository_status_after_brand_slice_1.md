@@ -6,7 +6,7 @@
 Current repository status after Brand Slice 1: GO as documentation-only reconciliation.
 Latest known main state: after PR #36 and PR #42.
 Repository-only Brand Slice 1: GO / merged / verified.
-Brand runtime route switch: NO-GO until separately planned and approved.
+Brand runtime route switch: implemented as gated Brand-only mode (PR #48); additional DB-backed route switching expansion NO-GO unless explicitly approved.
 Public Brand get/update routes: NO-GO.
 DB-backed full persistence: NO-GO.
 Sprint 5 coding: NO-GO.
@@ -40,7 +40,7 @@ The implementation is limited to repository modules and repository-only integrat
 ## What Is Still Not On Main
 
 ```text
-NO-GO: HTTP/runtime route switch.
+NO-GO for additional DB-backed route switching expansion beyond the existing approved Brand-only gated switch.
 NO-GO: public Brand get/update routes.
 NO-GO: SQL/OpenAPI changes.
 NO-GO: durable AuditLog persistence.
@@ -94,7 +94,7 @@ This status reconciliation changes documentation only. It does not modify runtim
 ```text
 Status reconciliation after Brand Slice 1: GO.
 Brand repository-only Slice 1: GO / merged / verified.
-Brand runtime switch: NO-GO until planned.
+Brand runtime switch: implemented as gated Brand-only mode (PR #48); further expansion NO-GO unless explicitly approved.
 Public Brand get/update routes: NO-GO.
 DB-backed full persistence: NO-GO.
 Sprint 5: NO-GO.

@@ -37,9 +37,7 @@ docs/db_backed_slice_2_template_implementation_report.md
 ## 4. Explicitly unchanged
 
 ```text
-router.js
-store.js
-guards.js
+src/guards.js
 src/router.js
 src/store.js
 docs/*schema*.sql
