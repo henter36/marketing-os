@@ -43,6 +43,14 @@ This gate does not implement the route, modify runtime code, modify tests, chang
 - `docs/nashir_read_route_wiring_gate.md`
 - `docs/nashir_list_route_gate.md`
 - `docs/nashir_list_route_implementation_report.md`
+- `docs/nashir_permission_codes_and_qa_case_specification.md` - permission and QA traceability context
+- `docs/nashir_ui_route_permission_audit_errormodel_mapping.md` - route, permission, audit, and ErrorModel mapping context
+- `docs/nashir_audit_errormodel_material_change_specification.md` - audit behavior and ErrorModel mapping context
+- `docs/nashir_campaign_readiness_scoring_contract.md` - readiness/scoring boundary context
+- `docs/nashir_approval_state_machine_contract.md` - approval boundary context
+- `docs/nashir_manual_publishing_evidence_contract.md` - manual publishing/evidence boundary context
+
+These sources provide traceability for unresolved permission, idempotency, audit, ErrorModel, readiness/scoring, approval, evidence, and current read/list-route baseline constraints. They do not approve implementation, runtime changes, SQL, OpenAPI YAML changes, RBAC expansion, UI, evidence routes, approval routes, scoring/readiness runtime, publishing workflow, Pilot readiness, or Production readiness.
 
 No approved source conflict was identified.
 
