@@ -70,6 +70,7 @@ Remaining gates include:
 
 - A Nashir list route gate before any list endpoint is implemented.
 - A Nashir create route/service write-path gate before any create endpoint, write method, or write-side service behavior is implemented.
+- Separate gates for write, evidence, approval, scoring, and publishing routes before those functional areas are implemented.
 - A separate DB-backed persistence gate before any Nashir SQL, schema, migration, or repository database access is introduced.
 - A separate OpenAPI YAML gate before any OpenAPI contract file is modified.
 - A separate RBAC gate before any Nashir permission expansion is introduced.
