@@ -334,6 +334,27 @@ function createSeedStore() {
     }
   ];
 
+  store.nashirCampaigns ||= [
+    {
+      nashir_campaign_id: "00000000-0000-4000-8000-000000000a01",
+      workspace_id: "workspace-a",
+      campaign_name: "Intake Campaign A",
+      campaign_status: "draft",
+      created_by_user_id: "user-owner-a",
+      created_at: "2026-05-12T00:00:00.000Z",
+      updated_at: "2026-05-12T00:00:00.000Z"
+    },
+    {
+      nashir_campaign_id: "00000000-0000-4000-8000-000000000b01",
+      workspace_id: "workspace-b",
+      campaign_name: "Intake Campaign B",
+      campaign_status: "draft",
+      created_by_user_id: "user-owner-a",
+      created_at: "2026-05-12T00:00:00.000Z",
+      updated_at: "2026-05-12T00:00:00.000Z"
+    }
+  ];
+
   return store;
 }
 

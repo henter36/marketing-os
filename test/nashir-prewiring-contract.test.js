@@ -71,12 +71,19 @@ test("src/rbac.js contains only approved Nashir permission codes", () => {
   );
 });
 
-// ─── Group 3: src/store.js — no Nashir keyword ─────────────────────────────
+// ─── Group 3: src/store.js — only the approved nashirCampaigns collection ──────
+// The Nashir store entities implementation gate approved adding nashirCampaigns to
+// src/store.js. All other Nashir references in src/store.js remain unauthorized.
 
-test("src/store.js has no nashir keyword", () => {
+test("src/store.js references nashir only via the approved store entities — not routing or services", () => {
+  // Approved by the Nashir store entities gate: nashirCampaigns collection and nashir_campaign_id field.
+  // Strip those before checking for unauthorized Nashir wiring.
+  const withoutApproved = srcText("store.js")
+    .replace(/nashirCampaigns/gi, "")
+    .replace(/nashir_campaign_id/gi, "");
   assert.ok(
-    !/nashir/i.test(srcText("store.js")),
-    "src/store.js must not reference nashir in any form"
+    !/nashir/i.test(withoutApproved),
+    "src/store.js must not reference nashir beyond the approved nashirCampaigns store entities"
   );
 });
 
