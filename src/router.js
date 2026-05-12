@@ -59,6 +59,8 @@ function createApp(options = {}) {
     ? options.repositories || createRepositories({ pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true }) })
     : null;
   const baseApp = base.createApp({ store });
+  const nashirRepository = new NashirSlice0Repository({ store });
+  const nashirService = new NashirSlice0Service({ repository: nashirRepository });
 
   return async function app(req, res) {
     const url = new URL(req.url, "http://localhost");
@@ -75,7 +77,7 @@ function createApp(options = {}) {
       const result = shouldRouteBrandToRepository
         ? await routeBrandRepositories(req, path, body, store, brandRepositories)
         : isNashirPath(path)
-          ? await routeNashir(req, path, store)
+          ? await routeNashir(req, path, body, store, nashirService)
           : isPatch002Path(path)
             ? routePatch002(req, path, body, store)
             : routeSprint4(req, path, body, store);
@@ -592,7 +594,7 @@ function routeSprint4(req, path, body, store) {
   throw notFound();
 }
 
-async function routeNashir(req, path, store) {
+async function routeNashir(req, path, body, store, nashirService) {
   const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns\/([^/]+)$/);
   if (!workspaceMatch) throw notFound();
   if (req.method !== "GET") throw notFound();
@@ -603,8 +605,6 @@ async function routeNashir(req, path, store) {
   permissionGuard(membership, "nashir.campaign.read");
 
   const nashirCampaignId = workspaceMatch[2];
-  const nashirRepository = new NashirSlice0Repository({ store });
-  const nashirService = new NashirSlice0Service({ repository: nashirRepository });
   const result = await nashirService.getCampaignById({ workspaceId, nashirCampaignId });
   if (result === null) throw notFound();
   return ok(result);
