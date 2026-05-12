@@ -6,6 +6,8 @@ const { AppError, correlationId, errorBody, sendJson } = require("./error-model"
 const { createRepositories } = require("./repositories");
 const { createSeedStore } = require("./store");
 const { authGuard, membershipCheck, permissionGuard, rejectBodyWorkspaceId, workspaceContextGuard } = require("./guards");
+const { NashirSlice0Repository } = require("./nashir/backend-slice0-repository");
+const { NashirSlice0Service } = require("./nashir/backend-slice0-service");
 
 const safeModeStatuses = ["inactive", "active"];
 const onboardingStatuses = ["not_started", "in_progress", "completed", "skipped"];
@@ -44,7 +46,10 @@ const patch002Routes = [
   "POST /workspaces/{workspaceId}/notification-rules",
   "GET /workspaces/{workspaceId}/notification-deliveries"
 ];
-const implementedRoutes = [...base.implementedRoutes, ...sprint4Routes, ...patch002Routes];
+const nashirRoutes = [
+  "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}"
+];
+const implementedRoutes = [...base.implementedRoutes, ...sprint4Routes, ...patch002Routes, ...nashirRoutes];
 
 function createApp(options = {}) {
   const store = options.store || createSeedStore();
@@ -60,7 +65,7 @@ function createApp(options = {}) {
     const path = url.pathname.replace(/^\/v1/, "");
     const shouldRouteBrandToRepository = brandRuntimeMode === "repository" && isBrandPath(path);
 
-    if (!shouldRouteBrandToRepository && !isSprint4Path(path) && !isPatch002Path(path)) {
+    if (!shouldRouteBrandToRepository && !isSprint4Path(path) && !isPatch002Path(path) && !isNashirPath(path)) {
       return baseApp(req, res);
     }
 
@@ -69,9 +74,11 @@ function createApp(options = {}) {
       const body = await readBody(req);
       const result = shouldRouteBrandToRepository
         ? await routeBrandRepositories(req, path, body, store, brandRepositories)
-        : isPatch002Path(path)
-          ? routePatch002(req, path, body, store)
-          : routeSprint4(req, path, body, store);
+        : isNashirPath(path)
+          ? await routeNashir(req, path, store)
+          : isPatch002Path(path)
+            ? routePatch002(req, path, body, store)
+            : routeSprint4(req, path, body, store);
       sendJson(res, result.status || 200, result.body);
     } catch (error) {
       const appError = error instanceof AppError
@@ -583,6 +590,27 @@ function routeSprint4(req, path, body, store) {
   }
 
   throw notFound();
+}
+
+async function routeNashir(req, path, store) {
+  const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns\/([^/]+)$/);
+  if (!workspaceMatch) throw notFound();
+
+  const workspaceId = workspaceContextGuard({ workspaceId: workspaceMatch[1] });
+  const user = authGuard(req, store);
+  const membership = membershipCheck(user, workspaceId, store);
+  permissionGuard(membership, "nashir.campaign.read");
+
+  const nashirCampaignId = workspaceMatch[2];
+  const nashirRepository = new NashirSlice0Repository({ store });
+  const nashirService = new NashirSlice0Service({ repository: nashirRepository });
+  const result = await nashirService.getCampaignById({ workspaceId, nashirCampaignId });
+  if (result === null) throw notFound();
+  return ok(result);
+}
+
+function isNashirPath(path) {
+  return /^\/workspaces\/[^/]+\/nashir-campaigns\/[^/]+$/.test(path);
 }
 
 function isBrandPath(path) {
