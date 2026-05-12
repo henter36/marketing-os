@@ -16,22 +16,20 @@ test("WorkspaceRepository.getWorkspaceById passes workspace context to pool quer
       capturedParams = params;
       capturedOptions = options;
 
-      return {
-        rows: [
-          {
-            workspace_id: workspaceId,
-            workspace_name: "Test Workspace",
-            default_locale: "en",
-          },
-        ],
-      };
+      return [
+        {
+          workspace_id: workspaceId,
+          workspace_name: "Test Workspace",
+          default_locale: "en",
+        },
+      ];
     },
   };
 
-  const repository = new WorkspaceRepository(pool);
-  const result = await repository.getWorkspaceById(workspaceId);
+  const repository = new WorkspaceRepository({ pool });
+  const result = await repository.getWorkspaceById({ workspaceId });
 
-  assert.equal(result.workspaceId, workspaceId);
+  assert.equal(result.workspace_id, workspaceId);
   assert.deepEqual(capturedParams, [workspaceId]);
   assert.deepEqual(capturedOptions, { workspaceId });
   assert.match(capturedSql, /WHERE workspace_id = \$1/);
@@ -45,12 +43,12 @@ test("WorkspaceRepository.getWorkspaceById returns null when workspace is missin
   const pool = {
     query: async (_sql, _params, options) => {
       capturedOptions = options;
-      return { rows: [] };
+      return [];
     },
   };
 
-  const repository = new WorkspaceRepository(pool);
-  const result = await repository.getWorkspaceById(workspaceId);
+  const repository = new WorkspaceRepository({ pool });
+  const result = await repository.getWorkspaceById({ workspaceId });
 
   assert.equal(result, null);
   assert.deepEqual(capturedOptions, { workspaceId });
