@@ -68,7 +68,7 @@ The current `src/store.js` is the Patch 002-era store. It layers on top of `src/
 |---|---|
 | Directly resolves active blocker | YES — resolves Blocker 2 per the approved gate structure |
 | Requires SQL / DB schema | NO — in-memory only |
-| Follows established pattern | YES — all Patch 002 entities (connectors, contacts, lead_captures, etc.) follow the same `store.field ||= [...]` pattern in `src/store.js` |
+| Follows established pattern | YES — all Patch 002 entities (connectors, contacts, lead_captures, etc.) follow the same store.field \|\|= [...] pattern in `src/store.js` |
 | Risk | Low — additive only; no existing behavior changed |
 | Enables next step | YES — once the store layer exists, service/repository method implementation (Blocker 4) can be specified with a concrete data contract |
 | Route wiring included | NO — route wiring is a separate gate |
@@ -140,7 +140,7 @@ Seed data must include exactly **two records** — one for `workspace-a` and one
 
 | File | Change | Notes |
 |---|---|---|
-| `src/store.js` | Add `store.nashirCampaigns ||= [...]` with two workspace-scoped seed entities | Follow the `||=` initialization pattern used for all Patch 002 collections |
+| `src/store.js` | Add store.nashirCampaigns \|\|= [...] with two workspace-scoped seed entities | Follow the \|\|= initialization pattern used for all Patch 002 collections |
 | `test/nashir-store-entities.test.js` | New focused test verifying the entity shape, workspace isolation, and collection initialization | Must not import router, server, db, rbac, guards, or any file not in `src/store.js` chain |
 | `docs/nashir_store_entities_implementation_report.md` | New implementation report following post-merge documentation pattern | Required before opening the next gate |
 | `docs/17_change_log.md` | Add change log entry | Required |
@@ -250,6 +250,6 @@ NO-GO:  Package, workflow, or migration changes.
 NO-GO:  Prototype usage.
 NO-GO:  Pilot readiness.
 NO-GO:  Production readiness.
-NO-GO:  Any implementation PR without satisfying all eleven prerequisites in Section 11.
+NO-GO:  Any implementation PR without satisfying all seven prerequisites in Section 11.
 NO-GO:  Any implementation PR without satisfying PR #155 and PR #156 guard conditions.
 ```
