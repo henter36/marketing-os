@@ -52,11 +52,11 @@ test("createNashirSlice0Repository factory returns a NashirSlice0Repository inst
   assert.ok(repo instanceof NashirSlice0Repository);
 });
 
-test("NashirSlice0Service methods reject with not-implemented — no live behavior", async () => {
+test("NashirSlice0Service inert methods reject with not-implemented — getCampaignById is implemented", async () => {
   const svc = new NashirSlice0Service();
+  // getCampaignById is now implemented; only the remaining inert methods are tested here.
   const methods = [
     "createCampaign",
-    "getCampaignById",
     "scoreReadiness",
     "submitForApproval",
     "recordManualEvidence"
@@ -70,9 +70,10 @@ test("NashirSlice0Service methods reject with not-implemented — no live behavi
   }
 });
 
-test("NashirSlice0Repository methods reject with not-implemented — no live behavior", async () => {
+test("NashirSlice0Repository inert methods reject with not-implemented — findCampaignById is implemented", async () => {
   const repo = new NashirSlice0Repository();
-  const methods = ["findCampaignById", "saveCampaign", "findEvidenceById", "saveEvidence"];
+  // findCampaignById is now implemented; only the remaining inert methods are tested here.
+  const methods = ["saveCampaign", "findEvidenceById", "saveEvidence"];
   for (const method of methods) {
     await assert.rejects(
       () => repo[method](),
@@ -101,6 +102,18 @@ test("backend-slice0-service.js is inert — no require() or forbidden reference
   assertFileIsInert("../src/nashir/backend-slice0-service.js", "backend-slice0-service.js");
 });
 
-test("backend-slice0-repository.js is inert — no require() or forbidden references", () => {
-  assertFileIsInert("../src/nashir/backend-slice0-repository.js", "backend-slice0-repository.js");
+test("backend-slice0-repository.js has no forbidden references — store access is approved by Blocker 4 gate", () => {
+  const src = fs.readFileSync(path.join(__dirname, "../src/nashir/backend-slice0-repository.js"), "utf8");
+  // store access is approved by the Nashir store entities gate (PR #175) and service/repository gate (PR #178).
+  // All other forbidden references remain prohibited.
+  assert.ok(!/\b(require|import)\b/.test(src), "backend-slice0-repository.js must have no require() or import statements");
+  assert.ok(!/\brouter\b/.test(src),      "backend-slice0-repository.js must not reference router");
+  assert.ok(!/\bserver\b/.test(src),      "backend-slice0-repository.js must not reference server");
+  assert.ok(!/\bdb\b/.test(src),          "backend-slice0-repository.js must not reference db");
+  assert.ok(!/\brbac\b/.test(src),        "backend-slice0-repository.js must not reference rbac");
+  assert.ok(!/\bguards\b/.test(src),      "backend-slice0-repository.js must not reference guards");
+  assert.ok(!/\berror-model\b/.test(src), "backend-slice0-repository.js must not reference error-model");
+  assert.ok(!/\bconfig\b/.test(src),      "backend-slice0-repository.js must not reference config");
+  assert.ok(!/\bintegrity\b/.test(src),   "backend-slice0-repository.js must not reference integrity");
+  assert.ok(!/\bprototype\b/.test(src),   "backend-slice0-repository.js must not reference prototype");
 });

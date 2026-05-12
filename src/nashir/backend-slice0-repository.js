@@ -1,8 +1,21 @@
 "use strict";
 
 class NashirSlice0Repository {
-  async findCampaignById(id) {
-    throw new Error("not implemented");
+  constructor({ store } = {}) {
+    this.store = store || null;
+  }
+
+  async findCampaignById({ workspaceId, nashirCampaignId } = {}) {
+    if (!this.store || !Array.isArray(this.store.nashirCampaigns)) {
+      return null;
+    }
+    if (!workspaceId || !nashirCampaignId) {
+      return null;
+    }
+    const campaign = this.store.nashirCampaigns.find(
+      (c) => c && c.workspace_id === workspaceId && c.nashir_campaign_id === nashirCampaignId
+    );
+    return campaign ? { ...campaign } : null;
   }
 
   async saveCampaign(campaign) {
@@ -18,8 +31,8 @@ class NashirSlice0Repository {
   }
 }
 
-function createNashirSlice0Repository() {
-  return new NashirSlice0Repository();
+function createNashirSlice0Repository({ store } = {}) {
+  return new NashirSlice0Repository({ store });
 }
 
 module.exports = {
