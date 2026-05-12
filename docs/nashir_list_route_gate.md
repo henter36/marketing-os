@@ -92,7 +92,7 @@ The future implementation PR may do only the following:
 3. Instantiate or reuse the existing Nashir repository/service wiring already present for read-by-id.
 4. Add `NashirSlice0Repository.listCampaigns({ workspaceId })`.
 5. Add `NashirSlice0Service.listCampaigns({ workspaceId })`.
-6. Return `ok({ items })` or the repository's existing list response shape only if the implementation report documents the selected shape and tests lock it.
+6. Return `ok(items)` where `items` is the array of campaigns, ensuring the response shape is `{ data: [...] }` and remains consistent with other list endpoints in `src/router.js`.
 7. Filter list results by `workspace_id === workspaceId`.
 8. Return an empty list for workspaces with no matching Nashir campaigns.
 9. Preserve the existing read-by-id route behavior.
@@ -146,7 +146,7 @@ The future implementation PR is GO only if all criteria are satisfied:
 7. Request body `workspace_id` is ignored or irrelevant for this GET route.
 8. Returned campaigns are limited to `workspace_id === workspaceId`.
 9. Cross-workspace campaigns are never included.
-10. Unknown or empty workspaces return an empty list, not another workspace's data.
+10. Empty existing workspaces return an empty list; unknown or non-existent workspaces must result in a 404 error via the existing guard pattern.
 11. The list route uses only the in-memory `store.nashirCampaigns` path.
 12. No DB connection, pool, query, SQL, or migration is introduced.
 13. No OpenAPI YAML file is modified.
