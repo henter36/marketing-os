@@ -99,7 +99,7 @@ The route handler must follow the existing guard pattern established by all othe
 4. Enforce `nashir.campaign.read` via `permissionGuard`.
 5. Extract `nashirCampaignId` from the URL path segment — never from request body.
 6. Call `nashirService.getCampaignById({ workspaceId, nashirCampaignId })`.
-7. If the result is non-null: return `ok({ data: result })`.
+7. If the result is non-null: return `ok(result)`.
 8. If the result is null: throw `notFound()`.
 9. Wrap in the existing try/catch/correlationId pattern used by all other route handlers.
 
@@ -159,7 +159,7 @@ No other files are in scope.
 | `.github/workflows/` | No workflow changes |
 | `prototype/` | No prototype changes |
 
-## 8. Required Tests (Prose Description — Do Not Create or Modify Test Files)
+## 8. Required Tests (Prose Description for the Future Implementation PR)
 
 ### 8.1 Updated pre-wiring contract test (`test/nashir-prewiring-contract.test.js`)
 
