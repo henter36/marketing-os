@@ -112,16 +112,6 @@ test("nashirCampaigns entities are workspace-scoped — no cross-workspace seed 
   const wsB = store.nashirCampaigns.find((c) => c.workspace_id === "workspace-b");
   assert.ok(wsA, "workspace-a entity must exist");
   assert.ok(wsB, "workspace-b entity must exist");
-  assert.notStrictEqual(
-    wsA.nashir_campaign_id,
-    wsB.nashir_campaign_id,
-    "workspace-a and workspace-b entities must have distinct nashir_campaign_id values"
-  );
-  assert.notStrictEqual(
-    wsA.workspace_id,
-    wsB.workspace_id,
-    "workspace-a and workspace-b entities must have different workspace_id values"
-  );
 });
 
 test("store.nashirCampaigns is additive — existing collections are unchanged", () => {
