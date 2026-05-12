@@ -75,16 +75,24 @@ test("src/rbac.js contains only approved Nashir permission codes", () => {
 // The Nashir store entities implementation gate approved adding nashirCampaigns to
 // src/store.js. All other Nashir references in src/store.js remain unauthorized.
 
-test("src/store.js references nashir only via the approved store entities — not routing or services", () => {
-  // Approved by the Nashir store entities gate: nashirCampaigns collection and nashir_campaign_id field.
-  // Strip those before checking for unauthorized Nashir wiring.
-  const withoutApproved = srcText("store.js")
-    .replace(/\bnashirCampaigns\b/g, "")
-    .replace(/\bnashir_campaign_id\b/g, "");
-  assert.ok(
-    !/nashir/i.test(withoutApproved),
-    "src/store.js must not reference nashir beyond the approved nashirCampaigns store entities"
-  );
+test("src/store.js and src/store_sprint3.js reference nashir only via approved store entities", () => {
+  // Approved by the Nashir store entities gate:
+  // - nashirCampaigns collection
+  // - nashir_campaign_id field
+  // Any other Nashir reference in store files remains unauthorized.
+  for (const file of ["store.js", "store_sprint3.js"]) {
+    const withoutApproved = srcText(file)
+      .replace(/nashirCampaigns/gi, "")
+      .replace(/nashir_campaign_id/gi, "");
+
+    const remainingMatch = withoutApproved.match(/nashir/i);
+
+    assert.equal(
+      remainingMatch,
+      null,
+      "src/" + file + " must not reference nashir beyond the approved nashirCampaigns store entities"
+    );
+  }
 });
 
 // ─── Group 4: OpenAPI YAML files — content-based classification ──────────────
