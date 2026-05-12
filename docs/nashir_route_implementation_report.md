@@ -93,8 +93,8 @@ Constructor injection pattern per gate document Section 5.1.
 | `node --test test/nashir-service-repository-read-path.test.js` | 26/26 pass |
 | `npm test` | 195/195 pass |
 | `git diff --check` | No whitespace errors |
-| `git diff --name-only` | `src/router.js`, `test/nashir-prewiring-contract.test.js` |
-| `git status --short` | `M src/router.js`, `M test/nashir-prewiring-contract.test.js`, `?? test/nashir-route.test.js` |
+| `git diff --name-only` | `src/router.js`, `test/nashir-route.test.js`, `test/nashir-prewiring-contract.test.js`, `docs/nashir_route_implementation_report.md`, `docs/17_change_log.md`, `docs/03_decision_log.md` |
+| `git status --short` | `M src/router.js`, `M test/nashir-prewiring-contract.test.js`, `M docs/17_change_log.md`, `M docs/03_decision_log.md`, `?? test/nashir-route.test.js`, `?? docs/nashir_route_implementation_report.md` |
 
 ## 6. Forbidden File Check
 
