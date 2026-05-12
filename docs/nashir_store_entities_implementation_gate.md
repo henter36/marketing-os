@@ -137,6 +137,8 @@ The future implementation PR must use this entity shape, derived from the `Nashi
 
 > **Scope note:** The `campaign_status` values are an internal store-readiness lifecycle envelope aligned with the D-009 state machine and existing decision-log lifecycle concepts (`draft → generated → in_review → approved/rejected`, with `archived`, `requires_reapproval`, `blocked_until_review`, and `published` as additional envelope states). `created_by_user_id` is included for future ownership, audit, and RBAC-readiness only. Adding these fields to the in-memory entity shape does not authorize OpenAPI YAML changes, route exposure, publishing workflow implementation, service/repository method implementation, or DB-backed persistence.
 
+> **D-009 revision transition note (future service/repository requirement only):** When service/repository methods are implemented in the Blocker 4 gate, the implementation must handle revision transitions from `requires_reapproval` and `rejected` back to `generated` per D-009 (`requires_reapproval → generated → in_review`; `rejected → generated → in_review`). This note records the requirement for the future gate and does not authorize service/repository implementation, route exposure, OpenAPI changes, publishing workflow, or DB-backed persistence in this PR.
+
 Seed data must include exactly **two records** — one for `workspace-a` and one for `workspace-b` — following the pattern established by all other seed entities in the store chain.
 
 ## 7. Allowed Files for the Future Implementation PR
@@ -175,7 +177,7 @@ The future implementation PR is GO only if ALL of the following are satisfied:
 1. `store.nashirCampaigns` is initialized in `src/store.js` using `||=` pattern.
 2. Each seed entity has all required fields: `nashir_campaign_id`, `workspace_id`, `campaign_name`, `campaign_status`, `created_by_user_id`, `created_at`, `updated_at`.
 3. Exactly two seed entities are present: one for `workspace-a`, one for `workspace-b`.
-4. `nashir_campaign_id` values are distinct from all existing `campaign_id` values (no cross-collection ID collision).
+4. `nashir_campaign_id` values use UUID format; this is the primary differentiator from existing human-readable `campaign_id` values (e.g., `campaign-a`). No `nashir_campaign_id` may equal any `campaign_id` in `store.campaigns`.
 5. `workspace_id` values in Nashir seed entities match the workspace scope of each record (`workspace-a` or `workspace-b`).
 6. No Nashir route is registered in `src/router.js`.
 7. No Nashir keyword appears in `src/router.js` or `src/server.js`.
@@ -185,7 +187,7 @@ The future implementation PR is GO only if ALL of the following are satisfied:
    - `nashirCampaigns` array is present and non-empty.
    - Each entity has all required fields including `created_by_user_id`.
    - Entities are workspace-scoped (no cross-workspace leakage in the seed data).
-   - `nashir_campaign_id` values are distinct from each other.
+   - `nashir_campaign_id` values use UUID format, are distinct from each other, and do not equal any existing human-readable `campaign_id` (e.g., `campaign-a`).
 10. `src/store.js` diff is additive only — no existing collections or behaviors changed.
 
 ## 10. Required Tests
@@ -203,7 +205,7 @@ The focused test file `test/nashir-store-entities.test.js` must cover:
 | Workspace B entity exists | One entity has `workspace_id === "workspace-b"` |
 | No cross-workspace seed leakage | Workspace-a entity does not have workspace-b ID, and vice versa |
 | Distinct campaign IDs | All `nashir_campaign_id` values are unique within the array |
-| No conflation with existing campaigns | No `nashir_campaign_id` value equals any existing `campaign_id` from `store.campaigns` |
+| No conflation with existing campaigns | `nashir_campaign_id` values use UUID format — the primary differentiator from human-readable `campaign_id` values (e.g., `campaign-a`); no `nashir_campaign_id` may equal any `campaign_id` in `store.campaigns` |
 
 The test file must not import `src/router.js`, `src/server.js`, `src/db.js`, `src/rbac.js`, `src/guards.js`, or any Nashir-specific runtime module. It imports only the store module(s).
 
