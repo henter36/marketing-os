@@ -43,8 +43,8 @@ Repository behavior:
 
 - Reads only from injected `store.nashirCampaigns`.
 - Filters by `workspace_id === workspaceId`.
-- Returns `[]` when `workspaceId` is missing.
-- Returns `[]` when no campaigns match.
+- Returns `[]` when `workspaceId` is missing as an internal repository fallback only.
+- Returns `[]` when no campaigns match as an internal repository fallback only.
 - Returns shallow clones.
 - Does not mutate `store.nashirCampaigns`.
 - Does not access DB, SQL, migrations, or external services.
@@ -73,6 +73,10 @@ nashir.campaign.read
 `workspaceId` is derived from the URL path only. Request body `workspace_id` is not used for filtering.
 
 For both `GET /workspaces/{workspaceId}/nashir-campaigns` and `GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}`, authentication runs before membership evaluation. Missing membership returns `404` rather than `403` so the route does not disclose whether a workspace exists to non-members. Unknown or non-existent workspaces also return `404`. Permission denial after valid active membership remains `403`. Empty existing workspaces return `200` with `[]` only after active membership and `nashir.campaign.read` permission are confirmed.
+
+Route-level behavior still requires `workspaceId` in the URL. The repository/service `[]` fallback for missing or unmatched `workspaceId` is defensive internal behavior only; callers cannot reach the list response without passing the route pattern, authenticating, having active membership, and passing `nashir.campaign.read`.
+
+No reusable non-disclosing guard was added in this PR. A future refactor may extract the direct active membership lookup into a shared helper, but that is deferred to avoid expanding PR #186 beyond the approved Nashir route remediation.
 
 ## Scope Boundaries Preserved
 
