@@ -79,8 +79,8 @@ test("src/store.js references nashir only via the approved store entities — no
   // Approved by the Nashir store entities gate: nashirCampaigns collection and nashir_campaign_id field.
   // Strip those before checking for unauthorized Nashir wiring.
   const withoutApproved = srcText("store.js")
-    .replace(/nashirCampaigns/gi, "")
-    .replace(/nashir_campaign_id/gi, "");
+    .replace(/\bnashirCampaigns\b/g, "")
+    .replace(/\bnashir_campaign_id\b/g, "");
   assert.ok(
     !/nashir/i.test(withoutApproved),
     "src/store.js must not reference nashir beyond the approved nashirCampaigns store entities"

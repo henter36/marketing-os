@@ -96,6 +96,7 @@ test("nashir_campaign_id values are distinct from each other", () => {
 test("nashir_campaign_id UUID format is the primary differentiator from human-readable campaign_id values", () => {
   const store = createSeedStore();
   const nashirIds = new Set(store.nashirCampaigns.map((c) => c.nashir_campaign_id));
+  assert.ok(Array.isArray(store.campaigns), "store.campaigns must be an array");
   // Existing campaign_id values are human-readable (e.g., "campaign-a"); they must not collide.
   for (const campaign of store.campaigns) {
     assert.ok(
