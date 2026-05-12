@@ -6,6 +6,7 @@ const { implementedRoutes } = require("../src/router");
 const specPath = path.resolve(__dirname, "..", "docs", "marketing_os_v5_6_5_phase_0_1_openapi.yaml");
 const sprint3PatchPath = path.resolve(__dirname, "..", "docs", "marketing_os_v5_6_5_phase_0_1_openapi_sprint3_patch.yaml");
 const patch002Path = path.resolve(__dirname, "..", "docs", "marketing_os_v5_6_5_phase_0_1_openapi_patch_002.yaml");
+const nashirPatchPath = path.resolve(__dirname, "..", "docs", "nashir_openapi_patch.yaml");
 const strict = process.argv.includes("--strict") || process.env.CI === "true" || process.env.STRICT_GATES === "true";
 
 if (!existsSync(specPath)) {
@@ -19,10 +20,16 @@ if (!existsSync(specPath)) {
   process.exit(0);
 }
 
+if (strict && !existsSync(nashirPatchPath)) {
+  console.error("Strict OpenAPI lint requires docs/nashir_openapi_patch.yaml, but it was not found.");
+  process.exit(1);
+}
+
 const baseSpec = readFileSync(specPath, "utf8");
 const sprint3Patch = existsSync(sprint3PatchPath) ? readFileSync(sprint3PatchPath, "utf8") : "";
 const patch002 = strict && existsSync(patch002Path) ? readFileSync(patch002Path, "utf8") : "";
-const spec = `${baseSpec}\n${sprint3Patch}\n${patch002}`;
+const nashirPatch = strict ? readFileSync(nashirPatchPath, "utf8") : "";
+const spec = `${baseSpec}\n${sprint3Patch}\n${patch002}\n${nashirPatch}`;
 const requiredFragments = [
   "openapi: 3.1.0",
   "ErrorModel:",
