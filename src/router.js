@@ -595,6 +595,7 @@ function routeSprint4(req, path, body, store) {
 async function routeNashir(req, path, store) {
   const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns\/([^/]+)$/);
   if (!workspaceMatch) throw notFound();
+  if (req.method !== "GET") throw notFound();
 
   const workspaceId = workspaceContextGuard({ workspaceId: workspaceMatch[1] });
   const user = authGuard(req, store);
