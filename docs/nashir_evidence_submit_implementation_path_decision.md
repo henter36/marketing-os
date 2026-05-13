@@ -108,11 +108,14 @@ This PR does not authorize:
 Candidate files for a separate future implementation PR only:
 
 - `src/router.js`
+- `src/store.js`
 - `src/nashir/backend-slice0-service.js`
 - `src/nashir/backend-slice0-repository.js`
 - `docs/nashir_openapi_patch.yaml`
 - `test/nashir-route.test.js`
+- `test/nashir-prewiring-contract.test.js`
 - `test/nashir-openapi-contract.test.js`
+- `test/nashir-store-entities.test.js`
 - `test/nashir-service-repository-read-path.test.js`
 - `docs/nashir_evidence_submit_route_implementation_report.md`
 - `docs/03_decision_log.md`
