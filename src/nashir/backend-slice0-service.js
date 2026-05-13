@@ -56,9 +56,6 @@ class NashirSlice0Service {
     if (!campaign) {
       return null;
     }
-    if (!this.repository) {
-      return [];
-    }
     return this.repository.listCampaignEvidence({ workspaceId, nashirCampaignId });
   }
 

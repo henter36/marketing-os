@@ -410,7 +410,7 @@ components:
             exists in this slice, so the route returns no evidence records.
           items:
             type: object
-            additionalProperties: false
+            additionalProperties: true
 
     ErrorModel:
       type: object
