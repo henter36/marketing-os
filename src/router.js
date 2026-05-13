@@ -624,6 +624,9 @@ async function routeNashir(req, path, body, store, nashirService) {
       actorUserId: user.user_id,
       timestamp: now()
     });
+    if (!campaign) {
+      throw new AppError(500, "INTERNAL_ERROR", "Failed to create Nashir campaign.", "Retry or contact support.");
+    }
     audit(store, workspaceId, user, "nashir_campaign.created", "NashirCampaign", campaign.nashir_campaign_id, null, campaign);
     return created(campaign);
   }
