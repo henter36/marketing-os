@@ -149,10 +149,10 @@ for (const code of REQUIRED_ERROR_CODES) {
 
 // ─── Audit event for POST create ─────────────────────────────────────────────
 
-test("nashir_openapi_patch.yaml declares nashir.campaign.created audit event", () => {
+test("nashir_openapi_patch.yaml declares nashir_campaign.created audit event", () => {
   assert.ok(
-    patchText().includes("nashir.campaign.created"),
-    "docs/nashir_openapi_patch.yaml must declare nashir.campaign.created audit event"
+    patchText().includes("nashir_campaign.created"),
+    "docs/nashir_openapi_patch.yaml must declare nashir_campaign.created audit event"
   );
 });
 
