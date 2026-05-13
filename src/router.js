@@ -625,7 +625,7 @@ async function routeNashir(req, path, body, store, nashirService) {
       }
       requireOnlyFields(body, ["evidenceType", "channel", "publishedAt", "url", "notes", "externalReference"]);
       requireFields(body, ["evidenceType", "channel"]);
-      if (![body.url, body.externalReference, body.notes].some((value) => value !== undefined && value !== null && value !== "")) {
+      if (!(body.url || body.notes || body.externalReference)) {
         throw new AppError(422, "VALIDATION_FAILED", "At least one proof locator is required.", "Provide url, externalReference, or notes.");
       }
 
