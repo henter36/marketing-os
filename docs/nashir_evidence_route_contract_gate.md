@@ -72,9 +72,9 @@ The candidate `GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}
 {
   "data": [
     {
-      "evidence_id": "evidence_123",
-      "workspace_id": "workspace_123",
-      "nashir_campaign_id": "nashir_campaign_123",
+      "evidence_id": "evidence-123",
+      "workspace_id": "workspace-123",
+      "nashir_campaign_id": "nashir-campaign-123",
       "evidence_status": "submitted",
       "evidence_type": "url",
       "evidence_url": "https://example.com/evidence",
@@ -159,7 +159,7 @@ Future review-related audit events remain separate candidates:
 - `nashir_evidence.invalidated`
 - `nashir_evidence.superseded`
 
-The exact audit payload must include route-derived `workspaceId`, route-derived `nashirCampaignId`, actor, evidence id, status, `version_ref` and `content_hash` where applicable, and before/after values where applicable.
+The exact audit payload must include route-derived `workspaceId`, route-derived `nashirCampaignId`, actor, evidence_id, status, `version_ref` and `content_hash` where applicable, and before/after values where applicable.
 
 No audit implementation is authorized by this PR.
 
