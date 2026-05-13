@@ -39,21 +39,31 @@ function noGoSection(file) {
 // ─── Group 1: src/router.js — approved Nashir read route patterns only ───────
 // PR #180 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}.
 // PR #185 approved GET /workspaces/{workspaceId}/nashir-campaigns.
+// PR #191 approved POST /workspaces/{workspaceId}/nashir-campaigns.
 // Strip only the approved identifiers before checking for unauthorized Nashir references.
 
-test("src/router.js exposes only the approved nashir read route patterns", () => {
+test("src/router.js exposes only the approved nashir route patterns", () => {
   const withoutApproved = srcText("router.js")
     // Class names (PR #180 approved constructor injection)
     .replace(/\bNashirSlice0Repository\b/g, "")
     .replace(/\bNashirSlice0Service\b/g, "")
+    .replace(/\bNashirCampaign\b/g, "")
     // Module require paths
     .replace(/\.\/nashir\/backend-slice0-(?:repository|service)/g, "")
     // Collection and URL identifiers
     .replace(/\bnashirCampaigns\b/g, "")
     .replace(/\bnashirCampaignId\b/g, "")
+    .replace(/\bnashir_campaign_id\b/g, "")
     .replace(/\bnashir-campaigns\b/gi, "")
     // Permission code
     .replace(/\bnashir\.campaign\.read\b/g, "")
+    .replace(/\bnashir\.campaign\.write\b/g, "")
+    // Audit event
+    .replace(/\bnashir_campaign\.created\b/g, "")
+    .replace(/\bisNashirAction\b/g, "")
+    .replace(/\bnashir_\b/g, "")
+    .replace(/\bnashir-slice-0\b/g, "")
+    .replace(/Failed to create Nashir campaign\./g, "")
     // Router function and variable names introduced by the approved wiring
     .replace(/\bnashirRoutes\b/g, "")
     .replace(/\brouteNashir\b/g, "")

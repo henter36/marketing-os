@@ -5,8 +5,11 @@ class NashirSlice0Service {
     this.repository = repository || null;
   }
 
-  async createCampaign(campaignData) {
-    throw new Error("not implemented");
+  async createCampaign({ workspaceId, campaignName, actorUserId, timestamp } = {}) {
+    if (!this.repository) {
+      throw new Error("not implemented");
+    }
+    return this.repository.createCampaign({ workspaceId, campaignName, actorUserId, timestamp });
   }
 
   async getCampaignById({ workspaceId, nashirCampaignId } = {}) {

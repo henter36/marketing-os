@@ -157,6 +157,64 @@ test("repository listCampaigns does not mutate store.nashirCampaigns", async () 
   assert.strictEqual(store.nashirCampaigns.length, originalLength);
 });
 
+// ─── Repository: createCampaign ─────────────────────────────────────────────
+
+test("repository createCampaign creates an in-memory draft campaign scoped to workspace", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const campaign = await repo.createCampaign({
+    workspaceId: WORKSPACE_A,
+    campaignName: "Created Campaign",
+    actorUserId: "user-owner-a",
+    timestamp: "2026-05-13T00:00:00.000Z"
+  });
+
+  assert.strictEqual(campaign.workspace_id, WORKSPACE_A);
+  assert.strictEqual(campaign.campaign_name, "Created Campaign");
+  assert.strictEqual(campaign.campaign_status, "draft");
+  assert.strictEqual(campaign.created_by_user_id, "user-owner-a");
+  assert.strictEqual(campaign.created_at, "2026-05-13T00:00:00.000Z");
+  assert.strictEqual(campaign.updated_at, "2026-05-13T00:00:00.000Z");
+  assert.ok(store.nashirCampaigns.some((entry) => entry.nashir_campaign_id === campaign.nashir_campaign_id));
+});
+
+test("repository createCampaign returns a shallow clone, not the original store object", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const campaign = await repo.createCampaign({
+    workspaceId: WORKSPACE_A,
+    campaignName: "Clone Check",
+    actorUserId: "user-owner-a",
+    timestamp: "2026-05-13T00:00:00.000Z"
+  });
+  const original = store.nashirCampaigns.find((entry) => entry.nashir_campaign_id === campaign.nashir_campaign_id);
+
+  assert.notStrictEqual(campaign, original);
+  assert.deepStrictEqual(campaign, original);
+});
+
+test("repository createCampaign regenerates when the first generated ID would collide", async () => {
+  const store = createSeedStore();
+  store.nashirCampaigns[0].nashir_campaign_id = "nashir-campaign-3";
+  const repo = createNashirSlice0Repository({ store });
+
+  const campaign = await repo.createCampaign({
+    workspaceId: WORKSPACE_A,
+    campaignName: "Collision Safe",
+    actorUserId: "user-owner-a",
+    timestamp: "2026-05-13T00:00:00.000Z"
+  });
+
+  assert.notStrictEqual(campaign.nashir_campaign_id, "nashir-campaign-3");
+  assert.strictEqual(campaign.nashir_campaign_id, "nashir-campaign-4");
+  assert.strictEqual(
+    store.nashirCampaigns.filter((entry) => entry.nashir_campaign_id === campaign.nashir_campaign_id).length,
+    1
+  );
+});
+
 // ─── Repository: inert write/evidence methods ────────────────────────────────
 
 test("repository saveCampaign remains not implemented", async () => {
@@ -270,12 +328,59 @@ test("service delegates to repository.listCampaigns with correct args", async ()
   assert.deepStrictEqual(calls[0], { workspaceId: WORKSPACE_A });
 });
 
-// ─── Service: inert approval/evidence/create methods ────────────────────────
+// ─── Service: createCampaign ────────────────────────────────────────────────
 
-test("service createCampaign remains not implemented", async () => {
-  const svc = createNashirSlice0Service();
-  await assert.rejects(() => svc.createCampaign({}), /not implemented/);
+test("service createCampaign delegates to repository and returns created campaign", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+
+  const campaign = await svc.createCampaign({
+    workspaceId: WORKSPACE_A,
+    campaignName: "Service Created",
+    actorUserId: "user-owner-a",
+    timestamp: "2026-05-13T00:00:00.000Z"
+  });
+
+  assert.strictEqual(campaign.workspace_id, WORKSPACE_A);
+  assert.strictEqual(campaign.campaign_name, "Service Created");
+  assert.strictEqual(campaign.campaign_status, "draft");
 });
+
+test("service createCampaign remains inert when no repository is injected", async () => {
+  const svc = createNashirSlice0Service();
+
+  await assert.rejects(() => svc.createCampaign({
+    workspaceId: WORKSPACE_A,
+    campaignName: "No Repo",
+    actorUserId: "user-owner-a",
+    timestamp: "2026-05-13T00:00:00.000Z"
+  }), /not implemented/);
+});
+
+test("service delegates to repository.createCampaign with correct args", async () => {
+  const calls = [];
+  const fakeRepo = {
+    createCampaign(args) {
+      calls.push(args);
+      return Promise.resolve({ nashir_campaign_id: "created", workspace_id: WORKSPACE_A });
+    }
+  };
+  const svc = createNashirSlice0Service({ repository: fakeRepo });
+  const args = {
+    workspaceId: WORKSPACE_A,
+    campaignName: "Delegated",
+    actorUserId: "user-owner-a",
+    timestamp: "2026-05-13T00:00:00.000Z"
+  };
+
+  await svc.createCampaign(args);
+
+  assert.strictEqual(calls.length, 1, "createCampaign must be called exactly once");
+  assert.deepStrictEqual(calls[0], args);
+});
+
+// ─── Service: inert approval/evidence methods ───────────────────────────────
 
 test("service scoreReadiness remains not implemented", async () => {
   const svc = createNashirSlice0Service();
