@@ -125,6 +125,7 @@ Create-route audit behavior must use:
 |---|---|
 | Event name | `nashir.campaign.created` |
 | Entity type | `NashirCampaign` |
+| Entity ID | Generated `nashir_campaign_id` |
 | Before payload | `null` |
 | After payload | Created Nashir campaign representation |
 
