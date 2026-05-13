@@ -369,6 +369,99 @@ test("GET nashir readiness derives route IDs from path and ignores body override
   assert.strictEqual(res.body.data.nashir_campaign_id, CAMPAIGN_A_ID);
 });
 
+// ─── Evidence list route — read-only empty collection ──────────────────────
+
+test("GET nashir evidence list returns 200 with { data: [] } for authorized member", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.deepStrictEqual(res.body, { data: [] });
+});
+
+test("GET nashir evidence list does not emit an audit event", async () => {
+  const server = await createTestServer();
+  const auditCount = server.store.auditLogs.length;
+
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(server.store.auditLogs.length, auditCount);
+});
+
+test("GET nashir evidence list is read-only and does not mutate campaign store", async () => {
+  const server = await createTestServer();
+  const before = JSON.stringify(server.store.nashirCampaigns);
+
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(JSON.stringify(server.store.nashirCampaigns), before);
+  assert.strictEqual(Object.hasOwn(server.store, "nashirEvidence"), false);
+});
+
+test("GET nashir evidence list returns 404 for user with no workspace membership", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OUTSIDER });
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence list returns 404 for unknown workspace", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/workspace-missing/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence list returns 404 for unknown campaign", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${UNKNOWN_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence list returns 404 for cross-workspace campaign", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_B_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence list returns 403 for member lacking nashir.campaign.read", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: BILLING_A });
+
+  assert.strictEqual(res.status, 403);
+});
+
+test("GET nashir evidence list derives route IDs from path and ignores body overrides", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      workspace_id: WORKSPACE_B,
+      nashir_campaign_id: UNKNOWN_ID
+    }
+  });
+
+  assert.strictEqual(res.status, 200);
+  assert.deepStrictEqual(res.body, { data: [] });
+});
+
+test("POST nashir evidence remains unregistered", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidence_type: "url",
+      evidence_url: "https://example.com/evidence"
+    }
+  });
+
+  assert.strictEqual(res.status, 404);
+});
+
 // ─── Create route — in-memory only ──────────────────────────────────────────
 
 test("POST nashir-campaigns creates a draft campaign for authorized active member", async () => {
@@ -539,17 +632,19 @@ test("POST nashir-campaigns/{nashirCampaignId}, update, and delete routes remain
   }
 });
 
-test("evidence, approval, scoring, and publishing Nashir routes remain unregistered", async () => {
+test("approval, scoring mutation, publishing, and evidence submit Nashir routes remain unregistered", async () => {
   const server = await createTestServer();
-  const paths = [
-    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`,
-    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/approval`,
-    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/score-readiness`,
-    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/publish`
+  const requests = [
+    server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/approval`, { userId: OWNER_A }),
+    server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/score-readiness`, { userId: OWNER_A }),
+    server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/publish`, { userId: OWNER_A }),
+    server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+      userId: OWNER_A,
+      body: { evidence_type: "url", evidence_url: "https://example.com/evidence" }
+    })
   ];
 
-  for (const path of paths) {
-    const res = await server.request("GET", path, { userId: OWNER_A });
-    assert.strictEqual(res.status, 404, `${path} must remain unregistered`);
+  for (const res of await Promise.all(requests)) {
+    assert.strictEqual(res.status, 404);
   }
 });

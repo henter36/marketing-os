@@ -157,6 +157,57 @@ test("repository listCampaigns does not mutate store.nashirCampaigns", async () 
   assert.strictEqual(store.nashirCampaigns.length, originalLength);
 });
 
+// ─── Repository: listCampaignEvidence ──────────────────────────────────────
+
+test("repository listCampaignEvidence returns [] when no evidence store exists", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const evidence = await repo.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+
+  assert.deepStrictEqual(evidence, []);
+  assert.strictEqual(Object.hasOwn(store, "nashirEvidence"), false);
+});
+
+test("repository listCampaignEvidence returns [] when workspaceId or nashirCampaignId is missing", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  assert.deepStrictEqual(await repo.listCampaignEvidence({ workspaceId: WORKSPACE_A }), []);
+  assert.deepStrictEqual(await repo.listCampaignEvidence({ nashirCampaignId: CAMPAIGN_A_ID }), []);
+  assert.deepStrictEqual(await repo.listCampaignEvidence(), []);
+});
+
+test("repository listCampaignEvidence filters by route-derived workspace and campaign when a store exists", async () => {
+  const store = createSeedStore();
+  store.nashirEvidence = [
+    { evidence_id: "evidence-a", workspace_id: WORKSPACE_A, nashir_campaign_id: CAMPAIGN_A_ID },
+    { evidence_id: "evidence-b", workspace_id: WORKSPACE_B, nashir_campaign_id: CAMPAIGN_B_ID },
+    { evidence_id: "evidence-cross", workspace_id: WORKSPACE_B, nashir_campaign_id: CAMPAIGN_A_ID }
+  ];
+  const repo = createNashirSlice0Repository({ store });
+
+  const evidence = await repo.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+
+  assert.deepStrictEqual(evidence, [
+    { evidence_id: "evidence-a", workspace_id: WORKSPACE_A, nashir_campaign_id: CAMPAIGN_A_ID }
+  ]);
+});
+
+test("repository listCampaignEvidence returns shallow clones and does not mutate store", async () => {
+  const store = createSeedStore();
+  store.nashirEvidence = [
+    { evidence_id: "evidence-a", workspace_id: WORKSPACE_A, nashir_campaign_id: CAMPAIGN_A_ID }
+  ];
+  const before = JSON.stringify(store);
+  const repo = createNashirSlice0Repository({ store });
+
+  const evidence = await repo.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+  evidence[0].evidence_id = "mutated";
+
+  assert.strictEqual(JSON.stringify(store), before);
+});
+
 // ─── Repository: createCampaign ─────────────────────────────────────────────
 
 test("repository createCampaign creates an in-memory draft campaign scoped to workspace", async () => {
@@ -326,6 +377,86 @@ test("service delegates to repository.listCampaigns with correct args", async ()
 
   assert.strictEqual(calls.length, 1, "listCampaigns must be called exactly once");
   assert.deepStrictEqual(calls[0], { workspaceId: WORKSPACE_A });
+});
+
+// ─── Service: listCampaignEvidence ─────────────────────────────────────────
+
+test("service listCampaignEvidence returns [] for an existing campaign with no evidence persistence", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+
+  const evidence = await svc.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+
+  assert.deepStrictEqual(evidence, []);
+});
+
+test("service listCampaignEvidence returns null for unknown or cross-workspace campaign", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+
+  assert.strictEqual(
+    await svc.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: UNKNOWN_ID }),
+    null
+  );
+  assert.strictEqual(
+    await svc.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_B_ID }),
+    null
+  );
+});
+
+test("service listCampaignEvidence delegates through the workspace-scoped campaign read path first", async () => {
+  const calls = [];
+  const fakeRepo = {
+    findCampaignById(args) {
+      calls.push(["findCampaignById", args]);
+      return Promise.resolve({ nashir_campaign_id: CAMPAIGN_A_ID, workspace_id: WORKSPACE_A });
+    },
+    listCampaignEvidence(args) {
+      calls.push(["listCampaignEvidence", args]);
+      return Promise.resolve([]);
+    }
+  };
+  const svc = createNashirSlice0Service({ repository: fakeRepo });
+
+  const evidence = await svc.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+
+  assert.deepStrictEqual(evidence, []);
+  assert.deepStrictEqual(calls, [
+    ["findCampaignById", { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }],
+    ["listCampaignEvidence", { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }]
+  ]);
+});
+
+test("service listCampaignEvidence does not call repository list when campaign is missing", async () => {
+  const calls = [];
+  const fakeRepo = {
+    findCampaignById(args) {
+      calls.push(["findCampaignById", args]);
+      return Promise.resolve(null);
+    },
+    listCampaignEvidence(args) {
+      calls.push(["listCampaignEvidence", args]);
+      return Promise.resolve([]);
+    }
+  };
+  const svc = createNashirSlice0Service({ repository: fakeRepo });
+
+  const evidence = await svc.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: UNKNOWN_ID });
+
+  assert.strictEqual(evidence, null);
+  assert.deepStrictEqual(calls, [
+    ["findCampaignById", { workspaceId: WORKSPACE_A, nashirCampaignId: UNKNOWN_ID }]
+  ]);
+});
+
+test("service listCampaignEvidence returns null when no repository is injected", async () => {
+  const svc = createNashirSlice0Service();
+
+  const evidence = await svc.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+
+  assert.strictEqual(evidence, null);
 });
 
 // ─── Service: getCampaignReadiness ─────────────────────────────────────────

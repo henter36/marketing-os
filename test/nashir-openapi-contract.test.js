@@ -29,7 +29,8 @@ test("docs/nashir_openapi_patch.yaml exists", () => {
 const REQUIRED_PATHS = [
   "/workspaces/{workspaceId}/nashir-campaigns",
   "/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}",
-  "/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness"
+  "/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness",
+  "/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence"
 ];
 
 for (const p of REQUIRED_PATHS) {
@@ -47,7 +48,8 @@ const REQUIRED_OPERATION_IDS = [
   "listNashirCampaigns",
   "createNashirCampaign",
   "getNashirCampaign",
-  "getNashirCampaignReadiness"
+  "getNashirCampaignReadiness",
+  "listNashirCampaignEvidence"
 ];
 
 for (const id of REQUIRED_OPERATION_IDS) {
@@ -167,6 +169,7 @@ const REQUIRED_SCHEMAS = [
   "NashirCampaignListResponse:",
   "NashirCampaignReadiness:",
   "NashirCampaignReadinessResponse:",
+  "NashirCampaignEvidenceListResponse:",
   "ReadinessIssue:",
   "ReadinessMissingField:",
   "ReadinessExplanation:"
@@ -222,4 +225,34 @@ test("nashir readiness schema declares required advisory fields and enums", () =
   for (const value of ["pass", "soft_pass", "fail", "blocked_until_review", "advisory_only", "ready_for_human_review"]) {
     assert.ok(yaml.includes(value), `readiness schema must include enum value ${value}`);
   }
+});
+
+test("nashir_openapi_patch.yaml declares evidence list route with read permission only", () => {
+  const yaml = patchText();
+  const pathStart = yaml.indexOf("/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence:");
+  assert.ok(pathStart !== -1, "evidence path must be declared");
+  const rest = yaml.slice(pathStart);
+  const nextPath = rest.slice(1).match(/\n  \/workspaces\//);
+  const block = nextPath ? rest.slice(0, nextPath.index + 1) : rest;
+
+  assert.ok(block.includes("get:"));
+  assert.ok(block.includes("operationId: listNashirCampaignEvidence"));
+  assert.ok(block.includes("x-permission: nashir.campaign.read"));
+  assert.ok(block.includes("NashirCampaignEvidenceListResponse"));
+  assert.ok(block.includes("ErrorResponse"));
+  assert.ok(!block.includes("post:"), "POST evidence must not be declared");
+  assert.ok(!block.includes("x-permission: nashir.evidence.submit"));
+});
+
+test("nashir evidence list response schema declares an empty data array", () => {
+  const yaml = patchText();
+  const schemaStart = yaml.indexOf("NashirCampaignEvidenceListResponse:");
+  assert.ok(schemaStart !== -1, "NashirCampaignEvidenceListResponse schema must be defined");
+  const rest = yaml.slice(schemaStart);
+  const siblingMatch = rest.slice(1).match(/\n    \S/);
+  const block = siblingMatch ? rest.slice(0, siblingMatch.index + 1) : rest;
+
+  assert.ok(block.includes("required: [data]"));
+  assert.ok(block.includes("type: array"));
+  assert.ok(block.includes("maxItems: 0"));
 });
