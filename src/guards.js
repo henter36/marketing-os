@@ -48,6 +48,21 @@ function membershipCheck(user, workspaceId, store) {
   return membership;
 }
 
+function nonDisclosingMembershipCheck(user, workspaceId, store) {
+  const membership = store.memberships.find(
+    (candidate) =>
+      candidate.user_id === user.user_id &&
+      candidate.workspace_id === workspaceId &&
+      candidate.member_status === "active"
+  );
+
+  if (!membership) {
+    throw new AppError(404, "NOT_FOUND", "Route was not found.", "Use an endpoint from the OpenAPI contract.");
+  }
+
+  return membership;
+}
+
 function permissionGuard(membership, permission) {
   if (!hasPermission(membership.role_code, permission)) {
     throw new AppError(403, "PERMISSION_DENIED", "User does not have the required permission.", "Ask a workspace admin for the right role.");
@@ -57,6 +72,7 @@ function permissionGuard(membership, permission) {
 module.exports = {
   authGuard,
   membershipCheck,
+  nonDisclosingMembershipCheck,
   permissionGuard,
   rejectBodyWorkspaceId,
   workspaceContextGuard
