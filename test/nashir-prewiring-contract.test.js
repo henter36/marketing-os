@@ -63,6 +63,7 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
     .replace(/\bisNashirAction\b/g, "")
     .replace(/\bnashir_\b/g, "")
     .replace(/\bnashir-slice-0\b/g, "")
+    .replace(/Failed to create Nashir campaign\./g, "")
     // Router function and variable names introduced by the approved wiring
     .replace(/\bnashirRoutes\b/g, "")
     .replace(/\brouteNashir\b/g, "")
