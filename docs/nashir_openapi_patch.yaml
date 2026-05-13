@@ -20,7 +20,7 @@ info:
       nashir.approval.decide — deferred; not exposed in this patch
 
     Deferred paths (not in this patch):
-      nashir evidence submit/review paths
+      nashir evidence review paths
       nashir approval/review paths
       nashir scoring mutation/persistence paths
       nashir state-transition paths
@@ -41,7 +41,7 @@ x-contract-rules:
   no_go_rules:
     - workspace_id accepted from body as trusted source
     - endpoint reads or writes workspace-scoped record without workspace path context
-    - nashir evidence submit/review paths exposed before separate approval
+    - nashir evidence review paths exposed before separate approval
     - nashir approval/review paths exposed before separate approval
     - nashir scoring mutation or persistence paths exposed before separate approval
     - generated clients updated without separate approval
@@ -181,6 +181,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NashirCampaignEvidenceListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [NashirCampaigns]
+      summary: Submit in-memory Nashir campaign evidence
+      operationId: submitNashirCampaignEvidence
+      x-permission: nashir.campaign.write
+      x-audit-event: nashir_evidence.submitted
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitNashirCampaignEvidenceRequest'
+      responses:
+        '201':
+          description: In-memory Nashir evidence submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignEvidenceResponse'
         default:
           $ref: '#/components/responses/ErrorResponse'
 
@@ -404,13 +425,97 @@ components:
       properties:
         data:
           type: array
-          maxItems: 0
           description: >
-            Empty read-only evidence list. No evidence submission or persistence
-            exists in this slice, so the route returns no evidence records.
+            In-memory evidence list for the route-derived workspace and Nashir
+            campaign. Evidence is not durable and is not DB-backed in this slice.
           items:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/NashirCampaignEvidence'
+
+    SubmitNashirCampaignEvidenceRequest:
+      type: object
+      required:
+        - evidenceType
+        - channel
+      additionalProperties: false
+      properties:
+        evidenceType:
+          type: string
+        channel:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        url:
+          type: string
+        notes:
+          type: string
+        externalReference:
+          type: string
+      anyOf:
+        - required: [url]
+        - required: [externalReference]
+        - required: [notes]
+      x-rule: >
+        workspaceId and nashirCampaignId are derived exclusively from the route.
+        This in-memory slice does not implement campaignVersionId or assetVersionId.
+
+    NashirCampaignEvidence:
+      type: object
+      required:
+        - id
+        - workspaceId
+        - nashirCampaignId
+        - evidenceType
+        - channel
+        - status
+        - submittedAt
+        - submittedBy
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+          description: Route-derived workspace context.
+        nashirCampaignId:
+          type: string
+          description: Route-derived Nashir campaign identifier.
+        evidenceType:
+          type: string
+        channel:
+          type: string
+        status:
+          type: string
+          enum:
+            - submitted
+        submittedAt:
+          type: string
+          format: date-time
+        submittedBy:
+          type: string
+        publishedAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        url:
+          oneOf:
+            - type: string
+            - type: "null"
+        notes:
+          oneOf:
+            - type: string
+            - type: "null"
+        externalReference:
+          oneOf:
+            - type: string
+            - type: "null"
+
+    NashirCampaignEvidenceResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NashirCampaignEvidence'
 
     ErrorModel:
       type: object

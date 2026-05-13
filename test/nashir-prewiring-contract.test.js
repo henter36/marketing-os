@@ -42,6 +42,7 @@ function noGoSection(file) {
 // PR #191 approved POST /workspaces/{workspaceId}/nashir-campaigns.
 // PR #197 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness.
 // PR #201 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence.
+// PR #207 approved POST /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence.
 // Strip only the approved identifiers before checking for unauthorized Nashir references.
 
 test("src/router.js exposes only the approved nashir route patterns", () => {
@@ -50,6 +51,7 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
     .replace(/\bNashirSlice0Repository\b/g, "")
     .replace(/\bNashirSlice0Service\b/g, "")
     .replace(/\bNashirCampaign\b/g, "")
+    .replace(/\bNashirEvidence\b/g, "")
     // Module require paths
     .replace(/\.\/nashir\/backend-slice0-(?:repository|service)/g, "")
     // Collection and URL identifiers
@@ -61,13 +63,21 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
     .replace(/\bevidencePath\b/g, "")
     .replace(/\bgetCampaignReadiness\b/g, "")
     .replace(/\blistCampaignEvidence\b/g, "")
+    .replace(/\bcreateCampaignEvidence\b/g, "")
     .replace(/\bReadiness\b/g, "")
     .replace(/\breadiness\b/g, "")
     .replace(/\bEvidence\b/g, "")
     .replace(/\bevidence\b/g, "")
     .replace(/\bevaluatedAt\b/g, "")
     .replace(/\bevaluated_at\b/g, "")
+    .replace(/\bevidenceType\b/g, "")
+    .replace(/\bexternalReference\b/g, "")
+    .replace(/\bpublishedAt\b/g, "")
+    .replace(/\bsubmittedAt\b/g, "")
+    .replace(/\bsubmittedBy\b/g, "")
     .replace(/Readiness is advisory and does not approve content or authorize publishing\./g, "")
+    .replace(/At least one proof locator is required\./g, "")
+    .replace(/Provide url, externalReference, or notes\./g, "")
     .replace(/\bNASHIR_READINESS_ADVISORY_ONLY\b/g, "")
     .replace(/\badvisory_only\b/g, "")
     // Permission code
@@ -75,6 +85,7 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
     .replace(/\bnashir\.campaign\.write\b/g, "")
     // Audit event
     .replace(/\bnashir_campaign\.created\b/g, "")
+    .replace(/\bnashir_evidence\.submitted\b/g, "")
     .replace(/\bisNashirAction\b/g, "")
     .replace(/\bnashir_\b/g, "")
     .replace(/\bnashir-slice-0\b/g, "")
@@ -93,10 +104,10 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
   );
 });
 
-test("src/router.js keeps POST nashir evidence unregistered", () => {
+test("src/router.js registers only approved POST nashir evidence route", () => {
   assert.ok(
-    !srcText("router.js").includes("POST /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence"),
-    "POST evidence must not be listed as an implemented Nashir route"
+    srcText("router.js").includes("POST /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence"),
+    "POST evidence must be listed as an implemented Nashir route"
   );
 });
 
@@ -128,16 +139,19 @@ test("src/rbac.js contains only approved Nashir permission codes", () => {
 
 // ─── Group 3: src/store.js — only the approved nashirCampaigns collection ──────
 // The Nashir store entities implementation gate approved adding nashirCampaigns to
-// src/store.js. All other Nashir references in src/store.js remain unauthorized.
+// src/store.js. The in-memory evidence submit gate later approved nashirEvidence.
+// All other Nashir references in src/store.js remain unauthorized.
 
 test("src/store.js and src/store_sprint3.js reference nashir only via approved store entities", () => {
   // Approved by the Nashir store entities gate:
   // - nashirCampaigns collection
   // - nashir_campaign_id field
+  // - nashirEvidence collection
   // Any other Nashir reference in store files remains unauthorized.
   for (const file of ["store.js", "store_sprint3.js"]) {
     const withoutApproved = srcText(file)
       .replace(/\bnashirCampaigns\b/gi, "")
+      .replace(/\bnashirEvidence\b/gi, "")
       .replace(/\bnashir_campaign_id\b/gi, "");
 
     const remainingMatch = withoutApproved.match(/nashir/i);

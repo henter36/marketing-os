@@ -159,14 +159,14 @@ test("repository listCampaigns does not mutate store.nashirCampaigns", async () 
 
 // ─── Repository: listCampaignEvidence ──────────────────────────────────────
 
-test("repository listCampaignEvidence returns [] when no evidence store exists", async () => {
+test("repository listCampaignEvidence returns [] when evidence store is empty", async () => {
   const store = createSeedStore();
   const repo = createNashirSlice0Repository({ store });
 
   const evidence = await repo.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
 
   assert.deepStrictEqual(evidence, []);
-  assert.strictEqual(Object.hasOwn(store, "nashirEvidence"), false);
+  assert.deepStrictEqual(store.nashirEvidence, []);
 });
 
 test("repository listCampaignEvidence returns [] when workspaceId or nashirCampaignId is missing", async () => {
@@ -206,6 +206,59 @@ test("repository listCampaignEvidence returns shallow clones and does not mutate
   evidence[0].evidence_id = "mutated";
 
   assert.strictEqual(JSON.stringify(store), before);
+});
+
+test("repository createCampaignEvidence creates submitted in-memory evidence scoped to workspace and campaign", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const evidence = await repo.createCampaignEvidence({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceType: "manual_publish_proof",
+    channel: "linkedin",
+    submittedAt: "2026-05-13T00:00:00.000Z",
+    submittedBy: "user-owner-a",
+    publishedAt: "2026-05-12T00:00:00.000Z",
+    url: "https://example.com/post",
+    notes: "Published manually",
+    externalReference: "post-123"
+  });
+
+  assert.deepStrictEqual(evidence, {
+    id: "nashir-evidence-1",
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceType: "manual_publish_proof",
+    channel: "linkedin",
+    status: "submitted",
+    submittedAt: "2026-05-13T00:00:00.000Z",
+    submittedBy: "user-owner-a",
+    publishedAt: "2026-05-12T00:00:00.000Z",
+    url: "https://example.com/post",
+    notes: "Published manually",
+    externalReference: "post-123"
+  });
+  assert.deepStrictEqual(store.nashirEvidence, [evidence]);
+});
+
+test("repository createCampaignEvidence returns a shallow clone, not the stored object", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+
+  const evidence = await repo.createCampaignEvidence({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceType: "manual_publish_proof",
+    channel: "linkedin",
+    submittedAt: "2026-05-13T00:00:00.000Z",
+    submittedBy: "user-owner-a",
+    notes: "Published manually"
+  });
+  const original = store.nashirEvidence.find((entry) => entry.id === evidence.id);
+
+  assert.notStrictEqual(evidence, original);
+  assert.deepStrictEqual(evidence, original);
 });
 
 // ─── Repository: createCampaign ─────────────────────────────────────────────
@@ -457,6 +510,84 @@ test("service listCampaignEvidence returns null when no repository is injected",
   const evidence = await svc.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
 
   assert.strictEqual(evidence, null);
+});
+
+test("service createCampaignEvidence returns submitted evidence for an existing campaign", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+
+  const evidence = await svc.createCampaignEvidence({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceType: "manual_publish_proof",
+    channel: "linkedin",
+    submittedAt: "2026-05-13T00:00:00.000Z",
+    submittedBy: "user-owner-a",
+    notes: "Published manually"
+  });
+
+  assert.strictEqual(evidence.id, "nashir-evidence-1");
+  assert.strictEqual(evidence.workspaceId, WORKSPACE_A);
+  assert.strictEqual(evidence.nashirCampaignId, CAMPAIGN_A_ID);
+  assert.strictEqual(evidence.status, "submitted");
+});
+
+test("service createCampaignEvidence returns null for unknown or cross-workspace campaign", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+  const args = {
+    workspaceId: WORKSPACE_A,
+    evidenceType: "manual_publish_proof",
+    channel: "linkedin",
+    submittedAt: "2026-05-13T00:00:00.000Z",
+    submittedBy: "user-owner-a",
+    notes: "Published manually"
+  };
+
+  assert.strictEqual(await svc.createCampaignEvidence({ ...args, nashirCampaignId: UNKNOWN_ID }), null);
+  assert.strictEqual(await svc.createCampaignEvidence({ ...args, nashirCampaignId: CAMPAIGN_B_ID }), null);
+  assert.deepStrictEqual(store.nashirEvidence, []);
+});
+
+test("service createCampaignEvidence delegates through the workspace-scoped campaign read path first", async () => {
+  const calls = [];
+  const fakeRepo = {
+    findCampaignById(args) {
+      calls.push(["findCampaignById", args]);
+      return Promise.resolve({ nashir_campaign_id: CAMPAIGN_A_ID, workspace_id: WORKSPACE_A });
+    },
+    createCampaignEvidence(args) {
+      calls.push(["createCampaignEvidence", args]);
+      return Promise.resolve({ id: "nashir-evidence-1", workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+    }
+  };
+  const svc = createNashirSlice0Service({ repository: fakeRepo });
+  const args = {
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceType: "manual_publish_proof",
+    channel: "linkedin",
+    submittedAt: "2026-05-13T00:00:00.000Z",
+    submittedBy: "user-owner-a",
+    notes: "Published manually"
+  };
+
+  await svc.createCampaignEvidence(args);
+
+  assert.deepStrictEqual(calls, [
+    ["findCampaignById", { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }],
+    [
+      "createCampaignEvidence",
+      {
+        ...args,
+        publishedAt: undefined,
+        url: undefined,
+        externalReference: undefined
+      }
+    ]
+  ]);
 });
 
 // ─── Service: getCampaignReadiness ─────────────────────────────────────────

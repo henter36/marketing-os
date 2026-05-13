@@ -130,3 +130,16 @@ test("store.nashirCampaigns is additive — existing collections are unchanged",
   assert.ok(store.campaigns.length > 0, "store.campaigns must still be non-empty");
   assert.ok(Array.isArray(store.connectors), "store.connectors must still exist");
 });
+
+test("nashirEvidence collection exists and starts empty for in-memory submit", () => {
+  const store = createSeedStore();
+  assert.ok(Array.isArray(store.nashirEvidence), "store.nashirEvidence must be an Array");
+  assert.deepStrictEqual(store.nashirEvidence, []);
+});
+
+test("nashirEvidence is additive — existing collections are unchanged", () => {
+  const store = createSeedStore();
+  assert.ok(Array.isArray(store.nashirCampaigns), "store.nashirCampaigns must still exist");
+  assert.ok(Array.isArray(store.campaigns), "store.campaigns must still exist");
+  assert.ok(Array.isArray(store.connectors), "store.connectors must still exist");
+});

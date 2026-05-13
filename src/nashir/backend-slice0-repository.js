@@ -62,10 +62,47 @@ class NashirSlice0Repository {
       .filter(
         (evidence) =>
           evidence &&
-          evidence.workspace_id === workspaceId &&
-          evidence.nashir_campaign_id === nashirCampaignId
+          (evidence.workspaceId || evidence.workspace_id) === workspaceId &&
+          (evidence.nashirCampaignId || evidence.nashir_campaign_id) === nashirCampaignId
       )
       .map((evidence) => ({ ...evidence }));
+  }
+
+  async createCampaignEvidence({
+    workspaceId,
+    nashirCampaignId,
+    evidenceType,
+    channel,
+    submittedAt,
+    submittedBy,
+    publishedAt = null,
+    url = null,
+    notes = null,
+    externalReference = null
+  } = {}) {
+    if (!this.store || !Array.isArray(this.store.nashirEvidence)) {
+      return null;
+    }
+    if (!workspaceId || !nashirCampaignId || !evidenceType || !channel || !submittedAt || !submittedBy) {
+      return null;
+    }
+
+    const evidence = {
+      id: nextNashirEvidenceId(this.store.nashirEvidence),
+      workspaceId,
+      nashirCampaignId,
+      evidenceType,
+      channel,
+      status: "submitted",
+      submittedAt,
+      submittedBy,
+      publishedAt,
+      url,
+      notes,
+      externalReference
+    };
+    this.store.nashirEvidence.push(evidence);
+    return { ...evidence };
   }
 
   async saveCampaign(campaign) {
@@ -96,6 +133,21 @@ function nextNashirCampaignId(campaigns) {
   while (existing.has(candidate)) {
     index += 1;
     candidate = `nashir-campaign-${index}`;
+  }
+  return candidate;
+}
+
+function nextNashirEvidenceId(evidenceRecords) {
+  const existing = new Set(
+    evidenceRecords
+      .filter(Boolean)
+      .map((evidence) => evidence.id)
+  );
+  let index = evidenceRecords.length + 1;
+  let candidate = `nashir-evidence-${index}`;
+  while (existing.has(candidate)) {
+    index += 1;
+    candidate = `nashir-evidence-${index}`;
   }
   return candidate;
 }
