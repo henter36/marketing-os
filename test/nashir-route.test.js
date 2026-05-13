@@ -13,9 +13,11 @@ const UNKNOWN_ID = "00000000-0000-4000-8000-000000000000";
 // Seed users and roles (from store.js):
 // user-owner-a   → workspace-a, owner       (has nashir.campaign.read)
 // user-billing-a → workspace-a, billing_admin (no nashir.campaign.read)
+// user-viewer-a  → workspace-a, viewer      (has nashir.campaign.read, lacks nashir.campaign.write)
 // user-outsider  → no memberships in any workspace
 const OWNER_A = "user-owner-a";
 const BILLING_A = "user-billing-a";
+const VIEWER_A = "user-viewer-a";
 const OUTSIDER = "user-outsider";
 const INVALID_USER = "user-missing";
 
@@ -203,15 +205,174 @@ test("GET nashir-campaigns/{nashirCampaignId} ignores workspace_id in request bo
   assert.strictEqual(res.body.data.workspace_id, WORKSPACE_A);
 });
 
-// ─── No create route registered ──────────────────────────────────────────────
+// ─── Create route — in-memory only ──────────────────────────────────────────
 
-test("POST nashir-campaigns (create route) is not registered — returns 404", async () => {
+test("POST nashir-campaigns creates a draft campaign for authorized active member", async () => {
   const server = await createTestServer();
   const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
     userId: OWNER_A,
     body: { campaign_name: "New Campaign" }
   });
+
+  assert.strictEqual(res.status, 201);
+  assert.ok(res.body.data, "response must contain data");
+  assert.strictEqual(res.body.data.workspace_id, WORKSPACE_A);
+  assert.strictEqual(res.body.data.campaign_name, "New Campaign");
+  assert.strictEqual(res.body.data.campaign_status, "draft");
+  assert.strictEqual(res.body.data.created_by_user_id, OWNER_A);
+  assert.ok(res.body.data.nashir_campaign_id, "created campaign must have an ID");
+  assert.ok(res.body.data.created_at, "created_at is required");
+  assert.strictEqual(res.body.data.updated_at, res.body.data.created_at);
+  assert.ok(
+    server.store.nashirCampaigns.some((campaign) => campaign.nashir_campaign_id === res.body.data.nashir_campaign_id),
+    "created campaign must be stored in memory"
+  );
+});
+
+test("POST nashir-campaigns response shape is { data: campaign }", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: { campaign_name: "Shape Check" }
+  });
+
+  assert.strictEqual(res.status, 201);
+  assert.ok(Object.hasOwn(res.body, "data"), "response must have a top-level data key");
+  assert.ok(typeof res.body.data === "object" && res.body.data !== null, "data must be an object");
+  assert.ok(!Object.hasOwn(res.body.data, "data"), "response must not be double-wrapped");
+});
+
+test("POST nashir-campaigns uses route workspaceId only", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: { campaign_name: "Route Workspace" }
+  });
+
+  assert.strictEqual(res.status, 201);
+  assert.strictEqual(res.body.data.workspace_id, WORKSPACE_A);
+  assert.notStrictEqual(res.body.data.workspace_id, WORKSPACE_B);
+});
+
+test("POST nashir-campaigns rejects body workspace_id override", async () => {
+  const server = await createTestServer();
+  const before = server.store.nashirCampaigns.length;
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: { workspace_id: WORKSPACE_B, campaign_name: "Wrong Workspace" }
+  });
+
+  assert.strictEqual(res.status, 422);
+  assert.strictEqual(server.store.nashirCampaigns.length, before);
+});
+
+test("POST nashir-campaigns generated nashir_campaign_id does not collide", async () => {
+  const server = await createTestServer();
+  server.store.nashirCampaigns[0].nashir_campaign_id = "nashir-campaign-3";
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: { campaign_name: "Collision Safe" }
+  });
+
+  assert.strictEqual(res.status, 201);
+  assert.strictEqual(res.body.data.nashir_campaign_id, "nashir-campaign-4");
+  assert.strictEqual(
+    server.store.nashirCampaigns.filter((campaign) => campaign.nashir_campaign_id === res.body.data.nashir_campaign_id).length,
+    1
+  );
+});
+
+test("POST nashir-campaigns duplicate valid submissions create separate campaign records", async () => {
+  const server = await createTestServer();
+  const first = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: { campaign_name: "Duplicate Name" }
+  });
+  const second = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: { campaign_name: "Duplicate Name" }
+  });
+
+  assert.strictEqual(first.status, 201);
+  assert.strictEqual(second.status, 201);
+  assert.notStrictEqual(first.body.data.nashir_campaign_id, second.body.data.nashir_campaign_id);
+  assert.strictEqual(first.body.data.campaign_name, second.body.data.campaign_name);
+});
+
+test("POST nashir-campaigns returns 404 for user with no workspace membership", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OUTSIDER,
+    body: { campaign_name: "No Membership" }
+  });
+
   assert.strictEqual(res.status, 404);
+});
+
+test("POST nashir-campaigns returns 404 for unknown workspace", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", "/workspaces/workspace-missing/nashir-campaigns", {
+    userId: OWNER_A,
+    body: { campaign_name: "Unknown Workspace" }
+  });
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("POST nashir-campaigns returns 403 for member lacking nashir.campaign.write", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: VIEWER_A,
+    body: { campaign_name: "No Write Permission" }
+  });
+
+  assert.strictEqual(res.status, 403);
+});
+
+test("POST nashir-campaigns requires campaign_name", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: {}
+  });
+
+  assert.strictEqual(res.status, 422);
+});
+
+test("POST nashir-campaigns records the approved create audit event", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: { campaign_name: "Audited Campaign" }
+  });
+  const audit = server.store.auditLogs.at(-1);
+
+  assert.strictEqual(res.status, 201);
+  assert.strictEqual(audit.action, "nashir_campaign.created");
+  assert.strictEqual(audit.entity_type, "NashirCampaign");
+  assert.strictEqual(audit.entity_id, res.body.data.nashir_campaign_id);
+  assert.strictEqual(audit.before_snapshot, null);
+  assert.deepStrictEqual(audit.after_snapshot, res.body.data);
+  assert.deepStrictEqual(audit.metadata, { sprint: "nashir-slice-0" });
+});
+
+test("POST nashir-campaigns/{nashirCampaignId}, update, and delete routes remain unregistered", async () => {
+  const server = await createTestServer();
+  const requests = [
+    server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`, {
+      userId: OWNER_A,
+      body: { campaign_name: "Nested Create" }
+    }),
+    server.request("PATCH", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`, {
+      userId: OWNER_A,
+      body: { campaign_name: "Update" }
+    }),
+    server.request("DELETE", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: OWNER_A })
+  ];
+
+  for (const res of await Promise.all(requests)) {
+    assert.strictEqual(res.status, 404);
+  }
 });
 
 test("evidence, approval, scoring, and publishing Nashir routes remain unregistered", async () => {

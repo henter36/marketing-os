@@ -48,7 +48,8 @@ const patch002Routes = [
 ];
 const nashirRoutes = [
   "GET /workspaces/{workspaceId}/nashir-campaigns",
-  "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}"
+  "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}",
+  "POST /workspaces/{workspaceId}/nashir-campaigns"
 ];
 const implementedRoutes = [...base.implementedRoutes, ...sprint4Routes, ...patch002Routes, ...nashirRoutes];
 
@@ -598,10 +599,9 @@ function routeSprint4(req, path, body, store) {
 async function routeNashir(req, path, body, store, nashirService) {
   const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns(?:\/([^/]+))?$/);
   if (!workspaceMatch) throw notFound();
-  if (req.method !== "GET") throw notFound();
-
-  const workspaceId = workspaceContextGuard({ workspaceId: workspaceMatch[1] });
   const user = authGuard(req, store);
+  if (!["GET", "POST"].includes(req.method)) throw notFound();
+  const workspaceId = workspaceContextGuard({ workspaceId: workspaceMatch[1] });
   const membership = store.memberships.find(
     (candidate) =>
       candidate.user_id === user.user_id &&
@@ -609,9 +609,26 @@ async function routeNashir(req, path, body, store, nashirService) {
       candidate.member_status === "active"
   );
   if (!membership) throw notFound();
-  permissionGuard(membership, "nashir.campaign.read");
 
   const nashirCampaignId = workspaceMatch[2];
+  if (req.method === "POST") {
+    if (nashirCampaignId) throw notFound();
+    permissionGuard(membership, "nashir.campaign.write");
+    rejectBodyWorkspaceId(body, workspaceId);
+    requireOnlyFields(body, ["campaign_name", "workspace_id"]);
+    requireFields(body, ["campaign_name"]);
+
+    const campaign = await nashirService.createCampaign({
+      workspaceId,
+      campaignName: body.campaign_name,
+      actorUserId: user.user_id,
+      timestamp: now()
+    });
+    audit(store, workspaceId, user, "nashir_campaign.created", "NashirCampaign", campaign.nashir_campaign_id, null, campaign);
+    return created(campaign);
+  }
+
+  permissionGuard(membership, "nashir.campaign.read");
   if (!nashirCampaignId) {
     const items = await nashirService.listCampaigns({ workspaceId });
     return ok(items);
@@ -779,6 +796,7 @@ function audit(store, workspaceId, user, action, entityType, entityId, before, a
   const workspace = findWorkspace(store, workspaceId);
   const isSprint4Action = action.startsWith("client_report") || action.startsWith("safe_mode") || action.startsWith("onboarding");
   const isBrandAction = action.startsWith("brand_");
+  const isNashirAction = action.startsWith("nashir_");
   store.auditLogs.push({
     audit_log_id: nextId("audit", store.auditLogs),
     workspace_id: workspaceId,
@@ -789,8 +807,8 @@ function audit(store, workspaceId, user, action, entityType, entityId, before, a
     entity_id: entityId,
     before_snapshot: clone(before),
     after_snapshot: clone(after),
-    metadata: { sprint: isSprint4Action ? 4 : isBrandAction ? "brand-slice-1-runtime-switch" : "patch-002" },
-    correlation_id: isSprint4Action ? "sprint-4-placeholder" : isBrandAction ? "brand-slice-1-runtime-switch-placeholder" : "patch-002-placeholder",
+    metadata: { sprint: isSprint4Action ? 4 : isBrandAction ? "brand-slice-1-runtime-switch" : isNashirAction ? "nashir-slice-0" : "patch-002" },
+    correlation_id: isSprint4Action ? "sprint-4-placeholder" : isBrandAction ? "brand-slice-1-runtime-switch-placeholder" : isNashirAction ? "nashir-slice-0-placeholder" : "patch-002-placeholder",
     occurred_at: now()
   });
 }
