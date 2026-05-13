@@ -5,7 +5,14 @@ const { createPool } = require("./db");
 const { AppError, correlationId, errorBody, sendJson } = require("./error-model");
 const { createRepositories } = require("./repositories");
 const { createSeedStore } = require("./store");
-const { authGuard, membershipCheck, nonDisclosingMembershipCheck, permissionGuard, rejectBodyWorkspaceId, workspaceContextGuard } = require("./guards");
+const {
+  authGuard,
+  membershipCheck,
+  nonDisclosingMembershipCheck,
+  permissionGuard,
+  rejectBodyWorkspaceId,
+  workspaceContextGuard
+} = require("./guards");
 const { NashirSlice0Repository } = require("./nashir/backend-slice0-repository");
 const { NashirSlice0Service } = require("./nashir/backend-slice0-service");
 
