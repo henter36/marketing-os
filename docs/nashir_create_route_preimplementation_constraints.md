@@ -110,7 +110,9 @@ The current OpenAPI patch does not define an `Idempotency-Key` header or request
 For the first narrow in-memory create route, duplicate submissions are explicitly defined as non-idempotent:
 
 - each valid `POST /workspaces/{workspaceId}/nashir-campaigns` may create a separate campaign record;
-- the implementation must still prevent generated `nashir_campaign_id` collisions with existing in-memory `store.nashirCampaigns`;
+- the implementation must prevent generated `nashir_campaign_id` collisions with existing in-memory `store.nashirCampaigns` before insertion;
+- the implementation must not rely solely on collection length or append-only assumptions for ID safety;
+- if a generated `nashir_campaign_id` collides, the implementation must regenerate a non-colliding ID or fail safely without writing a duplicate identifier;
 - `campaign_name` must not be used as a uniqueness key unless separately approved;
 - idempotency keys must not be implemented unless a separate OpenAPI/runtime idempotency gate is approved;
 - the future implementation report must document this non-idempotent duplicate-submission limitation.
@@ -128,6 +130,8 @@ Create-route audit behavior must use:
 | Entity ID | Generated `nashir_campaign_id` |
 | Before payload | `null` |
 | After payload | Created Nashir campaign representation |
+| Metadata | `{ sprint: "nashir-slice-0" }` unless the future implementation gate approves a more specific Nashir metadata object |
+| Correlation ID | Existing request correlation ID where available; otherwise the implementation report must explicitly document the current audit helper limitation and must not silently reuse Patch 002-specific defaults for Nashir events |
 
 Audit behavior must not imply DB-backed persistence, durable audit guarantees, external audit infrastructure, or any guarantees beyond the current in-memory/runtime audit conventions.
 
