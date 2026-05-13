@@ -5,7 +5,7 @@ const { createPool } = require("./db");
 const { AppError, correlationId, errorBody, sendJson } = require("./error-model");
 const { createRepositories } = require("./repositories");
 const { createSeedStore } = require("./store");
-const { authGuard, membershipCheck, permissionGuard, rejectBodyWorkspaceId, workspaceContextGuard } = require("./guards");
+const { authGuard, membershipCheck, nonDisclosingMembershipCheck, permissionGuard, rejectBodyWorkspaceId, workspaceContextGuard } = require("./guards");
 const { NashirSlice0Repository } = require("./nashir/backend-slice0-repository");
 const { NashirSlice0Service } = require("./nashir/backend-slice0-service");
 
@@ -602,13 +602,7 @@ async function routeNashir(req, path, body, store, nashirService) {
   const user = authGuard(req, store);
   if (!["GET", "POST"].includes(req.method)) throw notFound();
   const workspaceId = workspaceContextGuard({ workspaceId: workspaceMatch[1] });
-  const membership = store.memberships.find(
-    (candidate) =>
-      candidate.user_id === user.user_id &&
-      candidate.workspace_id === workspaceId &&
-      candidate.member_status === "active"
-  );
-  if (!membership) throw notFound();
+  const membership = nonDisclosingMembershipCheck(user, workspaceId, store);
 
   const nashirCampaignId = workspaceMatch[2];
   if (req.method === "POST") {
