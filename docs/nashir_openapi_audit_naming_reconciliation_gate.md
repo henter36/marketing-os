@@ -113,7 +113,7 @@ Candidate allowed files for that future PR:
 - a focused OpenAPI/audit naming implementation report under `docs/`;
 - `docs/03_decision_log.md`;
 - `docs/17_change_log.md`;
-- focused tests only if the future PR explicitly requires test updates to assert the OpenAPI audit extension.
+- focused tests, including `test/nashir-prewiring-contract.test.js` where needed, only if the future PR explicitly requires test updates to assert the OpenAPI audit extension.
 
 Candidate forbidden files for that future PR unless separately approved:
 
@@ -137,7 +137,7 @@ Required verification for that future PR:
 - `git status --short`;
 - strict OpenAPI lint, expected command: `npm run openapi:lint:strict`;
 - focused OpenAPI/audit naming tests if the future PR updates or adds them;
-- no route behavior change check through diff review and, if runtime tests are in scope, `node --test test/nashir-route.test.js`.
+- no route behavior change check through diff review and, if runtime tests are in scope, `node --test test/nashir-route.test.js` and `node --test test/nashir-prewiring-contract.test.js`.
 
 Required acceptance checks for that future PR:
 
