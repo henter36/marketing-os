@@ -122,8 +122,8 @@ Field requirements:
 | `workspace_id` | Route-derived workspace identifier. |
 | `readiness_level` | One of the allowed readiness values below. |
 | `gate_state` | One of the allowed gate state values below. |
-| `blockers` | Array of `ReadinessIssue` objects. Each item must include `code`, `message`, `severity`, and optional `field`, `user_action`. |
-| `warnings` | Array of `ReadinessIssue` objects. Each item must include `code`, `message`, `severity`, and optional `field`, `user_action`. |
+| `blockers` | Array of `ReadinessIssue` objects. Each item must include `code`, `message`, `severity`, and optional `field`, `user_action`. For items in this array, `severity` must be `blocker`. |
+| `warnings` | Array of `ReadinessIssue` objects. Each item must include `code`, `message`, `severity`, and optional `field`, `user_action`. For items in this array, `severity` must be `warning`. |
 | `missing_fields` | Array of `ReadinessMissingField` objects. Each item must include `field`, `message`, and optional `user_action`. |
 | `explanations` | Array of `ReadinessExplanation` objects. Each item must include `code`, `message`, and optional `related_fields`. |
 | `evaluated_at` | Runtime evaluation timestamp. It must not imply persisted score history. |
@@ -136,7 +136,7 @@ The future implementation should use structured objects, not plain strings, for 
 ReadinessIssue:
 - code: string
 - message: string
-- severity: blocker | warning
+- severity: blocker | warning; must match the containing array (`blockers` => `blocker`, `warnings` => `warning`)
 - field: string | null
 - user_action: string | null
 
@@ -176,11 +176,22 @@ Allowed `gate_state` values:
 
 Readiness output must preserve these boundaries:
 
+### Missing Fields Versus Blockers
+
+The future contract must keep `missing_fields` and `blockers` distinct:
+
+- `missing_fields` lists absent required or recommended inputs.
+- `blockers` lists readiness-blocking issues that prevent a pass or soft-pass outcome.
+- A missing required field may appear in both arrays: once as a missing-field inventory item, and once as a blocker explaining its readiness impact.
+- A missing recommended field may appear only in `missing_fields` or `warnings` if it does not block readiness.
+- Future implementation must keep `readiness_level`, `gate_state`, `blockers`, `warnings`, and `missing_fields` internally consistent.
+
+
 - `readiness_level` does not approve content;
 - `gate_state` does not authorize publishing;
 - blockers are advisory or operational only;
 - warnings are advisory or operational only;
-- missing fields are advisory or operational only;
+- `missing_fields` is an inventory of absent required or recommended inputs; it does not by itself approve, reject, or publish. If a missing required field blocks readiness, the future response must also include a corresponding `blockers` item referencing the same `field` and set `readiness_level` / `gate_state` consistently.
 - explanations must not be represented as legal, compliance, approval, publishing, or evidence decisions.
 
 ## Audit Decision
