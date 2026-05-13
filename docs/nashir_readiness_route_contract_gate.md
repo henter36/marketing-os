@@ -122,11 +122,34 @@ Field requirements:
 | `workspace_id` | Route-derived workspace identifier. |
 | `readiness_level` | One of the allowed readiness values below. |
 | `gate_state` | One of the allowed gate state values below. |
-| `blockers` | Array of advisory or operational blockers. |
-| `warnings` | Array of advisory warnings. |
-| `missing_fields` | Array of missing field identifiers or descriptions. |
-| `explanations` | Array of human-readable explanation objects or strings, as finalized by the future implementation scope. |
+| `blockers` | Array of `ReadinessIssue` objects. Each item must include `code`, `message`, `severity`, and optional `field`, `user_action`. |
+| `warnings` | Array of `ReadinessIssue` objects. Each item must include `code`, `message`, `severity`, and optional `field`, `user_action`. |
+| `missing_fields` | Array of `ReadinessMissingField` objects. Each item must include `field`, `message`, and optional `user_action`. |
+| `explanations` | Array of `ReadinessExplanation` objects. Each item must include `code`, `message`, and optional `related_fields`. |
 | `evaluated_at` | Runtime evaluation timestamp. It must not imply persisted score history. |
+
+### Candidate Readiness Object Shapes
+
+The future implementation should use structured objects, not plain strings, for readiness details.
+
+```text
+ReadinessIssue:
+- code: string
+- message: string
+- severity: blocker | warning
+- field: string | null
+- user_action: string | null
+
+ReadinessMissingField:
+- field: string
+- message: string
+- user_action: string | null
+
+ReadinessExplanation:
+- code: string
+- message: string
+- related_fields: array of strings
+These object shapes are contract candidates for a future OpenAPI/runtime implementation. They do not approve implementation in this PR.
 
 ## Readiness Level Values
 
