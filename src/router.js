@@ -58,6 +58,7 @@ const nashirRoutes = [
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}",
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness",
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence",
+  "POST /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence",
   "POST /workspaces/{workspaceId}/nashir-campaigns"
 ];
 const implementedRoutes = [...base.implementedRoutes, ...sprint4Routes, ...patch002Routes, ...nashirRoutes];
@@ -617,6 +618,33 @@ async function routeNashir(req, path, body, store, nashirService) {
   const readinessPath = workspaceMatch[3] === "readiness";
   const evidencePath = workspaceMatch[3] === "evidence";
   if (req.method === "POST") {
+    if (evidencePath) {
+      permissionGuard(membership, "nashir.campaign.write");
+      if (!isPlainObject(body)) {
+        throw new AppError(422, "VALIDATION_FAILED", "Request body must be a JSON object.", "Send a valid JSON object body.");
+      }
+      requireOnlyFields(body, ["evidenceType", "channel", "publishedAt", "url", "notes", "externalReference"]);
+      requireFields(body, ["evidenceType", "channel"]);
+      if (!(body.url || body.notes || body.externalReference)) {
+        throw new AppError(422, "VALIDATION_FAILED", "At least one proof locator is required.", "Provide url, externalReference, or notes.");
+      }
+
+      const evidence = await nashirService.createCampaignEvidence({
+        workspaceId,
+        nashirCampaignId,
+        evidenceType: body.evidenceType,
+        channel: body.channel,
+        submittedAt: now(),
+        submittedBy: user.user_id,
+        publishedAt: body.publishedAt || null,
+        url: body.url || null,
+        notes: body.notes || null,
+        externalReference: body.externalReference || null
+      });
+      if (!evidence) throw notFound();
+      audit(store, workspaceId, user, "nashir_evidence.submitted", "NashirEvidence", evidence.id, null, evidence);
+      return created(evidence);
+    }
     if (nashirCampaignId || readinessPath || evidencePath) throw notFound();
     permissionGuard(membership, "nashir.campaign.write");
     rejectBodyWorkspaceId(body, workspaceId);
@@ -810,6 +838,10 @@ function requireOnlyFields(body, allowed) {
   if (field) {
     throw new AppError(422, "VALIDATION_FAILED", `${field} is not accepted for this request.`, "Use only fields approved by the OpenAPI contract.");
   }
+}
+
+function isPlainObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype;
 }
 
 function redactCredential(credential) {

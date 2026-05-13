@@ -59,6 +59,36 @@ class NashirSlice0Service {
     return this.repository.listCampaignEvidence({ workspaceId, nashirCampaignId });
   }
 
+  async createCampaignEvidence({
+    workspaceId,
+    nashirCampaignId,
+    evidenceType,
+    channel,
+    submittedAt,
+    submittedBy,
+    publishedAt,
+    url,
+    notes,
+    externalReference
+  } = {}) {
+    const campaign = await this.getCampaignById({ workspaceId, nashirCampaignId });
+    if (!campaign) {
+      return null;
+    }
+    return this.repository.createCampaignEvidence({
+      workspaceId,
+      nashirCampaignId,
+      evidenceType,
+      channel,
+      submittedAt,
+      submittedBy,
+      publishedAt,
+      url,
+      notes,
+      externalReference
+    });
+  }
+
   async scoreReadiness(id) {
     throw new Error("not implemented");
   }

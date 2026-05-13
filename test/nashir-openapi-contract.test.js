@@ -49,7 +49,8 @@ const REQUIRED_OPERATION_IDS = [
   "createNashirCampaign",
   "getNashirCampaign",
   "getNashirCampaignReadiness",
-  "listNashirCampaignEvidence"
+  "listNashirCampaignEvidence",
+  "submitNashirCampaignEvidence"
 ];
 
 for (const id of REQUIRED_OPERATION_IDS) {
@@ -170,6 +171,9 @@ const REQUIRED_SCHEMAS = [
   "NashirCampaignReadiness:",
   "NashirCampaignReadinessResponse:",
   "NashirCampaignEvidenceListResponse:",
+  "SubmitNashirCampaignEvidenceRequest:",
+  "NashirCampaignEvidence:",
+  "NashirCampaignEvidenceResponse:",
   "ReadinessIssue:",
   "ReadinessMissingField:",
   "ReadinessExplanation:"
@@ -227,7 +231,7 @@ test("nashir readiness schema declares required advisory fields and enums", () =
   }
 });
 
-test("nashir_openapi_patch.yaml declares evidence list route with read permission only", () => {
+test("nashir_openapi_patch.yaml declares evidence route with read list and write submit", () => {
   const yaml = patchText();
   const pathStart = yaml.indexOf("/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence:");
   assert.ok(pathStart !== -1, "evidence path must be declared");
@@ -238,13 +242,19 @@ test("nashir_openapi_patch.yaml declares evidence list route with read permissio
   assert.ok(block.includes("get:"));
   assert.ok(block.includes("operationId: listNashirCampaignEvidence"));
   assert.ok(block.includes("x-permission: nashir.campaign.read"));
+  assert.ok(block.includes("Submitted in-memory Nashir evidence list returned"));
   assert.ok(block.includes("NashirCampaignEvidenceListResponse"));
+  assert.ok(block.includes("post:"));
+  assert.ok(block.includes("operationId: submitNashirCampaignEvidence"));
+  assert.ok(block.includes("x-permission: nashir.campaign.write"));
+  assert.ok(block.includes("x-audit-event: nashir_evidence.submitted"));
+  assert.ok(block.includes("SubmitNashirCampaignEvidenceRequest"));
+  assert.ok(block.includes("NashirCampaignEvidenceResponse"));
   assert.ok(block.includes("ErrorResponse"));
-  assert.ok(!block.includes("post:"), "POST evidence must not be declared");
   assert.ok(!block.includes("x-permission: nashir.evidence.submit"));
 });
 
-test("nashir evidence list response schema declares an empty data array", () => {
+test("nashir evidence list response schema declares evidence item array", () => {
   const yaml = patchText();
   const schemaStart = yaml.indexOf("NashirCampaignEvidenceListResponse:");
   assert.ok(schemaStart !== -1, "NashirCampaignEvidenceListResponse schema must be defined");
@@ -254,5 +264,48 @@ test("nashir evidence list response schema declares an empty data array", () => 
 
   assert.ok(block.includes("required: [data]"));
   assert.ok(block.includes("type: array"));
-  assert.ok(block.includes("maxItems: 0"));
+  assert.ok(block.includes("NashirCampaignEvidence"));
+  assert.ok(!block.includes("maxItems: 0"));
+});
+
+test("nashir evidence submit request schema declares required fields and proof locator rule", () => {
+  const yaml = patchText();
+  const schemaStart = yaml.indexOf("SubmitNashirCampaignEvidenceRequest:");
+  assert.ok(schemaStart !== -1, "SubmitNashirCampaignEvidenceRequest schema must be defined");
+  const rest = yaml.slice(schemaStart);
+  const siblingMatch = rest.slice(1).match(/\n    \S/);
+  const block = siblingMatch ? rest.slice(0, siblingMatch.index + 1) : rest;
+
+  assert.ok(block.includes("- evidenceType"));
+  assert.ok(block.includes("- channel"));
+  assert.ok(block.includes("additionalProperties: false"));
+  assert.ok(block.includes("publishedAt"));
+  assert.ok(block.includes("url"));
+  assert.ok(block.includes("notes"));
+  assert.ok(block.includes("externalReference"));
+  assert.ok(block.includes("url:\n          type: string\n          minLength: 1"));
+  assert.ok(block.includes("notes:\n          type: string\n          minLength: 1"));
+  assert.ok(block.includes("externalReference:\n          type: string\n          minLength: 1"));
+  assert.ok(block.includes("anyOf:"));
+});
+
+test("nashir evidence schema declares submitted in-memory response fields", () => {
+  const yaml = patchText();
+  for (const field of [
+    "id",
+    "workspaceId",
+    "nashirCampaignId",
+    "evidenceType",
+    "channel",
+    "status",
+    "submittedAt",
+    "submittedBy",
+    "publishedAt",
+    "url",
+    "notes",
+    "externalReference"
+  ]) {
+    assert.ok(yaml.includes(field), `evidence schema must include ${field}`);
+  }
+  assert.ok(yaml.includes("submitted"), "evidence schema must include submitted status");
 });
