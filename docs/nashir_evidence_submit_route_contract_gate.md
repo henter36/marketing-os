@@ -141,6 +141,8 @@ Candidate audit event:
 nashir_evidence.submitted
 ```
 
+The candidate event name follows the current reconciled Nashir create event pattern `nashir_campaign.created`: underscored entity/domain plus dotted action. A future audit naming reconciliation gate may change this if the project adopts an underscore-only convention.
+
 Candidate audit fields:
 
 - `workspaceId`
