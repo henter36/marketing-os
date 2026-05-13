@@ -190,8 +190,10 @@ test("repository listCampaignEvidence filters by route-derived workspace and cam
   const evidence = await repo.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
 
   assert.deepStrictEqual(evidence, [
-    { evidence_id: "evidence-a", workspace_id: WORKSPACE_A, nashir_campaign_id: CAMPAIGN_A_ID }
+    { evidence_id: "evidence-a", workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }
   ]);
+  assert.ok(!Object.hasOwn(evidence[0], "workspace_id"));
+  assert.ok(!Object.hasOwn(evidence[0], "nashir_campaign_id"));
 });
 
 test("repository listCampaignEvidence returns shallow clones and does not mutate store", async () => {
@@ -204,6 +206,7 @@ test("repository listCampaignEvidence returns shallow clones and does not mutate
 
   const evidence = await repo.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
   evidence[0].evidence_id = "mutated";
+  evidence[0].workspaceId = "mutated";
 
   assert.strictEqual(JSON.stringify(store), before);
 });
@@ -259,6 +262,30 @@ test("repository createCampaignEvidence returns a shallow clone, not the stored 
 
   assert.notStrictEqual(evidence, original);
   assert.deepStrictEqual(evidence, original);
+});
+
+test("repository createCampaignEvidence avoids legacy evidence_id collisions", async () => {
+  const store = createSeedStore();
+  store.nashirEvidence = [
+    { evidence_id: "nashir-evidence-1", workspace_id: WORKSPACE_A, nashir_campaign_id: CAMPAIGN_A_ID }
+  ];
+  const repo = createNashirSlice0Repository({ store });
+
+  const evidence = await repo.createCampaignEvidence({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceType: "manual_publish_proof",
+    channel: "linkedin",
+    submittedAt: "2026-05-13T00:00:00.000Z",
+    submittedBy: "user-owner-a",
+    notes: "Published manually"
+  });
+
+  assert.strictEqual(evidence.id, "nashir-evidence-2");
+  assert.deepStrictEqual(
+    store.nashirEvidence.map((record) => record.id || record.evidence_id),
+    ["nashir-evidence-1", "nashir-evidence-2"]
+  );
 });
 
 // ─── Repository: createCampaign ─────────────────────────────────────────────

@@ -1,8 +1,11 @@
 "use strict";
 
 const assert = require("assert");
+const { Readable } = require("stream");
 const { test } = require("node:test");
 const { createTestServer } = require("./helpers");
+const { createApp } = require("../src/router");
+const { createSeedStore } = require("../src/store");
 
 const WORKSPACE_A = "workspace-a";
 const WORKSPACE_B = "workspace-b";
@@ -20,6 +23,37 @@ const BILLING_A = "user-billing-a";
 const VIEWER_A = "user-viewer-a";
 const OUTSIDER = "user-outsider";
 const INVALID_USER = "user-missing";
+
+async function requestRawJson(method, path, { userId, json } = {}) {
+  const store = createSeedStore();
+  const app = createApp({ store });
+  const req = Readable.from([Buffer.from(json)]);
+  req.method = method;
+  req.url = `/v1${path}`;
+  req.headers = {
+    "content-type": "application/json",
+    ...(userId ? { "x-user-id": userId } : {})
+  };
+
+  return await new Promise((resolve) => {
+    const res = {
+      statusCode: 200,
+      headers: {},
+      writeHead(status, headers) {
+        this.statusCode = status;
+        this.headers = headers;
+      },
+      end(payload) {
+        resolve({
+          status: this.statusCode,
+          body: payload ? JSON.parse(payload) : null
+        });
+      }
+    };
+
+    app(req, res);
+  });
+}
 
 // ─── List route — workspace-scoped read-only collection ─────────────────────
 
@@ -557,6 +591,28 @@ test("POST nashir evidence rejects missing proof locator", async () => {
   assert.strictEqual(res.status, 422);
 });
 
+test("POST nashir evidence rejects null body without server error", async () => {
+  const res = await requestRawJson("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    json: "null"
+  });
+
+  assert.strictEqual(res.status, 422);
+  assert.strictEqual(res.body.code, "VALIDATION_FAILED");
+  assert.strictEqual(res.body.message, "Request body must be a JSON object.");
+});
+
+test("POST nashir evidence rejects array body without server error", async () => {
+  const res = await requestRawJson("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    json: "[]"
+  });
+
+  assert.strictEqual(res.status, 422);
+  assert.strictEqual(res.body.code, "VALIDATION_FAILED");
+  assert.strictEqual(res.body.user_action, "Send a valid JSON object body.");
+});
+
 test("POST nashir evidence derives route IDs from path and rejects body overrides", async () => {
   const server = await createTestServer();
   const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
@@ -585,6 +641,33 @@ test("POST nashir evidence returns 403 for member lacking nashir.campaign.write"
   });
 
   assert.strictEqual(res.status, 403);
+});
+
+test("POST nashir evidence returns 401 for unauthenticated callers", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    body: {
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      notes: "Proof note"
+    }
+  });
+
+  assert.strictEqual(res.status, 401);
+});
+
+test("POST nashir evidence returns 401 for invalid users", async () => {
+  const server = await createTestServer();
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: INVALID_USER,
+    body: {
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      notes: "Proof note"
+    }
+  });
+
+  assert.strictEqual(res.status, 401);
 });
 
 test("POST nashir evidence returns 404 for user with no workspace membership", async () => {

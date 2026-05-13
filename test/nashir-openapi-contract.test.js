@@ -242,6 +242,7 @@ test("nashir_openapi_patch.yaml declares evidence route with read list and write
   assert.ok(block.includes("get:"));
   assert.ok(block.includes("operationId: listNashirCampaignEvidence"));
   assert.ok(block.includes("x-permission: nashir.campaign.read"));
+  assert.ok(block.includes("Submitted in-memory Nashir evidence list returned"));
   assert.ok(block.includes("NashirCampaignEvidenceListResponse"));
   assert.ok(block.includes("post:"));
   assert.ok(block.includes("operationId: submitNashirCampaignEvidence"));
@@ -282,6 +283,9 @@ test("nashir evidence submit request schema declares required fields and proof l
   assert.ok(block.includes("url"));
   assert.ok(block.includes("notes"));
   assert.ok(block.includes("externalReference"));
+  assert.ok(block.includes("url:\n          type: string\n          minLength: 1"));
+  assert.ok(block.includes("notes:\n          type: string\n          minLength: 1"));
+  assert.ok(block.includes("externalReference:\n          type: string\n          minLength: 1"));
   assert.ok(block.includes("anyOf:"));
 });
 

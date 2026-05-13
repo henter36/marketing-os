@@ -176,7 +176,7 @@ paths:
       x-permission: nashir.campaign.read
       responses:
         '200':
-          description: Empty Nashir evidence list returned
+          description: Submitted in-memory Nashir evidence list returned
           content:
             application/json:
               schema:
@@ -447,10 +447,13 @@ components:
           format: date-time
         url:
           type: string
+          minLength: 1
         notes:
           type: string
+          minLength: 1
         externalReference:
           type: string
+          minLength: 1
       anyOf:
         - required: [url]
         - required: [externalReference]

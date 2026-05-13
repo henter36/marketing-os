@@ -620,6 +620,9 @@ async function routeNashir(req, path, body, store, nashirService) {
   if (req.method === "POST") {
     if (evidencePath) {
       permissionGuard(membership, "nashir.campaign.write");
+      if (!isPlainObject(body)) {
+        throw new AppError(422, "VALIDATION_FAILED", "Request body must be a JSON object.", "Send a valid JSON object body.");
+      }
       requireOnlyFields(body, ["evidenceType", "channel", "publishedAt", "url", "notes", "externalReference"]);
       requireFields(body, ["evidenceType", "channel"]);
       if (![body.url, body.externalReference, body.notes].some((value) => value !== undefined && value !== null && value !== "")) {
@@ -835,6 +838,10 @@ function requireOnlyFields(body, allowed) {
   if (field) {
     throw new AppError(422, "VALIDATION_FAILED", `${field} is not accepted for this request.`, "Use only fields approved by the OpenAPI contract.");
   }
+}
+
+function isPlainObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype;
 }
 
 function redactCredential(credential) {

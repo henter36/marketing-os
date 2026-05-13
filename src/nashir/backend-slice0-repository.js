@@ -65,7 +65,7 @@ class NashirSlice0Repository {
           (evidence.workspaceId || evidence.workspace_id) === workspaceId &&
           (evidence.nashirCampaignId || evidence.nashir_campaign_id) === nashirCampaignId
       )
-      .map((evidence) => ({ ...evidence }));
+      .map((evidence) => normalizeEvidenceRecord(evidence));
   }
 
   async createCampaignEvidence({
@@ -141,7 +141,8 @@ function nextNashirEvidenceId(evidenceRecords) {
   const existing = new Set(
     evidenceRecords
       .filter(Boolean)
-      .map((evidence) => evidence.id)
+      .map((evidence) => evidence.id || evidence.evidence_id)
+      .filter(Boolean)
   );
   let index = evidenceRecords.length + 1;
   let candidate = `nashir-evidence-${index}`;
@@ -150,6 +151,19 @@ function nextNashirEvidenceId(evidenceRecords) {
     candidate = `nashir-evidence-${index}`;
   }
   return candidate;
+}
+
+function normalizeEvidenceRecord(evidence) {
+  const {
+    workspace_id: legacyWorkspaceId,
+    nashir_campaign_id: legacyNashirCampaignId,
+    ...rest
+  } = evidence;
+  return {
+    ...rest,
+    workspaceId: evidence.workspaceId || legacyWorkspaceId,
+    nashirCampaignId: evidence.nashirCampaignId || legacyNashirCampaignId
+  };
 }
 
 module.exports = {
