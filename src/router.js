@@ -56,6 +56,7 @@ const patch002Routes = [
 const nashirRoutes = [
   "GET /workspaces/{workspaceId}/nashir-campaigns",
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}",
+  "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness",
   "POST /workspaces/{workspaceId}/nashir-campaigns"
 ];
 const implementedRoutes = [...base.implementedRoutes, ...sprint4Routes, ...patch002Routes, ...nashirRoutes];
@@ -604,7 +605,7 @@ function routeSprint4(req, path, body, store) {
 }
 
 async function routeNashir(req, path, body, store, nashirService) {
-  const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns(?:\/([^/]+))?$/);
+  const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns(?:\/([^/]+)(?:\/(readiness))?)?$/);
   if (!workspaceMatch) throw notFound();
   const user = authGuard(req, store);
   if (!["GET", "POST"].includes(req.method)) throw notFound();
@@ -612,8 +613,9 @@ async function routeNashir(req, path, body, store, nashirService) {
   const membership = nonDisclosingMembershipCheck(user, workspaceId, store);
 
   const nashirCampaignId = workspaceMatch[2];
+  const readinessPath = workspaceMatch[3] === "readiness";
   if (req.method === "POST") {
-    if (nashirCampaignId) throw notFound();
+    if (nashirCampaignId || readinessPath) throw notFound();
     permissionGuard(membership, "nashir.campaign.write");
     rejectBodyWorkspaceId(body, workspaceId);
     requireOnlyFields(body, ["campaign_name", "workspace_id"]);
@@ -638,13 +640,23 @@ async function routeNashir(req, path, body, store, nashirService) {
     return ok(items);
   }
 
+  if (readinessPath) {
+    const readiness = await nashirService.getCampaignReadiness({
+      workspaceId,
+      nashirCampaignId,
+      evaluatedAt: now()
+    });
+    if (readiness === null) throw notFound();
+    return ok(readiness);
+  }
+
   const result = await nashirService.getCampaignById({ workspaceId, nashirCampaignId });
   if (result === null) throw notFound();
   return ok(result);
 }
 
 function isNashirPath(path) {
-  return /^\/workspaces\/[^/]+\/nashir-campaigns(?:\/[^/]+)?$/.test(path);
+  return /^\/workspaces\/[^/]+\/nashir-campaigns(?:\/[^/]+(?:\/readiness)?)?$/.test(path);
 }
 
 function isBrandPath(path) {

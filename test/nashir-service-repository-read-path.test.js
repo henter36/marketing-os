@@ -328,6 +328,88 @@ test("service delegates to repository.listCampaigns with correct args", async ()
   assert.deepStrictEqual(calls[0], { workspaceId: WORKSPACE_A });
 });
 
+// ─── Service: getCampaignReadiness ─────────────────────────────────────────
+
+test("service getCampaignReadiness returns advisory readiness for an existing campaign", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+
+  const readiness = await svc.getCampaignReadiness({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evaluatedAt: "2026-05-13T00:00:00.000Z"
+  });
+
+  assert.deepStrictEqual(readiness, {
+    nashir_campaign_id: CAMPAIGN_A_ID,
+    workspace_id: WORKSPACE_A,
+    readiness_level: "pass",
+    gate_state: "advisory_only",
+    blockers: [],
+    warnings: [],
+    missing_fields: [],
+    explanations: [
+      {
+        code: "NASHIR_READINESS_ADVISORY_ONLY",
+        message: "Readiness is advisory and does not approve content or authorize publishing.",
+        related_fields: []
+      }
+    ],
+    evaluated_at: "2026-05-13T00:00:00.000Z"
+  });
+});
+
+test("service getCampaignReadiness returns null for unknown or cross-workspace campaign", async () => {
+  const store = createSeedStore();
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+
+  assert.strictEqual(
+    await svc.getCampaignReadiness({ workspaceId: WORKSPACE_A, nashirCampaignId: UNKNOWN_ID, evaluatedAt: "2026-05-13T00:00:00.000Z" }),
+    null
+  );
+  assert.strictEqual(
+    await svc.getCampaignReadiness({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_B_ID, evaluatedAt: "2026-05-13T00:00:00.000Z" }),
+    null
+  );
+});
+
+test("service getCampaignReadiness delegates through the workspace-scoped read path", async () => {
+  const calls = [];
+  const fakeRepo = {
+    findCampaignById(args) {
+      calls.push(args);
+      return Promise.resolve({ nashir_campaign_id: CAMPAIGN_A_ID, workspace_id: WORKSPACE_A });
+    }
+  };
+  const svc = createNashirSlice0Service({ repository: fakeRepo });
+
+  await svc.getCampaignReadiness({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evaluatedAt: "2026-05-13T00:00:00.000Z"
+  });
+
+  assert.strictEqual(calls.length, 1);
+  assert.deepStrictEqual(calls[0], { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
+});
+
+test("service getCampaignReadiness does not mutate store.nashirCampaigns", async () => {
+  const store = createSeedStore();
+  const before = JSON.stringify(store.nashirCampaigns);
+  const repo = createNashirSlice0Repository({ store });
+  const svc = createNashirSlice0Service({ repository: repo });
+
+  await svc.getCampaignReadiness({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evaluatedAt: "2026-05-13T00:00:00.000Z"
+  });
+
+  assert.strictEqual(JSON.stringify(store.nashirCampaigns), before);
+});
+
 // ─── Service: createCampaign ────────────────────────────────────────────────
 
 test("service createCampaign delegates to repository and returns created campaign", async () => {

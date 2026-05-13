@@ -40,6 +40,7 @@ function noGoSection(file) {
 // PR #180 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}.
 // PR #185 approved GET /workspaces/{workspaceId}/nashir-campaigns.
 // PR #191 approved POST /workspaces/{workspaceId}/nashir-campaigns.
+// PR #197 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness.
 // Strip only the approved identifiers before checking for unauthorized Nashir references.
 
 test("src/router.js exposes only the approved nashir route patterns", () => {
@@ -55,6 +56,15 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
     .replace(/\bnashirCampaignId\b/g, "")
     .replace(/\bnashir_campaign_id\b/g, "")
     .replace(/\bnashir-campaigns\b/gi, "")
+    .replace(/\breadinessPath\b/g, "")
+    .replace(/\bgetCampaignReadiness\b/g, "")
+    .replace(/\bReadiness\b/g, "")
+    .replace(/\breadiness\b/g, "")
+    .replace(/\bevaluatedAt\b/g, "")
+    .replace(/\bevaluated_at\b/g, "")
+    .replace(/Readiness is advisory and does not approve content or authorize publishing\./g, "")
+    .replace(/\bNASHIR_READINESS_ADVISORY_ONLY\b/g, "")
+    .replace(/\badvisory_only\b/g, "")
     // Permission code
     .replace(/\bnashir\.campaign\.read\b/g, "")
     .replace(/\bnashir\.campaign\.write\b/g, "")
