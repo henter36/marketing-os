@@ -41,6 +41,7 @@ function noGoSection(file) {
 // PR #185 approved GET /workspaces/{workspaceId}/nashir-campaigns.
 // PR #191 approved POST /workspaces/{workspaceId}/nashir-campaigns.
 // PR #197 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness.
+// PR #201 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence.
 // Strip only the approved identifiers before checking for unauthorized Nashir references.
 
 test("src/router.js exposes only the approved nashir route patterns", () => {
@@ -57,9 +58,13 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
     .replace(/\bnashir_campaign_id\b/g, "")
     .replace(/\bnashir-campaigns\b/gi, "")
     .replace(/\breadinessPath\b/g, "")
+    .replace(/\bevidencePath\b/g, "")
     .replace(/\bgetCampaignReadiness\b/g, "")
+    .replace(/\blistCampaignEvidence\b/g, "")
     .replace(/\bReadiness\b/g, "")
     .replace(/\breadiness\b/g, "")
+    .replace(/\bEvidence\b/g, "")
+    .replace(/\bevidence\b/g, "")
     .replace(/\bevaluatedAt\b/g, "")
     .replace(/\bevaluated_at\b/g, "")
     .replace(/Readiness is advisory and does not approve content or authorize publishing\./g, "")
@@ -85,6 +90,13 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
   assert.ok(
     !/nashir/i.test(withoutApproved),
     "src/router.js must not reference nashir beyond the approved read route patterns"
+  );
+});
+
+test("src/router.js keeps POST nashir evidence unregistered", () => {
+  assert.ok(
+    !srcText("router.js").includes("POST /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence"),
+    "POST evidence must not be listed as an implemented Nashir route"
   );
 });
 

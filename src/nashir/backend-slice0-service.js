@@ -51,6 +51,17 @@ class NashirSlice0Service {
     };
   }
 
+  async listCampaignEvidence({ workspaceId, nashirCampaignId } = {}) {
+    const campaign = await this.getCampaignById({ workspaceId, nashirCampaignId });
+    if (!campaign) {
+      return null;
+    }
+    if (!this.repository) {
+      return [];
+    }
+    return this.repository.listCampaignEvidence({ workspaceId, nashirCampaignId });
+  }
+
   async scoreReadiness(id) {
     throw new Error("not implemented");
   }

@@ -20,7 +20,7 @@ info:
       nashir.approval.decide — deferred; not exposed in this patch
 
     Deferred paths (not in this patch):
-      nashir evidence paths
+      nashir evidence submit/review paths
       nashir approval/review paths
       nashir scoring mutation/persistence paths
       nashir state-transition paths
@@ -41,7 +41,7 @@ x-contract-rules:
   no_go_rules:
     - workspace_id accepted from body as trusted source
     - endpoint reads or writes workspace-scoped record without workspace path context
-    - nashir evidence paths exposed before separate approval
+    - nashir evidence submit/review paths exposed before separate approval
     - nashir approval/review paths exposed before separate approval
     - nashir scoring mutation or persistence paths exposed before separate approval
     - generated clients updated without separate approval
@@ -162,6 +162,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NashirCampaignReadinessResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/NashirCampaignId'
+    get:
+      tags: [NashirCampaigns]
+      summary: List Nashir campaign evidence records
+      operationId: listNashirCampaignEvidence
+      x-permission: nashir.campaign.read
+      responses:
+        '200':
+          description: Empty Nashir evidence list returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignEvidenceListResponse'
         default:
           $ref: '#/components/responses/ErrorResponse'
 
@@ -378,6 +397,20 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/NashirCampaignReadiness'
+
+    NashirCampaignEvidenceListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          maxItems: 0
+          description: >
+            Empty read-only evidence list. No evidence submission or persistence
+            exists in this slice, so the route returns no evidence records.
+          items:
+            type: object
+            additionalProperties: false
 
     ErrorModel:
       type: object

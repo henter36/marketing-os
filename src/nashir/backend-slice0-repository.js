@@ -51,6 +51,23 @@ class NashirSlice0Repository {
     return { ...campaign };
   }
 
+  async listCampaignEvidence({ workspaceId, nashirCampaignId } = {}) {
+    if (!workspaceId || !nashirCampaignId) {
+      return [];
+    }
+    if (!this.store || !Array.isArray(this.store.nashirEvidence)) {
+      return [];
+    }
+    return this.store.nashirEvidence
+      .filter(
+        (evidence) =>
+          evidence &&
+          evidence.workspace_id === workspaceId &&
+          evidence.nashir_campaign_id === nashirCampaignId
+      )
+      .map((evidence) => ({ ...evidence }));
+  }
+
   async saveCampaign(campaign) {
     throw new Error("not implemented");
   }
