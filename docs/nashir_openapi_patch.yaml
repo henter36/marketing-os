@@ -109,7 +109,7 @@ paths:
       summary: Create Nashir campaign intake record
       operationId: createNashirCampaign
       x-permission: nashir.campaign.write
-      x-audit-event: nashir.campaign.created
+      x-audit-event: nashir_campaign.created
       x-no-go: workspace_id_accepted_from_body_as_trusted_source
       requestBody:
         required: true
