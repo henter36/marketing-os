@@ -74,7 +74,7 @@ Current denial behavior remains:
 | Create permission | Use existing implemented RBAC permission `nashir.campaign.write`; no RBAC expansion is approved. |
 | Duplicate submissions | The first narrow in-memory create route is non-idempotent; each valid POST may create a separate campaign record. |
 | Idempotency keys | NO-GO unless a separate OpenAPI/runtime idempotency gate approves a header and contract. |
-| Audit behavior | Future implementation must use the existing audit path if available, with `nashir.campaign.created` and `NashirCampaign`. |
+| Audit behavior | Future implementation must use the existing audit path if available, with `nashir_campaign.created` and `NashirCampaign`. |
 | ErrorModel behavior | Preserve existing guard conventions, non-disclosure, validation handling, and safe error output. |
 | Runtime scope | Future implementation may be considered only for the in-memory create route after this gate is merged. |
 
@@ -125,7 +125,7 @@ Create-route audit behavior must use:
 
 | Field | Required future value |
 |---|---|
-| Event name | `nashir.campaign.created` |
+| Event name | `nashir_campaign.created` |
 | Entity type | `NashirCampaign` |
 | Entity ID | Generated `nashir_campaign_id` |
 | Before payload | `null` |
@@ -134,6 +134,12 @@ Create-route audit behavior must use:
 | Correlation ID | Existing request correlation ID where available; otherwise the implementation report must explicitly document the current audit helper limitation and must not silently reuse Patch 002-specific defaults for Nashir events |
 
 Audit behavior must not imply DB-backed persistence, durable audit guarantees, external audit infrastructure, or any guarantees beyond the current in-memory/runtime audit conventions.
+
+OpenAPI/audit naming reconciliation note:
+- The future runtime audit event name is resolved here as `nashir_campaign.created` to align with the repository's snake_case audit event naming convention.
+- `docs/nashir_openapi_patch.yaml` currently declares `x-audit-event: nashir.campaign.created`.
+- This PR does not modify OpenAPI YAML.
+- A future implementation PR must not silently ignore this naming divergence; it must either be preceded by a separate OpenAPI/audit naming reconciliation gate or explicitly document the approved resolution in its implementation scope.
 
 ## 8. ErrorModel And Tenant Behavior Resolved
 
@@ -189,7 +195,7 @@ GO:     Documentation-only resolution of create-route pre-implementation constra
 GO:     Future implementation PR may be considered only after this gate is merged.
 GO:     Future implementation may use existing nashir.campaign.write permission.
 GO:     Future implementation may define duplicate submissions as non-idempotent for this narrow in-memory route.
-GO:     Future implementation may call existing audit path with nashir.campaign.created for NashirCampaign.
+GO:     Future implementation may call existing audit path with nashir_campaign.created for NashirCampaign.
 
 NO-GO:  Runtime changes in this PR.
 NO-GO:  Test changes in this PR.
