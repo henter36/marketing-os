@@ -22,7 +22,7 @@ info:
     Deferred paths (not in this patch):
       nashir evidence paths
       nashir approval/review paths
-      nashir readiness/scoring paths
+      nashir scoring mutation/persistence paths
       nashir state-transition paths
 
 security:
@@ -43,7 +43,7 @@ x-contract-rules:
     - endpoint reads or writes workspace-scoped record without workspace path context
     - nashir evidence paths exposed before separate approval
     - nashir approval/review paths exposed before separate approval
-    - nashir readiness paths exposed before separate approval
+    - nashir scoring mutation or persistence paths exposed before separate approval
     - generated clients updated without separate approval
     - routes registered in src/router.js without route implementation scope gate
 
@@ -146,6 +146,25 @@ paths:
         default:
           $ref: '#/components/responses/ErrorResponse'
 
+  /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/NashirCampaignId'
+    get:
+      tags: [NashirCampaigns]
+      summary: Get advisory Nashir campaign readiness
+      operationId: getNashirCampaignReadiness
+      x-permission: nashir.campaign.read
+      responses:
+        '200':
+          description: Advisory Nashir campaign readiness returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignReadinessResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -244,6 +263,121 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NashirCampaign'
+
+    ReadinessIssue:
+      type: object
+      required:
+        - code
+        - message
+        - severity
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum:
+            - blocker
+            - warning
+        field:
+          oneOf:
+            - type: string
+            - type: "null"
+        user_action:
+          oneOf:
+            - type: string
+            - type: "null"
+
+    ReadinessMissingField:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+        user_action:
+          oneOf:
+            - type: string
+            - type: "null"
+
+    ReadinessExplanation:
+      type: object
+      required:
+        - code
+        - message
+        - related_fields
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        related_fields:
+          type: array
+          items:
+            type: string
+
+    NashirCampaignReadiness:
+      type: object
+      required:
+        - nashir_campaign_id
+        - workspace_id
+        - readiness_level
+        - gate_state
+        - blockers
+        - warnings
+        - missing_fields
+        - explanations
+        - evaluated_at
+      properties:
+        nashir_campaign_id:
+          type: string
+        workspace_id:
+          type: string
+          description: Route-derived workspace context.
+        readiness_level:
+          type: string
+          enum:
+            - pass
+            - soft_pass
+            - fail
+            - blocked_until_review
+        gate_state:
+          type: string
+          enum:
+            - advisory_only
+            - blocked_until_review
+            - ready_for_human_review
+        blockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadinessIssue'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadinessIssue'
+        missing_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadinessMissingField'
+        explanations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadinessExplanation'
+        evaluated_at:
+          type: string
+          format: date-time
+          description: Runtime evaluation timestamp. Readiness output is not persisted.
+
+    NashirCampaignReadinessResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NashirCampaignReadiness'
 
     ErrorModel:
       type: object

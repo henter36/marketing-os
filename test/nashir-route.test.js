@@ -205,6 +205,142 @@ test("GET nashir-campaigns/{nashirCampaignId} ignores workspace_id in request bo
   assert.strictEqual(res.body.data.workspace_id, WORKSPACE_A);
 });
 
+// ─── Readiness route — read-only advisory response ──────────────────────────
+
+test("GET nashir-campaigns/{nashirCampaignId}/readiness returns 200 for authorized member", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.body.data.nashir_campaign_id, CAMPAIGN_A_ID);
+  assert.strictEqual(res.body.data.workspace_id, WORKSPACE_A);
+});
+
+test("GET nashir readiness response shape is { data: readiness }", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.ok(Object.hasOwn(res.body, "data"), "response must have a top-level data key");
+  assert.ok(typeof res.body.data === "object" && res.body.data !== null, "data must be an object");
+  assert.ok(!Object.hasOwn(res.body.data, "data"), "response must not be double-wrapped");
+});
+
+test("GET nashir readiness includes required fields and allowed advisory values", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, { userId: OWNER_A });
+  const readiness = res.body.data;
+
+  assert.strictEqual(res.status, 200);
+  for (const field of [
+    "nashir_campaign_id",
+    "workspace_id",
+    "readiness_level",
+    "gate_state",
+    "blockers",
+    "warnings",
+    "missing_fields",
+    "explanations",
+    "evaluated_at"
+  ]) {
+    assert.ok(Object.hasOwn(readiness, field), `${field} is required`);
+  }
+  assert.ok(["pass", "soft_pass", "fail", "blocked_until_review"].includes(readiness.readiness_level));
+  assert.ok(["advisory_only", "blocked_until_review", "ready_for_human_review"].includes(readiness.gate_state));
+  assert.strictEqual(readiness.readiness_level, "pass");
+  assert.strictEqual(readiness.gate_state, "advisory_only");
+  assert.ok(Date.parse(readiness.evaluated_at), "evaluated_at must be a date-time string");
+});
+
+test("GET nashir readiness structured detail fields are arrays", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, { userId: OWNER_A });
+  const readiness = res.body.data;
+
+  assert.strictEqual(res.status, 200);
+  assert.deepStrictEqual(readiness.blockers, []);
+  assert.deepStrictEqual(readiness.warnings, []);
+  assert.deepStrictEqual(readiness.missing_fields, []);
+  assert.ok(Array.isArray(readiness.explanations));
+  assert.deepStrictEqual(readiness.explanations, [
+    {
+      code: "NASHIR_READINESS_ADVISORY_ONLY",
+      message: "Readiness is advisory and does not approve content or authorize publishing.",
+      related_fields: []
+    }
+  ]);
+});
+
+test("GET nashir readiness is read-only and does not mutate campaign", async () => {
+  const server = await createTestServer();
+  const before = JSON.stringify(server.store.nashirCampaigns);
+
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(JSON.stringify(server.store.nashirCampaigns), before);
+});
+
+test("GET nashir readiness does not emit an audit event", async () => {
+  const server = await createTestServer();
+  const auditCount = server.store.auditLogs.length;
+
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(server.store.auditLogs.length, auditCount);
+});
+
+test("GET nashir readiness returns 404 for user with no workspace membership", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, { userId: OUTSIDER });
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir readiness returns 404 for unknown workspace", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/workspace-missing/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir readiness returns 404 for unknown campaign", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${UNKNOWN_ID}/readiness`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir readiness returns 404 for cross-workspace campaign", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_B_ID}/readiness`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir readiness returns 403 for member lacking nashir.campaign.read", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, { userId: BILLING_A });
+
+  assert.strictEqual(res.status, 403);
+});
+
+test("GET nashir readiness derives route IDs from path and ignores body overrides", async () => {
+  const server = await createTestServer();
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/readiness`, {
+    userId: OWNER_A,
+    body: {
+      workspace_id: WORKSPACE_B,
+      nashir_campaign_id: UNKNOWN_ID
+    }
+  });
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.body.data.workspace_id, WORKSPACE_A);
+  assert.strictEqual(res.body.data.nashir_campaign_id, CAMPAIGN_A_ID);
+});
+
 // ─── Create route — in-memory only ──────────────────────────────────────────
 
 test("POST nashir-campaigns creates a draft campaign for authorized active member", async () => {

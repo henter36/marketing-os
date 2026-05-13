@@ -28,7 +28,8 @@ test("docs/nashir_openapi_patch.yaml exists", () => {
 
 const REQUIRED_PATHS = [
   "/workspaces/{workspaceId}/nashir-campaigns",
-  "/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}"
+  "/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}",
+  "/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness"
 ];
 
 for (const p of REQUIRED_PATHS) {
@@ -45,7 +46,8 @@ for (const p of REQUIRED_PATHS) {
 const REQUIRED_OPERATION_IDS = [
   "listNashirCampaigns",
   "createNashirCampaign",
-  "getNashirCampaign"
+  "getNashirCampaign",
+  "getNashirCampaignReadiness"
 ];
 
 for (const id of REQUIRED_OPERATION_IDS) {
@@ -162,7 +164,12 @@ const REQUIRED_SCHEMAS = [
   "NashirCampaign:",
   "CreateNashirCampaignRequest:",
   "NashirCampaignResponse:",
-  "NashirCampaignListResponse:"
+  "NashirCampaignListResponse:",
+  "NashirCampaignReadiness:",
+  "NashirCampaignReadinessResponse:",
+  "ReadinessIssue:",
+  "ReadinessMissingField:",
+  "ReadinessExplanation:"
 ];
 
 for (const schema of REQUIRED_SCHEMAS) {
@@ -181,4 +188,38 @@ test("nashir_openapi_patch.yaml declares NashirCampaignId parameter", () => {
     patchText().includes("NashirCampaignId"),
     "docs/nashir_openapi_patch.yaml must declare NashirCampaignId parameter"
   );
+});
+
+test("nashir_openapi_patch.yaml declares readiness route with read permission", () => {
+  const yaml = patchText();
+  const pathStart = yaml.indexOf("/workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness:");
+  assert.ok(pathStart !== -1, "readiness path must be declared");
+  const rest = yaml.slice(pathStart);
+  const nextPath = rest.slice(1).match(/\n  \/workspaces\//);
+  const block = nextPath ? rest.slice(0, nextPath.index + 1) : rest;
+
+  assert.ok(block.includes("operationId: getNashirCampaignReadiness"));
+  assert.ok(block.includes("x-permission: nashir.campaign.read"));
+  assert.ok(block.includes("NashirCampaignReadinessResponse"));
+  assert.ok(block.includes("ErrorResponse"));
+});
+
+test("nashir readiness schema declares required advisory fields and enums", () => {
+  const yaml = patchText();
+  for (const field of [
+    "nashir_campaign_id",
+    "workspace_id",
+    "readiness_level",
+    "gate_state",
+    "blockers",
+    "warnings",
+    "missing_fields",
+    "explanations",
+    "evaluated_at"
+  ]) {
+    assert.ok(yaml.includes(field), `readiness schema must include ${field}`);
+  }
+  for (const value of ["pass", "soft_pass", "fail", "blocked_until_review", "advisory_only", "ready_for_human_review"]) {
+    assert.ok(yaml.includes(value), `readiness schema must include enum value ${value}`);
+  }
 });

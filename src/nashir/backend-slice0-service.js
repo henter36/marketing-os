@@ -26,6 +26,31 @@ class NashirSlice0Service {
     return this.repository.listCampaigns({ workspaceId });
   }
 
+  async getCampaignReadiness({ workspaceId, nashirCampaignId, evaluatedAt } = {}) {
+    const campaign = await this.getCampaignById({ workspaceId, nashirCampaignId });
+    if (!campaign) {
+      return null;
+    }
+
+    return {
+      nashir_campaign_id: campaign.nashir_campaign_id,
+      workspace_id: workspaceId,
+      readiness_level: "pass",
+      gate_state: "advisory_only",
+      blockers: [],
+      warnings: [],
+      missing_fields: [],
+      explanations: [
+        {
+          code: "NASHIR_READINESS_ADVISORY_ONLY",
+          message: "Readiness is advisory and does not approve content or authorize publishing.",
+          related_fields: []
+        }
+      ],
+      evaluated_at: evaluatedAt
+    };
+  }
+
   async scoreReadiness(id) {
     throw new Error("not implemented");
   }
