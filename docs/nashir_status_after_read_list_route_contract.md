@@ -39,6 +39,8 @@ The following remain not approved:
 - no RBAC expansion is approved;
 - no generated clients are approved;
 - no UI/prototype is approved;
+- no tests are approved;
+- no SQL/schema changes are approved;
 - no approval or publishing is approved;
 - no Sprint 5 is approved;
 - no Pilot or Production is approved;
@@ -90,6 +92,8 @@ NO-GO:
 - RBAC expansion;
 - generated-client changes;
 - UI/prototype;
+- tests;
+- SQL/schema changes;
 - approval;
 - publishing;
 - Sprint 5;
