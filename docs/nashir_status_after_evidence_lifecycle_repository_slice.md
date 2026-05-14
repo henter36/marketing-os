@@ -57,7 +57,7 @@ The following remain NO-GO:
 
 ## Verification Status
 
-Sprint 0 Strict Verification passed on PR #223 before merge.
+Strict Verification passed on PR #223 before merge.
 
 Local main was clean before this Status Reconciliation edit.
 
