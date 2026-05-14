@@ -110,8 +110,8 @@ A future repository-only verification PR should prove:
 - submit evidence creates evidence plus submitted lifecycle event atomically
 - list evidence reflects submitted evidence
 - get evidence returns canonical camelCase output
-- cross-workspace reads return generic not found or `null`
-- cross-campaign reads return generic not found or `null`
+- cross-workspace reads return `null` for `getById` and `[]` for `listByCampaign`
+- cross-campaign reads return `null` for `getById` and `[]` for `listByCampaign`
 - missing `withTransaction` fails closed
 - missing returned insert row produces a safe repository error
 - workspace context is passed into transaction queries
