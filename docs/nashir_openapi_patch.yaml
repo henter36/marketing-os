@@ -187,7 +187,7 @@ paths:
         - nashirCampaignId
       responses:
         '200':
-          description: Nashir evidence lifecycle list returned for route-derived workspace and campaign
+          description: Submitted in-memory Nashir evidence list returned; lifecycle-aware read/list contract remains route-derived by workspace and campaign
           content:
             application/json:
               schema:
