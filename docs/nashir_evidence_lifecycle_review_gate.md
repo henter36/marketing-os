@@ -68,6 +68,19 @@ Candidate routes only:
 
 Exact route naming remains unresolved and must be finalized in a later contract gate.
 
+## Tenant Isolation / Non-Disclosure Expectations
+
+Future `evidenceId`-based lifecycle routes must preserve non-disclosing `404` behavior.
+
+- Missing membership returns non-disclosing `404`.
+- Unknown workspace returns non-disclosing `404`.
+- Unknown campaign returns `404`.
+- Cross-workspace campaign returns `404`.
+- Unknown evidence returns `404`.
+- Evidence belonging to another workspace or another campaign returns `404`.
+- The route must not leak whether an `evidenceId` exists outside the authorized route-derived `workspaceId` and `nashirCampaignId` context.
+- All lifecycle actions must use route-derived `workspaceId`, `nashirCampaignId`, and `evidenceId` only.
+
 ## Candidate Review Actions
 
 Planning-level candidate actions:
