@@ -70,7 +70,7 @@ If some command is not applicable, the PR must explain why.
 
 A future implementation PR must verify:
 
-- no existing `docs/marketing_os_v5_6_5_phase_0_1_schema_patch_003.sql` exists
+- no `docs/marketing_os_v5_6_5_phase_0_1_schema_patch_003.sql` already exists
 - migration order includes base schema, Patch 001, Patch 002, then future Patch 003 only if approved
 - `docs/07_database_schema.sql` reflects the active migration order after patch creation
 - strict migration runner recognizes the patch only after explicit implementation approval
