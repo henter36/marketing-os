@@ -107,15 +107,17 @@ The following remain NO-GO:
 - `git diff --name-only`: reported `docs/03_decision_log.md` and `docs/17_change_log.md`; untracked new files are visible in `git status --short`.
 - `git diff --check`: passed with no output.
 - `npm test -- test/nashir-evidence-lifecycle-repository-flow-verification.test.js`: passed. The project test script expands `test/*.test.js`, so this command ran the full test suite plus the explicit flow verification target: 342 tests passed, 0 failed.
-- `npm run verify:strict`: did not fully pass locally. It completed baseline, OpenAPI strict lint, and test phases, then stopped at `npm run db:migrate:strict` because `DATABASE_URL` is not configured.
+- Local `npm run verify:strict`: did not fully pass because the local environment did not provide `DATABASE_URL`. It completed baseline, OpenAPI strict lint, and test phases, then stopped at `npm run db:migrate:strict`.
 
-Exact strict verification blocker:
+Exact local strict verification blocker:
 
 ```text
 DATABASE_URL is required for strict Sprint 0 migration execution.
 ```
 
-This is not represented as a full strict verification pass.
+This local result is not represented as a full local strict verification pass.
+
+- GitHub Actions Strict Verification passed on PR #226 for the latest commit. This means no governance bypass is being claimed; the required strict verification is satisfied by the configured CI environment.
 
 ## Required Next Step
 
