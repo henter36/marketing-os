@@ -107,9 +107,9 @@ Any future route implementation PR must satisfy these acceptance criteria:
 
 - repository-only verification remains the source of truth for repository behavior;
 - no route may bypass repository tenant scoping;
-- non-existent, cross-workspace, and cross-campaign reads must not disclose resource existence;
+- non-existent, cross-workspace, and cross-campaign reads must return a generic 404 Not Found error to avoid disclosing resource existence;
 - route errors must use the approved ErrorModel;
-- audit requirements must be specified before implementation;
+- audit requirements must be specified before implementation, following the established naming convention: entity/domain plus dotted action;
 - RBAC permission codes must be approved before enforcement changes;
 - OpenAPI must be updated only in a separately approved contract PR;
 - generated clients must not change unless an OpenAPI contract and generated-client gate approve it;
