@@ -28,7 +28,9 @@ The current Nashir Evidence Lifecycle state now includes:
 - repository implementation exists;
 - repository-only flow verification exists;
 - Route Contract Gate exists;
+- status after Route Contract Gate exists;
 - first route contract slice planning exists;
+- status after first route contract slice planning exists;
 - Read/List Route Contract Specification exists;
 - status after read/list route contract exists;
 - Read/List OpenAPI Contract Gate exists;
@@ -59,6 +61,9 @@ Journey Gate
 -> Journey Slice Implementation
 -> Journey Flow Verification
 -> Route Contract Gate
+-> Status Reconciliation after Route Contract Gate
+-> First Route Contract Slice Planning
+-> Status Reconciliation after First Route Contract Slice Planning
 -> Read/List Route Contract Specification
 -> Status Reconciliation after Read/List Route Contract
 -> Read/List OpenAPI Contract Gate
