@@ -28,7 +28,7 @@ PR #228 established:
 
 - route contract questions must be resolved before implementation;
 - route-level work must preserve repository tenant scoping;
-- read-by-id routes must return generic `404 Not Found` for non-existent, cross-workspace, and cross-campaign resources;
+- read-by-id routes must return generic 404 Not Found for non-existent, cross-workspace, and cross-campaign resources;
 - route errors must use approved ErrorModel mappings;
 - audit requirements must follow the established naming convention: entity/domain plus dotted action;
 - RBAC permission codes must be approved before enforcement changes;
@@ -66,6 +66,8 @@ Audit event mapping is not yet finalized.
 RBAC permission code mapping is not yet finalized.
 
 OpenAPI lifecycle contract is not approved.
+
+Generated-client gate is not yet established.
 
 ## Recommended Next Step
 
