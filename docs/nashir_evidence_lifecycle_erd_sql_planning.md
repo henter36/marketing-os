@@ -48,7 +48,7 @@ Planning-level fields:
 - `channel`
 - `status`
 - `submitted_at`
-- `submitted_by`
+- `submitted_by_user_id`
 - `published_at`
 - `url`
 - `notes`
@@ -110,11 +110,12 @@ Only `submitted` exists in current in-memory runtime. The other values are futur
 Planning-level `event_type` values following current entity/domain plus dotted action pattern:
 
 - `nashir_evidence.submitted`
-- `nashir_evidence.reviewed`
+- `nashir_evidence.accepted`
+- `nashir_evidence.rejected`
 - `nashir_evidence.invalidated`
 - `nashir_evidence.superseded`
 
-Accept/reject are review outcomes, not separate event types unless a later audit/event decision changes this.
+These are planning-level lifecycle `event_type` candidates for the lifecycle event table and do not by themselves change runtime audit behavior. Any audit event naming change remains separately gated.
 
 ## Candidate Constraints
 
@@ -127,12 +128,12 @@ Planning-level constraints:
 - `channel` required.
 - `status` required.
 - `submitted_at` required.
-- `submitted_by` required.
+- `submitted_by_user_id` required.
 - `lifecycle_event_id` required and unique.
 - lifecycle event `evidence_id` required.
 - lifecycle event `event_type` required.
 - lifecycle event `prior_status` and `next_status` required for state-changing events.
-- invalidation requires `reason_code`.
+- invalidation or rejection requires `reason_code`.
 - supersession requires `replacement_evidence_id`.
 - `replacement_evidence_id` must not equal `evidence_id`.
 - `replacement_evidence_id` must belong to same `workspace_id` and `nashir_campaign_id`.
