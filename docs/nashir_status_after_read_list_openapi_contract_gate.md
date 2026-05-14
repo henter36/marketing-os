@@ -67,7 +67,7 @@ Journey Gate
 -> Read/List Route Contract Specification
 -> Status Reconciliation after Read/List Route Contract
 -> Read/List OpenAPI Contract Gate
--> Status Reconciliation after PR #234.
+-> Status Reconciliation after Read/List OpenAPI Contract Gate.
 
 ## Current Safe Next Direction
 
