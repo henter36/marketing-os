@@ -37,17 +37,14 @@ These paths are planning candidates only. They are not implemented by this docum
 
 ## Candidate operationIds
 
-Candidate operationIds:
-
-- `listNashirCampaignEvidenceLifecycleEvidence`
-- `getNashirCampaignEvidenceLifecycleEvidence`
-
-Shorter operationIds may be preferable in a future OpenAPI patch if uniqueness is preserved:
+Recommended candidate operationIds:
 
 - `listNashirCampaignEvidence`
 - `getNashirCampaignEvidence`
 
-The shorter names are easier to read and align with a resource-oriented OpenAPI surface. The future OpenAPI patch PR must confirm they do not conflict with existing operations before use.
+These names avoid redundant `EvidenceLifecycleEvidence` wording, are easier to read, and align with a resource-oriented OpenAPI surface.
+
+The future OpenAPI patch PR must confirm these operationIds do not conflict with existing operations before use.
 
 ## Parameters
 
