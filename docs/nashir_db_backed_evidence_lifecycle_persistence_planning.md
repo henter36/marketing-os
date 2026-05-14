@@ -169,10 +169,10 @@ Future DB-backed design must enforce:
 - `evidence_id` must never be resolved outside route-derived workspace/campaign context
 - missing membership returns non-disclosing `404`
 - unknown workspace returns non-disclosing `404`
-- unknown campaign returns `404`
-- unknown evidence returns `404`
-- cross-workspace evidence returns `404`
-- cross-campaign evidence returns `404`
+- unknown campaign returns non-disclosing `404`
+- unknown evidence returns non-disclosing `404`
+- cross-workspace evidence returns non-disclosing `404`
+- cross-campaign evidence returns non-disclosing `404`
 
 ## Audit Relationship
 
