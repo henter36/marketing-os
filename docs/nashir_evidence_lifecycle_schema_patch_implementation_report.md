@@ -25,6 +25,8 @@ Patch 003 adds DB-backed persistence tables for Nashir evidence records and evid
 
 Patch 003 adds scoped enum values for Nashir evidence status and lifecycle event type, creates both tables with tenant/campaign scope fields, adds user/workspace references where authoritative targets are clear, adds replacement self-reference constraints, requires rejection and invalidation reasons on lifecycle events, requires replacement evidence for supersession events, and adds workspace/campaign/evidence/status/event/audit-correlation indexes.
 
+`updated_at` is application-managed and no trigger is introduced by Patch 003. Repository/runtime update behavior remains separately gated. The redundant `nashir_evidence(workspace_id, nashir_campaign_id)` prefix index was intentionally omitted because `idx_nashir_evidence_workspace_campaign_status` covers the workspace/campaign prefix.
+
 ## Unresolved FK / Audit Correlation Notes
 
 - `nashir_campaign_id` has no FK in Patch 003 because an authoritative DB-backed Nashir campaign table target is not established by this patch.
@@ -46,8 +48,8 @@ Patch 003 adds scoped enum values for Nashir evidence status and lifecycle event
 
 - `git diff --name-only` passed and listed the tracked documentation/schema wrapper changes.
 - `git diff --check` passed.
-- `npm run db:migrate:strict --if-present` failed because the local environment does not provide `DATABASE_URL`.
-- `npm run verify:strict --if-present` ran baseline checks, OpenAPI strict lint, and tests, then failed when its final strict migration step required `DATABASE_URL`.
+- `npm run db:migrate:strict` failed because the local environment does not provide `DATABASE_URL`.
+- `npm run verify:strict` ran baseline checks, OpenAPI strict lint, and tests, then failed when its final strict migration step required `DATABASE_URL`.
 - `git status --short` remains required after final checks.
 
 Failure output:

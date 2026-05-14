@@ -22,6 +22,9 @@ DO $$ BEGIN CREATE TYPE nashir_evidence_lifecycle_event_type AS ENUM ('nashir_ev
 -- the authoritative DB-backed Nashir campaign table is not established here.
 -- Route/repository implementations must scope every lookup by workspace_id and
 -- nashir_campaign_id and must not disclose cross-tenant evidence existence.
+-- updated_at is application-managed in this patch. Patch 003 does not introduce
+-- an updated_at trigger; future runtime/repository implementation must set
+-- updated_at explicitly on updates.
 
 CREATE TABLE IF NOT EXISTS nashir_evidence (
   evidence_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -47,7 +50,6 @@ CREATE TABLE IF NOT EXISTS nashir_evidence (
   CONSTRAINT fk_nashir_evidence_replacement_workspace_campaign FOREIGN KEY (replacement_evidence_id, workspace_id, nashir_campaign_id) REFERENCES nashir_evidence(evidence_id, workspace_id, nashir_campaign_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_nashir_evidence_workspace_campaign ON nashir_evidence(workspace_id, nashir_campaign_id);
 CREATE INDEX IF NOT EXISTS idx_nashir_evidence_workspace_campaign_id ON nashir_evidence(workspace_id, nashir_campaign_id, evidence_id);
 CREATE INDEX IF NOT EXISTS idx_nashir_evidence_workspace_campaign_status ON nashir_evidence(workspace_id, nashir_campaign_id, status);
 CREATE INDEX IF NOT EXISTS idx_nashir_evidence_replacement ON nashir_evidence(replacement_evidence_id) WHERE replacement_evidence_id IS NOT NULL;
