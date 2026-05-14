@@ -168,13 +168,11 @@ class NashirEvidenceLifecycleRepository {
         return toPublicEvidence(evidence);
       };
 
-      if (typeof this.pool.withTransaction === "function") {
-        return await this.pool.withTransaction(writeEvidence, { workspaceId });
+      if (typeof this.pool.withTransaction !== "function") {
+        throw toRepositoryError(new Error("Nashir evidence lifecycle repository requires transactional writes"));
       }
 
-      return await writeEvidence({
-        query: (sql, params) => this.pool.query(sql, params, { workspaceId }),
-      });
+      return await this.pool.withTransaction(writeEvidence, { workspaceId });
     } catch (error) {
       throw toRepositoryError(error);
     }

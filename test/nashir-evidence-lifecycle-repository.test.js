@@ -148,6 +148,38 @@ test("returned records do not expose snake_case internal fields", async () => {
   }
 });
 
+test("createSubmittedEvidence fails closed without transactional writes and performs no inserts", async () => {
+  const originalConsoleError = console.error;
+  console.error = () => {};
+
+  const calls = [];
+  const repository = new NashirEvidenceLifecycleRepository({
+    pool: {
+      query: async (sql, params, options) => {
+        calls.push({ sql, params, options });
+        return [];
+      },
+    },
+  });
+
+  try {
+    await assert.rejects(
+      () => repository.createSubmittedEvidence(createInput()),
+      (error) => {
+        assert(error instanceof AppError);
+        assert.equal(error.status, 500);
+        assert.equal(error.code, "INTERNAL_ERROR");
+        assert.equal(error.message, "Database operation failed.");
+        assert.equal(String(error.message).includes("transactional writes"), false);
+        return true;
+      }
+    );
+    assert.equal(calls.length, 0);
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
 test("database errors are converted to safe repository errors", async () => {
   const originalConsoleError = console.error;
   console.error = () => {};
