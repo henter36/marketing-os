@@ -146,6 +146,7 @@ Planning-level transitions:
 - `submitted` -> `invalidated`
 - `accepted` -> `invalidated`
 - `accepted` -> `superseded`
+- `rejected` -> `accepted` only after explicit re-review if later approved
 - `rejected` -> `superseded` only if later approved
 - `invalidated` is terminal unless later reopened by explicit gate
 - `superseded` is terminal for the original evidence
@@ -186,10 +187,10 @@ Do not decide in this PR. A later decision or contract update must choose permis
 Candidate events:
 
 - `nashir_evidence.reviewed`
-- `nashir_evidence.accepted`
-- `nashir_evidence.rejected`
 - `nashir_evidence.invalidated`
 - `nashir_evidence.superseded`
+
+Accept and reject are outcomes of the review action and should be captured as fields on `nashir_evidence.reviewed`, such as `action`, `priorStatus`, and `nextStatus`. Separate accepted/rejected audit events may be reconsidered only in a later audit naming or lifecycle implementation gate if needed.
 
 Candidate audit fields:
 
