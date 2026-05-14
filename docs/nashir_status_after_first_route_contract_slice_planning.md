@@ -89,4 +89,10 @@ NO-GO:
 - OpenAPI lifecycle implementation;
 - RBAC expansion;
 - UI/prototype changes;
-- generated client changes.
+- generated client changes;
+- approval;
+- publishing;
+- Sprint 5;
+- Pilot;
+- Production;
+- isolated route-by-route implementation outside the Journey model.
