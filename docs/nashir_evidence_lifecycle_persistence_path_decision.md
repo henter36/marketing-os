@@ -84,7 +84,7 @@ Before implementation, a later DB-backed evidence lifecycle planning gate must d
 - migration strategy;
 - rollback strategy;
 - test strategy;
-- ErrorModel behavior;
+- ErrorModel behavior including non-disclosing `404` expectations for unknown workspace, unknown campaign, unknown evidence, cross-workspace evidence, and cross-campaign evidence;
 - route contract/OpenAPI relationship.
 
 ## Recommended Next Step
