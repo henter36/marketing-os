@@ -185,6 +185,9 @@ paths:
       x-route-derived-scope:
         - workspaceId
         - nashirCampaignId
+      x-generic-404: >
+        Non-existent campaign and cross-workspace campaign access return
+        generic 404 Not Found without resource-existence disclosure.
       responses:
         '200':
           description: Submitted in-memory Nashir evidence list returned; lifecycle-aware read/list contract remains route-derived by workspace and campaign
