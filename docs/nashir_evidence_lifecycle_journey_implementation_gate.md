@@ -90,7 +90,7 @@ A future Journey Slice Implementation PR may include, only if explicitly approve
 - Read/write plumbing for evidence records and lifecycle events.
 - Tenant-scoped repository queries using route-derived workspace/campaign context supplied by future callers.
 - Application-managed `updated_at` behavior for evidence updates.
-- Tests for repository read/write behavior, tenant isolation, lifecycle status/event writes, invalidation/rejection reason requirements, supersession replacement linkage, and non-disclosing query behavior where applicable.
+- Tests for repository read/write behavior, tenant isolation, lifecycle status/event writes, invalidation/rejection reason requirements, supersession replacement linkage, and generic not found behavior for non-existent IDs and cross-tenant or cross-campaign IDs.
 - Implementation report documenting the Journey Slice.
 - Status Reconciliation after implementation.
 
@@ -145,6 +145,7 @@ A future implementation PR must run or document:
 - `git diff --check`
 - focused repository tests for the Nashir Evidence Lifecycle Journey Slice
 - tenant isolation tests
+- generic not found repository read tests for non-existent IDs and cross-tenant or cross-campaign IDs
 - lifecycle state/event persistence tests
 - `npm run db:migrate:strict`
 - `npm run verify:strict`
@@ -156,7 +157,7 @@ If any command is not applicable or cannot run because of environment requiremen
 
 - Repository persistence can create/read `nashir_evidence` records scoped by workspace and Nashir campaign.
 - Repository persistence can create/read `nashir_evidence_lifecycle_events` records scoped by workspace, Nashir campaign, and evidence.
-- Repository reads do not disclose cross-workspace or cross-campaign evidence.
+- Repository reads do not disclose cross-workspace or cross-campaign evidence by returning a generic not found result for both non-existent IDs and cross-tenant or cross-campaign IDs.
 - Submitted, accepted, rejected, invalidated, and superseded status/event candidates are handled according to Patch 003 constraints.
 - Rejection and invalidation require `reason_code` where persisted.
 - Supersession requires replacement evidence linkage where persisted.
