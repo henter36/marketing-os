@@ -12,6 +12,7 @@ info:
 
     No generated client update is included in this patch.
     Generated-client changes require a separately approved gate.
+    This read/list lifecycle patch keeps generated-client changes NO-GO.
 
     Nashir RBAC codes implemented in PR #166:
       nashir.campaign.read   — used by GET operations in this patch
@@ -38,6 +39,7 @@ x-contract-rules:
     - MembershipCheck
     - PermissionGuard
   body_workspace_id_trusted: false
+  generated-client: NO-GO
   no_go_rules:
     - workspace_id accepted from body as trusted source
     - endpoint reads or writes workspace-scoped record without workspace path context
@@ -171,16 +173,35 @@ paths:
       - $ref: '#/components/parameters/NashirCampaignId'
     get:
       tags: [NashirCampaigns]
-      summary: List Nashir campaign evidence records
+      summary: List Nashir campaign lifecycle evidence records
       operationId: listNashirCampaignEvidence
+      x-operationId-note: >
+        listNashirCampaignEvidence existed before the lifecycle read/list patch.
+        This patch updates the existing list contract in place and does not add a
+        duplicate operationId. The new get-by-id lifecycle read operation uses
+        the non-conflicting getNashirCampaignEvidence operationId.
       x-permission: nashir.campaign.read
+      x-no-request-body: true
+      x-route-derived-scope:
+        - workspaceId
+        - nashirCampaignId
       responses:
         '200':
-          description: Submitted in-memory Nashir evidence list returned
+          description: Nashir evidence lifecycle list returned for route-derived workspace and campaign
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NashirCampaignEvidenceListResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
         default:
           $ref: '#/components/responses/ErrorResponse'
     post:
@@ -202,6 +223,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NashirCampaignEvidenceResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence/{evidenceId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/NashirCampaignId'
+      - $ref: '#/components/parameters/EvidenceId'
+    get:
+      tags: [NashirCampaigns]
+      summary: Get Nashir campaign lifecycle evidence by ID
+      operationId: getNashirCampaignEvidence
+      x-permission: nashir.campaign.read
+      x-no-request-body: true
+      x-route-derived-scope:
+        - workspaceId
+        - nashirCampaignId
+        - evidenceId
+      x-generic-404: >
+        Non-existent evidence, cross-workspace evidence, and cross-campaign
+        evidence all return generic 404 Not Found without resource-existence
+        disclosure.
+      responses:
+        '200':
+          description: Nashir evidence lifecycle record returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignLifecycleEvidenceResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
         default:
           $ref: '#/components/responses/ErrorResponse'
 
@@ -232,6 +292,17 @@ components:
         type: string
         format: uuid
       description: Nashir campaign record identifier.
+
+    EvidenceId:
+      name: evidenceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: >
+        Route-derived Nashir evidence identifier. Must only be resolved inside
+        the route-derived workspaceId and nashirCampaignId scope.
 
   schemas:
     NashirCampaign:
@@ -426,10 +497,10 @@ components:
         data:
           type: array
           description: >
-            In-memory evidence list for the route-derived workspace and Nashir
-            campaign. Evidence is not durable and is not DB-backed in this slice.
+            Evidence lifecycle list for the route-derived workspace and Nashir
+            campaign. Runtime route implementation remains separately gated.
           items:
-            $ref: '#/components/schemas/NashirCampaignEvidence'
+            $ref: '#/components/schemas/NashirCampaignLifecycleEvidence'
 
     SubmitNashirCampaignEvidenceRequest:
       type: object
@@ -519,6 +590,83 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/NashirCampaignEvidence'
+
+    NashirCampaignLifecycleEvidence:
+      type: object
+      required:
+        - id
+        - workspaceId
+        - nashirCampaignId
+        - evidenceType
+        - channel
+        - status
+        - submittedByUserId
+        - submittedAt
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+          format: uuid
+          description: Route-derived workspace context.
+        nashirCampaignId:
+          type: string
+          format: uuid
+          description: Route-derived Nashir campaign identifier.
+        evidenceType:
+          type: string
+        channel:
+          type: string
+        status:
+          type: string
+          enum:
+            - submitted
+            - accepted
+            - rejected
+            - invalidated
+            - superseded
+        submittedByUserId:
+          type: string
+          format: uuid
+        submittedAt:
+          type: string
+          format: date-time
+        publishedAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        url:
+          oneOf:
+            - type: string
+            - type: "null"
+        notes:
+          oneOf:
+            - type: string
+            - type: "null"
+        externalReference:
+          oneOf:
+            - type: string
+            - type: "null"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-rule: >
+        workspaceId and nashirCampaignId are route-derived trusted scope.
+        Request body overrides are forbidden. GET request bodies are forbidden.
+
+    NashirCampaignLifecycleEvidenceResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NashirCampaignLifecycleEvidence'
 
     ErrorModel:
       type: object
