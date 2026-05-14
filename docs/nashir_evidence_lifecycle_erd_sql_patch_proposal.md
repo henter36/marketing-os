@@ -50,6 +50,7 @@ Column group purposes:
 - Identity: `evidence_id` provides stable evidence identity.
 - Tenant/campaign scope: `workspace_id` and `nashir_campaign_id` preserve route-derived tenant context.
 - Evidence payload: `evidence_type`, `channel`, `published_at`, `url`, `notes`, and `external_reference` store submitted proof metadata.
+- Actor: `submitted_by_user_id` identifies the user who submitted the evidence.
 - Current lifecycle state: `status` stores the current evidence lifecycle state.
 - Supersession pointer: `replacement_evidence_id` can reference replacement evidence when superseded.
 - Timestamps: `submitted_at`, `created_at`, and `updated_at` preserve submission and row timing.
@@ -116,6 +117,8 @@ Candidate relationships:
 - `nashir_evidence.nashir_campaign_id` -> nashir campaign equivalent
 - `nashir_evidence.replacement_evidence_id` -> `nashir_evidence.evidence_id` nullable self-reference
 - `nashir_evidence_lifecycle_events.evidence_id` -> `nashir_evidence.evidence_id`
+- `nashir_evidence_lifecycle_events.workspace_id` -> workspaces/workspace equivalent
+- `nashir_evidence_lifecycle_events.nashir_campaign_id` -> nashir campaign equivalent
 - `nashir_evidence_lifecycle_events.replacement_evidence_id` -> `nashir_evidence.evidence_id` nullable
 - `nashir_evidence_lifecycle_events.audit_event_id` -> audit log equivalent nullable if separately approved
 
@@ -138,6 +141,9 @@ Planning-level constraints:
 - `lifecycle_event_id` unique and required
 - lifecycle event `evidence_id` required
 - lifecycle event `event_type` required
+- lifecycle event `actor_user_id` required
+- lifecycle event `workspace_id` and `nashir_campaign_id` must match the linked `nashir_evidence` record
+- lifecycle event `replacement_evidence_id` must belong to the same `workspace_id` and `nashir_campaign_id`
 - `prior_status` and `next_status` required for state-changing lifecycle events
 - rejection requires `reason_code`
 - invalidation requires `reason_code`
