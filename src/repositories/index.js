@@ -5,6 +5,7 @@ const { BrandProfileRepository } = require("./brand-profile-repository");
 const { BrandVoiceRuleRepository } = require("./brand-voice-rule-repository");
 const { PromptTemplateRepository } = require("./prompt-template-repository");
 const { ReportTemplateRepository } = require("./report-template-repository");
+const { NashirEvidenceLifecycleRepository } = require("./nashir-evidence-lifecycle-repository");
 
 function createRepositories({ pool }) {
   const brandProfiles = new BrandProfileRepository({ pool });
@@ -13,6 +14,7 @@ function createRepositories({ pool }) {
     brandProfiles,
     brandVoiceRules: new BrandVoiceRuleRepository({ pool, brandProfiles }),
     memberships: new MembershipRepository({ pool }),
+    nashirEvidenceLifecycle: new NashirEvidenceLifecycleRepository({ pool }),
     promptTemplates: new PromptTemplateRepository({ pool }),
     rbac: new RbacRepository({ pool }),
     reportTemplates: new ReportTemplateRepository({ pool }),
@@ -24,6 +26,7 @@ module.exports = {
   BrandProfileRepository,
   BrandVoiceRuleRepository,
   MembershipRepository,
+  NashirEvidenceLifecycleRepository,
   PromptTemplateRepository,
   RbacRepository,
   ReportTemplateRepository,
