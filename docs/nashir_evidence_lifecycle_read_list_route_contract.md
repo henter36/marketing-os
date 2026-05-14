@@ -119,7 +119,7 @@ Tenant isolation behavior:
 
 Audit expectations:
 
-- list reads should not emit audit events unless a later gate explicitly requires read audit;
+- list reads should not emit audit events unless a later gate explicitly requires audit for read operations;
 - if audit is introduced later, naming must follow entity/domain plus dotted action.
 
 RBAC permission candidates:
@@ -233,7 +233,7 @@ Tenant isolation behavior:
 
 Audit expectations:
 
-- read-by-id should not emit audit events unless a later gate explicitly requires read audit;
+- read-by-id should not emit audit events unless a later gate explicitly requires audit for read operations;
 - if audit is introduced later, naming must follow entity/domain plus dotted action.
 
 RBAC permission candidates:
@@ -293,7 +293,7 @@ Future implementation must map errors to approved ErrorModel categories without 
 
 Audit event naming must follow entity/domain plus dotted action.
 
-Read/list routes should remain non-mutating and no-audit unless a later approved gate explicitly requires read audit.
+Read/list routes should remain non-mutating and no-audit unless a later approved gate explicitly requires audit for read operations.
 
 If new audit naming is required, it must be handled through a separate audit naming reconciliation gate.
 
