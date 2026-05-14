@@ -33,6 +33,7 @@ DB-backed persistence read/write plumbing behind repository boundaries for the e
   - `nashir_evidence_lifecycle_events`
 - `createSubmittedEvidence` inserts a submitted evidence record and a `nashir_evidence.submitted` lifecycle event.
 - `createSubmittedEvidence` requires transactional writes through `pool.withTransaction`.
+- JSDoc documents the injected pool adapter contract (`query` / `withTransaction` signatures and `workspaceId` in options) without runtime arity checks.
 - Non-transactional fallback writes are intentionally forbidden.
 - If `pool.withTransaction` is unavailable, the repository fails closed before any insert is attempted.
 - The repository constructor validates that a pool is provided.
@@ -58,6 +59,8 @@ DB-backed persistence read/write plumbing behind repository boundaries for the e
 ## Tenant-Safety Behavior
 
 Repository reads are scoped by `workspaceId` and `nashirCampaignId`. The repository uses workspace context options for direct pool queries and transaction options where transactions are available.
+
+Inside `pool.withTransaction`, both the `nashir_evidence` and `nashir_evidence_lifecycle_events` `INSERT` statements invoke the transactional client with `client.query(sql, params, { workspaceId })` so workspace context is preserved on each statement the same way as non-transactional `pool.query` calls.
 
 Submission writes are transaction-bound. Evidence record insertion and submitted lifecycle event insertion must occur inside the same `pool.withTransaction` call, or the repository returns a safe failure before writing.
 

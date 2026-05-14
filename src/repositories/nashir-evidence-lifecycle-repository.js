@@ -3,6 +3,13 @@ const { toRepositoryError: toUnexpectedRepositoryError } = require("./repository
 const SUBMITTED_STATUS = "submitted";
 const SUBMITTED_EVENT_TYPE = "nashir_evidence.submitted";
 
+/**
+ * DB-backed Nashir evidence lifecycle persistence.
+ *
+ * Injected `pool` must satisfy the repository adapter contract used in this codebase:
+ * - `pool.query(sql, params, options)` — `options` may include `workspaceId` for workspace-scoped context.
+ * - `pool.withTransaction(callback, options)` — `options` may include `workspaceId` and are used with transactional writes.
+ */
 class NashirEvidenceLifecycleRepository {
   constructor({ pool } = {}) {
     if (!pool) {
@@ -140,7 +147,8 @@ class NashirEvidenceLifecycleRepository {
             url || null,
             notes || null,
             externalReference || null,
-          ]
+          ],
+          { workspaceId }
         ));
 
         const evidence = evidenceRows[0];
@@ -170,7 +178,8 @@ class NashirEvidenceLifecycleRepository {
             SUBMITTED_STATUS,
             submittedByUserId,
             evidence.submitted_at,
-          ]
+          ],
+          { workspaceId }
         );
 
         return toPublicEvidence(evidence);

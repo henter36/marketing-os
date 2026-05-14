@@ -131,6 +131,8 @@ test("createSubmittedEvidence inserts into nashir_evidence and nashir_evidence_l
   assert.equal(pool.calls.length, 2);
   assert.match(pool.calls[0].sql, /INSERT INTO nashir_evidence/);
   assert.match(pool.calls[1].sql, /INSERT INTO nashir_evidence_lifecycle_events/);
+  assert.deepEqual(pool.calls[0].options, { workspaceId: ids.workspaceA });
+  assert.deepEqual(pool.calls[1].options, { workspaceId: ids.workspaceA });
 });
 
 test("createSubmittedEvidence uses submitted status", async () => {
@@ -328,7 +330,9 @@ function createFakePool() {
     withTransaction: async (callback, options) => {
       transactionCalls.push(options);
       return callback({
-        query: async (sql, params) => runQuery({ calls, seedRows, insertedEvidenceId }, sql, params, undefined),
+        query: async (sql, params, queryOptions) => (
+          runQuery({ calls, seedRows, insertedEvidenceId }, sql, params, queryOptions)
+        ),
       });
     },
   };
