@@ -251,7 +251,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NashirCampaignLifecycleEvidenceResponse'
+                $ref: '#/components/schemas/NashirCampaignEvidenceResponse'
         '400':
           $ref: '#/components/responses/ErrorResponse'
         '401':
@@ -500,7 +500,7 @@ components:
             Evidence lifecycle list for the route-derived workspace and Nashir
             campaign. Runtime route implementation remains separately gated.
           items:
-            $ref: '#/components/schemas/NashirCampaignLifecycleEvidence'
+            $ref: '#/components/schemas/NashirCampaignEvidence'
 
     SubmitNashirCampaignEvidenceRequest:
       type: object
@@ -583,6 +583,9 @@ components:
           oneOf:
             - type: string
             - type: "null"
+      x-rule: >
+        workspaceId and nashirCampaignId are route-derived trusted scope.
+        Request body overrides are forbidden. GET request bodies are forbidden.
 
     NashirCampaignEvidenceResponse:
       type: object
@@ -590,83 +593,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/NashirCampaignEvidence'
-
-    NashirCampaignLifecycleEvidence:
-      type: object
-      required:
-        - id
-        - workspaceId
-        - nashirCampaignId
-        - evidenceType
-        - channel
-        - status
-        - submittedByUserId
-        - submittedAt
-        - createdAt
-        - updatedAt
-      properties:
-        id:
-          type: string
-          format: uuid
-        workspaceId:
-          type: string
-          format: uuid
-          description: Route-derived workspace context.
-        nashirCampaignId:
-          type: string
-          format: uuid
-          description: Route-derived Nashir campaign identifier.
-        evidenceType:
-          type: string
-        channel:
-          type: string
-        status:
-          type: string
-          enum:
-            - submitted
-            - accepted
-            - rejected
-            - invalidated
-            - superseded
-        submittedByUserId:
-          type: string
-          format: uuid
-        submittedAt:
-          type: string
-          format: date-time
-        publishedAt:
-          oneOf:
-            - type: string
-              format: date-time
-            - type: "null"
-        url:
-          oneOf:
-            - type: string
-            - type: "null"
-        notes:
-          oneOf:
-            - type: string
-            - type: "null"
-        externalReference:
-          oneOf:
-            - type: string
-            - type: "null"
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-      x-rule: >
-        workspaceId and nashirCampaignId are route-derived trusted scope.
-        Request body overrides are forbidden. GET request bodies are forbidden.
-
-    NashirCampaignLifecycleEvidenceResponse:
-      type: object
-      required: [data]
-      properties:
-        data:
-          $ref: '#/components/schemas/NashirCampaignLifecycleEvidence'
 
     ErrorModel:
       type: object
