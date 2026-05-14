@@ -68,7 +68,7 @@ Lifecycle event table should hold:
 - `evidence_id`;
 - `workspace_id`;
 - `nashir_campaign_id`;
-- `event_type`;
+- `event_type` following the current entity/domain plus dotted action pattern;
 - `prior_status`;
 - `next_status`;
 - `actor_user_id`;
@@ -106,6 +106,7 @@ Future ERD/SQL planning must enforce:
 - unknown evidence returns non-disclosing `404`;
 - cross-workspace evidence returns non-disclosing `404`;
 - cross-campaign evidence returns non-disclosing `404`;
+- unknown or cross-context lifecycle event returns non-disclosing `404`;
 - no query should disclose whether evidence exists in another tenant.
 
 ## Supersession Requirements
