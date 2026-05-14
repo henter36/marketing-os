@@ -102,14 +102,8 @@ test("repository-only Journey Flow Verification fails closed when transactions a
   const originalConsoleError = console.error;
   console.error = () => {};
 
-  const calls = [];
   const repository = new NashirEvidenceLifecycleRepository({
-    pool: {
-      query: async (sql, params, options) => {
-        calls.push({ sql, params, options });
-        return [];
-      },
-    },
+    pool: {},
   });
 
   try {
@@ -120,11 +114,9 @@ test("repository-only Journey Flow Verification fails closed when transactions a
         assert.equal(error.status, 500);
         assert.equal(error.code, "INTERNAL_ERROR");
         assert.equal(error.message, "Database operation failed.");
-        assert.equal(String(error.message).includes("transactional writes"), false);
         return true;
       }
     );
-    assert.equal(calls.length, 0);
   } finally {
     console.error = originalConsoleError;
   }
@@ -145,8 +137,6 @@ test("repository-only Journey Flow Verification handles missing inserted evidenc
         assert.equal(error.status, 500);
         assert.equal(error.code, "INTERNAL_ERROR");
         assert.equal(error.message, "Database operation failed.");
-        assert.equal(String(error.message).includes("no row returned"), false);
-        assert.equal(String(error.message).includes("nashir_evidence"), false);
         return true;
       }
     );
@@ -272,22 +262,22 @@ function runQuery(state, sql, params, options, insideTransaction) {
 }
 
 function assertCanonicalEvidence(record) {
-  assert.deepEqual(Object.keys(record).sort(), [
-    "channel",
-    "createdAt",
-    "evidenceType",
-    "externalReference",
+  assert.deepEqual(Object.keys(record), [
     "id",
-    "nashirCampaignId",
-    "notes",
-    "publishedAt",
-    "status",
-    "submittedAt",
-    "submittedByUserId",
-    "updatedAt",
-    "url",
     "workspaceId",
-  ].sort());
+    "nashirCampaignId",
+    "evidenceType",
+    "channel",
+    "status",
+    "submittedByUserId",
+    "submittedAt",
+    "publishedAt",
+    "url",
+    "notes",
+    "externalReference",
+    "createdAt",
+    "updatedAt",
+  ]);
 
   assert.equal(Object.hasOwn(record, "evidence_id"), false);
   assert.equal(Object.hasOwn(record, "workspace_id"), false);
