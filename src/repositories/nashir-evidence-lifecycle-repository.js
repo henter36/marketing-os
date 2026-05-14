@@ -4,7 +4,11 @@ const SUBMITTED_STATUS = "submitted";
 const SUBMITTED_EVENT_TYPE = "nashir_evidence.submitted";
 
 class NashirEvidenceLifecycleRepository {
-  constructor({ pool }) {
+  constructor({ pool } = {}) {
+    if (!pool) {
+      throw new Error("NashirEvidenceLifecycleRepository requires a pool");
+    }
+
     this.pool = pool;
   }
 
@@ -140,6 +144,10 @@ class NashirEvidenceLifecycleRepository {
         ));
 
         const evidence = evidenceRows[0];
+        if (!evidence) {
+          throw new Error("Failed to create Nashir evidence record: no row returned");
+        }
+
         await client.query(
           `
             INSERT INTO nashir_evidence_lifecycle_events (
@@ -199,7 +207,11 @@ function toPublicEvidence(row) {
 }
 
 function rowsFromQueryResult(result) {
-  return Array.isArray(result) ? result : result.rows;
+  if (!result) {
+    return [];
+  }
+
+  return Array.isArray(result) ? result : result.rows || [];
 }
 
 function toRepositoryError(error) {

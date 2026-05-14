@@ -35,6 +35,9 @@ DB-backed persistence read/write plumbing behind repository boundaries for the e
 - `createSubmittedEvidence` requires transactional writes through `pool.withTransaction`.
 - Non-transactional fallback writes are intentionally forbidden.
 - If `pool.withTransaction` is unavailable, the repository fails closed before any insert is attempted.
+- The repository constructor validates that a pool is provided.
+- `createSubmittedEvidence` treats a missing `INSERT ... RETURNING` row as a safe repository failure before lifecycle event insertion.
+- Repository query result normalization handles null, undefined, and missing `rows` defensively.
 - Returned evidence records use canonical camelCase fields and do not expose internal snake_case fields.
 - Export wiring was added through `src/repositories/index.js`.
 - Review remediation PRRT_kwDOSM7nxM6B-nlD addressed the non-atomic fallback finding by requiring transactional submission writes.
@@ -67,7 +70,7 @@ Submission writes are transaction-bound. Evidence record insertion and submitted
 - `git status --short`: showed only the approved changed files for this Journey Slice.
 - `git diff --name-only`: showed tracked changes in `docs/03_decision_log.md`, `docs/17_change_log.md`, and `src/repositories/index.js`; untracked approved files were visible in `git status --short`.
 - `git diff --check`: passed.
-- `npm test -- test/nashir-evidence-lifecycle-repository.test.js`: passed. The repository test script expands to `node --test test/*.test.js test/nashir-evidence-lifecycle-repository.test.js`, so it ran the full current test set plus the targeted repository test; 334 tests passed.
+- `npm test -- test/nashir-evidence-lifecycle-repository.test.js`: passed. The repository test script expands to `node --test test/*.test.js test/nashir-evidence-lifecycle-repository.test.js`, so it ran the full current test set plus the targeted repository test; 338 tests passed.
 - `npm run verify:strict`: partially completed. Sprint 0 baseline checks, OpenAPI strict lint, and the full test suite passed before the command stopped at `npm run db:migrate:strict` because `DATABASE_URL` was not set. Exact terminal output: `DATABASE_URL is required for strict Sprint 0 migration execution.`
 
 ## Remaining NO-GO List

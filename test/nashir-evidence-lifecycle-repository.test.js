@@ -14,6 +14,13 @@ const ids = {
   workspaceB: "00000000-0000-4000-8000-00000000000b",
 };
 
+test("constructor requires a pool", () => {
+  assert.throws(
+    () => new NashirEvidenceLifecycleRepository(),
+    /NashirEvidenceLifecycleRepository requires a pool/
+  );
+});
+
 test("listByCampaign queries by workspaceId and nashirCampaignId", async () => {
   const pool = createFakePool();
   const repository = new NashirEvidenceLifecycleRepository({ pool });
@@ -31,6 +38,36 @@ test("listByCampaign queries by workspaceId and nashirCampaignId", async () => {
   assert.match(query.sql, /WHERE workspace_id = \$1\s+AND nashir_campaign_id = \$2/);
   assert.deepEqual(query.params, [ids.workspaceA, ids.campaignA]);
   assert.deepEqual(query.options, { workspaceId: ids.workspaceA });
+});
+
+test("listByCampaign treats null query results as an empty list", async () => {
+  const repository = new NashirEvidenceLifecycleRepository({
+    pool: {
+      query: async () => null,
+    },
+  });
+
+  const listed = await repository.listByCampaign({
+    workspaceId: ids.workspaceA,
+    nashirCampaignId: ids.campaignA,
+  });
+
+  assert.deepEqual(listed, []);
+});
+
+test("listByCampaign treats missing rows as an empty list", async () => {
+  const repository = new NashirEvidenceLifecycleRepository({
+    pool: {
+      query: async () => ({}),
+    },
+  });
+
+  const listed = await repository.listByCampaign({
+    workspaceId: ids.workspaceA,
+    nashirCampaignId: ids.campaignA,
+  });
+
+  assert.deepEqual(listed, []);
 });
 
 test("getById returns an evidence record when workspaceId, campaignId, and evidenceId all match", async () => {
@@ -175,6 +212,41 @@ test("createSubmittedEvidence fails closed without transactional writes and perf
       }
     );
     assert.equal(calls.length, 0);
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
+test("createSubmittedEvidence converts missing inserted row to a safe repository error", async () => {
+  const originalConsoleError = console.error;
+  console.error = () => {};
+
+  const calls = [];
+  const repository = new NashirEvidenceLifecycleRepository({
+    pool: {
+      withTransaction: async (callback) => callback({
+        query: async (sql, params) => {
+          calls.push({ sql, params });
+          return [];
+        },
+      }),
+    },
+  });
+
+  try {
+    await assert.rejects(
+      () => repository.createSubmittedEvidence(createInput()),
+      (error) => {
+        assert(error instanceof AppError);
+        assert.equal(error.status, 500);
+        assert.equal(error.code, "INTERNAL_ERROR");
+        assert.equal(error.message, "Database operation failed.");
+        assert.equal(String(error.message).includes("no row returned"), false);
+        return true;
+      }
+    );
+    assert.equal(calls.length, 1);
+    assert.match(calls[0].sql, /INSERT INTO nashir_evidence/);
   } finally {
     console.error = originalConsoleError;
   }
