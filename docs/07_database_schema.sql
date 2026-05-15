@@ -8,10 +8,15 @@
 --   2. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
 --   3. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql
 --   4. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_003.sql
+--   5. docs/marketing_os_v5_6_5_phase_0_1_schema_patch_004.sql
 --
 -- Patch 003 adds Nashir evidence lifecycle persistence tables only:
 -- nashir_evidence and nashir_evidence_lifecycle_events.
 -- It does not implement runtime routes, OpenAPI, RBAC, generated clients, approval, publishing, Sprint 5, Pilot, or Production readiness.
+--
+-- Patch 004 adds the Nashir campaign persistence table only:
+-- nashir_campaigns.
+-- It does not implement runtime routes, repositories, campaign runtime mode, OpenAPI, generated clients, UI, approval, publishing, readiness scoring, campaign update/delete routes, MVP, Pilot, or Production readiness.
 --
 -- If your migration runner supports psql include syntax, use:
 
@@ -19,6 +24,7 @@
 \i docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql
 \i docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql
 \i docs/marketing_os_v5_6_5_phase_0_1_schema_patch_003.sql
+\i docs/marketing_os_v5_6_5_phase_0_1_schema_patch_004.sql
 
 -- If your migration runner does not support \i, configure it to execute all files in the same order.
 -- Do not copy/paste schema content into this wrapper unless a migration tool requires a single physical SQL file.
