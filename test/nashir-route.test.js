@@ -530,6 +530,173 @@ test("GET nashir evidence list returns submitted in-memory evidence after submit
   assert.deepStrictEqual(list.body.data, [submit.body.data]);
 });
 
+test("GET nashir evidence by ID returns 200 for existing evidence", async () => {
+  const server = await createTestServer();
+  const submit = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      url: "https://example.com/evidence"
+    }
+  });
+
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/${submit.body.data.id}`,
+    { userId: OWNER_A }
+  );
+
+  assert.strictEqual(submit.status, 201);
+  assert.strictEqual(res.status, 200);
+  assert.deepStrictEqual(res.body.data, submit.body.data);
+});
+
+test("GET nashir evidence by ID returns 404 for missing evidence", async () => {
+  const server = await createTestServer();
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/nashir-evidence-missing`,
+    { userId: OWNER_A }
+  );
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence by ID returns 404 for cross-workspace evidence", async () => {
+  const server = await createTestServer();
+  const submit = await server.request("POST", `/workspaces/${WORKSPACE_B}/nashir-campaigns/${CAMPAIGN_B_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      url: "https://example.com/workspace-b-evidence"
+    }
+  });
+
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/${submit.body.data.id}`,
+    { userId: OWNER_A }
+  );
+
+  assert.strictEqual(submit.status, 201);
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence by ID returns 404 for cross-campaign evidence", async () => {
+  const server = await createTestServer();
+  const createCampaign = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: { campaign_name: "Second Campaign" }
+  });
+  const submit = await server.request(
+    "POST",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${createCampaign.body.data.nashir_campaign_id}/evidence`,
+    {
+      userId: OWNER_A,
+      body: {
+        evidenceType: "external_post_url",
+        channel: "linkedin",
+        url: "https://example.com/second-campaign-evidence"
+      }
+    }
+  );
+
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/${submit.body.data.id}`,
+    { userId: OWNER_A }
+  );
+
+  assert.strictEqual(createCampaign.status, 201);
+  assert.strictEqual(submit.status, 201);
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence by ID returns 404 for unknown workspace", async () => {
+  const server = await createTestServer();
+  const res = await server.request(
+    "GET",
+    `/workspaces/workspace-missing/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/nashir-evidence-1`,
+    { userId: OWNER_A }
+  );
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence by ID returns 404 for user with no workspace membership", async () => {
+  const server = await createTestServer();
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/nashir-evidence-1`,
+    { userId: OUTSIDER }
+  );
+
+  assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence by ID returns 403 for member lacking nashir.campaign.read", async () => {
+  const server = await createTestServer();
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/nashir-evidence-1`,
+    { userId: BILLING_A }
+  );
+
+  assert.strictEqual(res.status, 403);
+});
+
+test("GET nashir evidence by ID returns 401 for unauthenticated callers", async () => {
+  const server = await createTestServer();
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/nashir-evidence-1`
+  );
+
+  assert.strictEqual(res.status, 401);
+});
+
+test("GET nashir evidence by ID returns 401 for invalid users", async () => {
+  const server = await createTestServer();
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/nashir-evidence-1`,
+    { userId: INVALID_USER }
+  );
+
+  assert.strictEqual(res.status, 401);
+});
+
+test("GET nashir evidence by ID derives route IDs from path and ignores body overrides", async () => {
+  const server = await createTestServer();
+  const submit = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      url: "https://example.com/evidence"
+    }
+  });
+
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/${submit.body.data.id}`,
+    {
+      userId: OWNER_A,
+      body: {
+        workspace_id: WORKSPACE_B,
+        nashir_campaign_id: CAMPAIGN_B_ID,
+        evidence_id: "nashir-evidence-missing"
+      }
+    }
+  );
+
+  assert.strictEqual(submit.status, 201);
+  assert.strictEqual(res.status, 200);
+  assert.deepStrictEqual(res.body.data, submit.body.data);
+});
+
 test("POST nashir evidence records the candidate submit audit event", async () => {
   const server = await createTestServer();
   const auditCount = server.store.auditLogs.length;

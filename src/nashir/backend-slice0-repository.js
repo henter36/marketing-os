@@ -68,6 +68,25 @@ class NashirSlice0Repository {
       .map((evidence) => normalizeEvidenceRecord(evidence));
   }
 
+  async findEvidenceById(input = {}) {
+    const { workspaceId, nashirCampaignId, evidenceId } = input && typeof input === "object" ? input : {};
+    if (!workspaceId || !nashirCampaignId || !evidenceId) {
+      return null;
+    }
+    if (!this.store || !Array.isArray(this.store.nashirEvidence)) {
+      return null;
+    }
+
+    const evidence = this.store.nashirEvidence.find(
+      (candidate) =>
+        candidate &&
+        (candidate.workspaceId || candidate.workspace_id) === workspaceId &&
+        (candidate.nashirCampaignId || candidate.nashir_campaign_id) === nashirCampaignId &&
+        (candidate.id || candidate.evidence_id) === evidenceId
+    );
+    return evidence ? normalizeEvidenceRecord(evidence) : null;
+  }
+
   async createCampaignEvidence({
     workspaceId,
     nashirCampaignId,
@@ -106,10 +125,6 @@ class NashirSlice0Repository {
   }
 
   async saveCampaign(campaign) {
-    throw new Error("not implemented");
-  }
-
-  async findEvidenceById(id) {
     throw new Error("not implemented");
   }
 

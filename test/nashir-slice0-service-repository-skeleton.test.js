@@ -70,10 +70,10 @@ test("NashirSlice0Service inert methods reject with not-implemented — getCampa
   }
 });
 
-test("NashirSlice0Repository inert methods reject with not-implemented — findCampaignById is implemented", async () => {
+test("NashirSlice0Repository inert methods reject with not-implemented — findCampaignById and findEvidenceById are implemented", async () => {
   const repo = new NashirSlice0Repository();
-  // findCampaignById is now implemented; only the remaining inert methods are tested here.
-  const methods = ["saveCampaign", "findEvidenceById", "saveEvidence"];
+  // findCampaignById and findEvidenceById are now implemented; only remaining inert methods are tested here.
+  const methods = ["saveCampaign", "saveEvidence"];
   for (const method of methods) {
     await assert.rejects(
       () => repo[method](),
