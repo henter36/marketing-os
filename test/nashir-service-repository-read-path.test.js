@@ -353,9 +353,111 @@ test("repository saveCampaign remains not implemented", async () => {
   await assert.rejects(() => repo.saveCampaign({}), /not implemented/);
 });
 
-test("repository findEvidenceById remains not implemented", async () => {
+test("repository findEvidenceById returns null when called without arguments", async () => {
   const repo = createNashirSlice0Repository({ store: createSeedStore() });
-  await assert.rejects(() => repo.findEvidenceById("any"), /not implemented/);
+
+  const result = await repo.findEvidenceById();
+
+  assert.strictEqual(result, null);
+});
+
+test("repository findEvidenceById returns null for missing route-derived scope", async () => {
+  const repo = createNashirSlice0Repository({ store: createSeedStore() });
+
+  assert.strictEqual(await repo.findEvidenceById({ nashirCampaignId: CAMPAIGN_A_ID, evidenceId: "evidence-a" }), null);
+  assert.strictEqual(await repo.findEvidenceById({ workspaceId: WORKSPACE_A, evidenceId: "evidence-a" }), null);
+  assert.strictEqual(await repo.findEvidenceById({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }), null);
+  assert.strictEqual(await repo.findEvidenceById(null), null);
+  assert.strictEqual(await repo.findEvidenceById("evidence-a"), null);
+});
+
+test("repository findEvidenceById returns null when evidence does not exist", async () => {
+  const repo = createNashirSlice0Repository({ store: createSeedStore() });
+
+  const result = await repo.findEvidenceById({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceId: "evidence-missing"
+  });
+
+  assert.strictEqual(result, null);
+});
+
+test("repository findEvidenceById returns a normalized shallow clone for matching evidence", async () => {
+  const store = createSeedStore();
+  store.nashirEvidence.push({
+    evidence_id: "evidence-a",
+    workspace_id: WORKSPACE_A,
+    nashir_campaign_id: CAMPAIGN_A_ID,
+    evidenceType: "external_post_url",
+    channel: "linkedin",
+    status: "submitted",
+    submittedAt: "2026-05-15T00:00:00.000Z",
+    submittedBy: "user-owner-a"
+  });
+  const repo = createNashirSlice0Repository({ store });
+
+  const result = await repo.findEvidenceById({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceId: "evidence-a"
+  });
+
+  assert.deepStrictEqual(result, {
+    evidence_id: "evidence-a",
+    evidenceType: "external_post_url",
+    channel: "linkedin",
+    status: "submitted",
+    submittedAt: "2026-05-15T00:00:00.000Z",
+    submittedBy: "user-owner-a",
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID
+  });
+  assert.notStrictEqual(result, store.nashirEvidence[0]);
+});
+
+test("repository findEvidenceById returns null for cross-workspace or cross-campaign evidence", async () => {
+  const store = createSeedStore();
+  store.nashirEvidence.push({
+    id: "evidence-a",
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID
+  });
+  const repo = createNashirSlice0Repository({ store });
+
+  const crossWorkspace = await repo.findEvidenceById({
+    workspaceId: WORKSPACE_B,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceId: "evidence-a"
+  });
+  const crossCampaign = await repo.findEvidenceById({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_B_ID,
+    evidenceId: "evidence-a"
+  });
+
+  assert.strictEqual(crossWorkspace, null);
+  assert.strictEqual(crossCampaign, null);
+});
+
+test("repository findEvidenceById does not allow returned evidence mutation to affect store", async () => {
+  const store = createSeedStore();
+  store.nashirEvidence.push({
+    id: "evidence-a",
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    notes: "Original note"
+  });
+  const repo = createNashirSlice0Repository({ store });
+
+  const result = await repo.findEvidenceById({
+    workspaceId: WORKSPACE_A,
+    nashirCampaignId: CAMPAIGN_A_ID,
+    evidenceId: "evidence-a"
+  });
+  result.notes = "Mutated note";
+
+  assert.strictEqual(store.nashirEvidence[0].notes, "Original note");
 });
 
 test("repository saveEvidence remains not implemented", async () => {
