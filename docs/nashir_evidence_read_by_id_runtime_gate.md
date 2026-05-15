@@ -59,7 +59,7 @@ The future implementation PR must not:
 - `src/nashir/backend-slice0-service.js`
 - `src/nashir/backend-slice0-repository.js`
 
-The future implementation should preserve the established router -> service -> repository layering and tenant isolation; it must not bypass the service/repository boundary by reading store internals directly from the router.
+The future implementation must preserve the established router → service → repository layering and tenant isolation. It must not bypass the service/repository boundary by reading store internals directly from the router.
 
 ## 6. Forbidden Files for Future Implementation PR
 
