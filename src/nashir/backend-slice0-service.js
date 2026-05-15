@@ -1,8 +1,9 @@
 "use strict";
 
 class NashirSlice0Service {
-  constructor({ repository } = {}) {
+  constructor({ repository, evidenceRepository } = {}) {
     this.repository = repository || null;
+    this.evidenceRepository = evidenceRepository || null;
   }
 
   async createCampaign({ workspaceId, campaignName, actorUserId, timestamp } = {}) {
@@ -56,6 +57,10 @@ class NashirSlice0Service {
     if (!campaign) {
       return null;
     }
+    if (this.evidenceRepository) {
+      const evidence = await this.evidenceRepository.listByCampaign({ workspaceId, nashirCampaignId });
+      return evidence.map(toRuntimeEvidence);
+    }
     return this.repository.listCampaignEvidence({ workspaceId, nashirCampaignId });
   }
 
@@ -63,6 +68,10 @@ class NashirSlice0Service {
     const campaign = await this.getCampaignById({ workspaceId, nashirCampaignId });
     if (!campaign) {
       return null;
+    }
+    if (this.evidenceRepository) {
+      const evidence = await this.evidenceRepository.getById({ workspaceId, nashirCampaignId, evidenceId });
+      return evidence ? toRuntimeEvidence(evidence) : null;
     }
     return this.repository.findEvidenceById({ workspaceId, nashirCampaignId, evidenceId });
   }
@@ -82,6 +91,21 @@ class NashirSlice0Service {
     const campaign = await this.getCampaignById({ workspaceId, nashirCampaignId });
     if (!campaign) {
       return null;
+    }
+    if (this.evidenceRepository) {
+      const evidence = await this.evidenceRepository.createSubmittedEvidence({
+        workspaceId,
+        nashirCampaignId,
+        evidenceType,
+        channel,
+        submittedAt,
+        submittedByUserId: submittedBy,
+        publishedAt,
+        url,
+        notes,
+        externalReference
+      });
+      return evidence ? toRuntimeEvidence(evidence) : null;
     }
     return this.repository.createCampaignEvidence({
       workspaceId,
@@ -110,8 +134,20 @@ class NashirSlice0Service {
   }
 }
 
-function createNashirSlice0Service({ repository } = {}) {
-  return new NashirSlice0Service({ repository });
+function createNashirSlice0Service({ repository, evidenceRepository } = {}) {
+  return new NashirSlice0Service({ repository, evidenceRepository });
+}
+
+function toRuntimeEvidence(evidence) {
+  const {
+    submittedByUserId,
+    submitted_by_user_id: submittedByUserIdLegacy,
+    ...rest
+  } = evidence;
+  return {
+    ...rest,
+    submittedBy: evidence.submittedBy || submittedByUserId || submittedByUserIdLegacy
+  };
 }
 
 module.exports = {

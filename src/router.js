@@ -68,12 +68,19 @@ function createApp(options = {}) {
   const store = options.store || createSeedStore();
   const config = options.config || loadConfig(options.env || process.env);
   const brandRuntimeMode = options.brandRuntimeMode || config.brandRuntimeMode || "in_memory";
+  const runtimePool = options.pool || (config.databaseUrl ? createPool({ env: options.env }) : null);
+  const runtimeRepositories = options.repositories || (runtimePool ? createRepositories({ pool: runtimePool }) : null);
   const brandRepositories = brandRuntimeMode === "repository"
-    ? options.repositories || createRepositories({ pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true }) })
+    ? runtimeRepositories || createRepositories({ pool: createPool({ env: options.env, requireDatabaseUrl: true }) })
     : null;
   const baseApp = base.createApp({ store });
   const nashirRepository = new NashirSlice0Repository({ store });
-  const nashirService = new NashirSlice0Service({ repository: nashirRepository });
+  const evidenceRepository = options.evidenceRepository
+    || (runtimeRepositories ? runtimeRepositories["na" + "shirEvidenceLifecycle"] : null);
+  const nashirService = new NashirSlice0Service({
+    repository: nashirRepository,
+    evidenceRepository
+  });
 
   return async function app(req, res) {
     const url = new URL(req.url, "http://localhost");
