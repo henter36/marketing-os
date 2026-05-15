@@ -59,6 +59,14 @@ class NashirSlice0Service {
     return this.repository.listCampaignEvidence({ workspaceId, nashirCampaignId });
   }
 
+  async getCampaignEvidenceById({ workspaceId, nashirCampaignId, evidenceId } = {}) {
+    const campaign = await this.getCampaignById({ workspaceId, nashirCampaignId });
+    if (!campaign) {
+      return null;
+    }
+    return this.repository.findEvidenceById({ workspaceId, nashirCampaignId, evidenceId });
+  }
+
   async createCampaignEvidence({
     workspaceId,
     nashirCampaignId,

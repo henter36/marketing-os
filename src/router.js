@@ -58,6 +58,7 @@ const nashirRoutes = [
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}",
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness",
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence",
+  "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence/{evidenceId}",
   "POST /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence",
   "POST /workspaces/{workspaceId}/nashir-campaigns"
 ];
@@ -607,7 +608,7 @@ function routeSprint4(req, path, body, store) {
 }
 
 async function routeNashir(req, path, body, store, nashirService) {
-  const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns(?:\/([^/]+)(?:\/(readiness|evidence))?)?$/);
+  const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/nashir-campaigns(?:\/([^/]+)(?:\/(readiness|evidence)(?:\/([^/]+))?)?)?$/);
   if (!workspaceMatch) throw notFound();
   const user = authGuard(req, store);
   if (!["GET", "POST"].includes(req.method)) throw notFound();
@@ -617,8 +618,10 @@ async function routeNashir(req, path, body, store, nashirService) {
   const nashirCampaignId = workspaceMatch[2];
   const readinessPath = workspaceMatch[3] === "readiness";
   const evidencePath = workspaceMatch[3] === "evidence";
+  const evidenceId = workspaceMatch[4];
   if (req.method === "POST") {
     if (evidencePath) {
+      if (evidenceId) throw notFound();
       permissionGuard(membership, "nashir.campaign.write");
       if (!isPlainObject(body)) {
         throw new AppError(422, "VALIDATION_FAILED", "Request body must be a JSON object.", "Send a valid JSON object body.");
@@ -671,6 +674,7 @@ async function routeNashir(req, path, body, store, nashirService) {
   }
 
   if (readinessPath) {
+    if (evidenceId) throw notFound();
     const readiness = await nashirService.getCampaignReadiness({
       workspaceId,
       nashirCampaignId,
@@ -681,6 +685,16 @@ async function routeNashir(req, path, body, store, nashirService) {
   }
 
   if (evidencePath) {
+    if (evidenceId) {
+      const evidence = await nashirService.getCampaignEvidenceById({
+        workspaceId,
+        nashirCampaignId,
+        evidenceId
+      });
+      if (evidence === null) throw notFound();
+      return ok(evidence);
+    }
+
     const evidence = await nashirService.listCampaignEvidence({
       workspaceId,
       nashirCampaignId
@@ -695,7 +709,7 @@ async function routeNashir(req, path, body, store, nashirService) {
 }
 
 function isNashirPath(path) {
-  return /^\/workspaces\/[^/]+\/nashir-campaigns(?:\/[^/]+(?:\/(?:readiness|evidence))?)?$/.test(path);
+  return /^\/workspaces\/[^/]+\/nashir-campaigns(?:\/[^/]+(?:\/(?:readiness|evidence)(?:\/[^/]+)?)?)?$/.test(path);
 }
 
 function isBrandPath(path) {
