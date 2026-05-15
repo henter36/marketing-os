@@ -68,14 +68,15 @@ function createApp(options = {}) {
   const store = options.store || createSeedStore();
   const config = options.config || loadConfig(options.env || process.env);
   const brandRuntimeMode = options.brandRuntimeMode || config.brandRuntimeMode || "in_memory";
-  const evidenceRuntimeMode = options.evidenceRuntimeMode || config["na" + "shirEvidenceRuntimeMode"] || "in_memory";
+  const evidenceRuntimeMode = options.evidenceRuntimeMode || config.nashirEvidenceRuntimeMode || "in_memory";
   const brandRepositories = brandRuntimeMode === "repository"
     ? options.repositories || createRepositories({ pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true }) })
     : null;
   const evidenceRepository = resolveEvidenceRepository({
     config,
     mode: evidenceRuntimeMode,
-    options
+    options,
+    repositories: brandRepositories
   });
   const baseApp = base.createApp({ store });
   const nashirRepository = new NashirSlice0Repository({ store });
@@ -113,7 +114,7 @@ function createApp(options = {}) {
   };
 }
 
-function resolveEvidenceRepository({ config, mode, options }) {
+function resolveEvidenceRepository({ config, mode, options, repositories: existingRepositories }) {
   if (options.evidenceRepository) {
     return options.evidenceRepository;
   }
@@ -124,15 +125,15 @@ function resolveEvidenceRepository({ config, mode, options }) {
 
   if (!options.pool && !config.databaseUrl) {
     throw new ConfigurationError(
-      "NA" + "SHIR_EVIDENCE_REPOSITORY_DATABASE_REQUIRED",
-      "NA" + "SHIR_EVIDENCE_RUNTIME_MODE=repository requires DATABASE_URL or an existing pool."
+      "NASHIR_EVIDENCE_REPOSITORY_DATABASE_REQUIRED",
+      "NASHIR_EVIDENCE_RUNTIME_MODE=repository requires DATABASE_URL or an existing pool."
     );
   }
 
-  const repositories = options.repositories || createRepositories({
+  const repositories = options.repositories || existingRepositories || createRepositories({
     pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true })
   });
-  return repositories["na" + "shirEvidenceLifecycle"];
+  return repositories.nashirEvidenceLifecycle;
 }
 
 async function routeBrandRepositories(req, path, body, store, repositories) {
