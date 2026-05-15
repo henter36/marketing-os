@@ -7,7 +7,7 @@ Task classification:           Documentation-only / migration activation gate.
 Patch 003 schema artifact:     Present as documentation/schema artifact.
 Patch 003 migration activation: NO-GO until a separately approved implementation PR.
 Runtime route wiring:          NO-GO.
-DB repository route wiring:    NO-GO.
+DB repository wiring to router:    NO-GO.
 UI/prototype changes:          NO-GO.
 OpenAPI YAML changes:          NO-GO.
 Generated client changes:      NO-GO.
@@ -74,7 +74,7 @@ If any required verification cannot run, the future implementation PR must not b
 ```text
 GO:    Future PR activates Patch 003 in migration order and verifies migration presence/order.
 NO-GO: Future PR attempts runtime DB wiring.
-NO-GO: Future PR wires NashirEvidenceLifecycleRepository to router/service runtime routes.
+NO-GO: Future PR attempts DB repository wiring to router.
 NO-GO: Future PR adds UI/API/generated-client connection work.
 NO-GO: Future PR adds broader evidence lifecycle transitions.
 NO-GO: Future PR claims MVP, Pilot, or Production readiness.
