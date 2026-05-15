@@ -59,7 +59,7 @@ The future implementation PR must not:
 - `src/nashir/backend-slice0-service.js`
 - `src/nashir/backend-slice0-repository.js`
 
-Future implementation should keep route handling in `src/router.js`, business read behavior in `src/nashir/backend-slice0-service.js`, and in-memory lookup behavior in `src/nashir/backend-slice0-repository.js`, while preserving tenant isolation from route-derived workspace and campaign context.
+The future implementation should preserve the established router -> service -> repository layering and tenant isolation; it must not bypass the service/repository boundary by reading store internals directly from the router.
 
 ## 6. Forbidden Files for Future Implementation PR
 
@@ -78,8 +78,8 @@ Future implementation should keep route handling in `src/router.js`, business re
 - `404` for missing evidence.
 - `404` for cross-workspace evidence.
 - `404` for cross-campaign evidence.
-- `404` for unknown workspace, preserving non-disclosure.
-- `404` for missing active membership, preserving non-disclosure.
+- `404` for unknown workspace (non-disclosure).
+- `404` for missing active membership (non-disclosure).
 - `403` for valid active member without `nashir.campaign.read` permission.
 - `401` for unauthenticated caller.
 - `401` for invalid user.
