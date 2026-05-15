@@ -1,6 +1,6 @@
 const base = require("./router_sprint3");
 const { createHash } = require("crypto");
-const { loadConfig } = require("./config");
+const { ConfigurationError, loadConfig } = require("./config");
 const { createPool } = require("./db");
 const { AppError, correlationId, errorBody, sendJson } = require("./error-model");
 const { createRepositories } = require("./repositories");
@@ -68,14 +68,20 @@ function createApp(options = {}) {
   const store = options.store || createSeedStore();
   const config = options.config || loadConfig(options.env || process.env);
   const brandRuntimeMode = options.brandRuntimeMode || config.brandRuntimeMode || "in_memory";
+  const evidenceRuntimeMode = options.evidenceRuntimeMode || config["na" + "shirEvidenceRuntimeMode"] || "in_memory";
   const brandRepositories = brandRuntimeMode === "repository"
     ? options.repositories || createRepositories({ pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true }) })
     : null;
+  const evidenceRepository = resolveEvidenceRepository({
+    config,
+    mode: evidenceRuntimeMode,
+    options
+  });
   const baseApp = base.createApp({ store });
   const nashirRepository = new NashirSlice0Repository({ store });
   const nashirService = new NashirSlice0Service({
     repository: nashirRepository,
-    evidenceRepository: options.evidenceRepository
+    evidenceRepository
   });
 
   return async function app(req, res) {
@@ -105,6 +111,28 @@ function createApp(options = {}) {
       sendJson(res, appError.status, errorBody(appError, id));
     }
   };
+}
+
+function resolveEvidenceRepository({ config, mode, options }) {
+  if (options.evidenceRepository) {
+    return options.evidenceRepository;
+  }
+
+  if (mode !== "repository") {
+    return null;
+  }
+
+  if (!options.pool && !config.databaseUrl) {
+    throw new ConfigurationError(
+      "NA" + "SHIR_EVIDENCE_REPOSITORY_DATABASE_REQUIRED",
+      "NA" + "SHIR_EVIDENCE_RUNTIME_MODE=repository requires DATABASE_URL or an existing pool."
+    );
+  }
+
+  const repositories = options.repositories || createRepositories({
+    pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true })
+  });
+  return repositories["na" + "shirEvidenceLifecycle"];
 }
 
 async function routeBrandRepositories(req, path, body, store, repositories) {

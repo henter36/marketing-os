@@ -1,4 +1,5 @@
 const brandRuntimeModes = ["in_memory", "repository"];
+const nashirEvidenceRuntimeModes = ["in_memory", "repository"];
 
 class ConfigurationError extends Error {
   constructor(code, message) {
@@ -14,6 +15,7 @@ function loadConfig(env = process.env) {
     port: Number(env.PORT || 3000),
     databaseUrl: env.DATABASE_URL || "",
     brandRuntimeMode: resolveBrandRuntimeMode(env),
+    nashirEvidenceRuntimeMode: resolveNashirEvidenceRuntimeMode(env),
   };
 }
 
@@ -32,4 +34,24 @@ function resolveBrandRuntimeMode(env = {}) {
   return env.ENABLE_DB_BACKED_BRAND_ROUTES === "true" ? "repository" : "in_memory";
 }
 
-module.exports = { ConfigurationError, loadConfig, resolveBrandRuntimeMode };
+function resolveNashirEvidenceRuntimeMode(env = {}) {
+  const explicitMode = env.NASHIR_EVIDENCE_RUNTIME_MODE;
+  if (explicitMode !== undefined && explicitMode !== "") {
+    if (!nashirEvidenceRuntimeModes.includes(explicitMode)) {
+      throw new ConfigurationError(
+        "INVALID_NASHIR_EVIDENCE_RUNTIME_MODE",
+        "Invalid NASHIR_EVIDENCE_RUNTIME_MODE. Allowed values: in_memory, repository."
+      );
+    }
+    return explicitMode;
+  }
+
+  return "in_memory";
+}
+
+module.exports = {
+  ConfigurationError,
+  loadConfig,
+  resolveBrandRuntimeMode,
+  resolveNashirEvidenceRuntimeMode
+};
