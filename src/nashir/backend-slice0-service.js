@@ -4,7 +4,7 @@ class NashirSlice0Service {
   constructor({ repository, evidenceRepository, evidenceFallbackRepository } = {}) {
     this.repository = repository || null;
     this.evidenceRepository = evidenceRepository || null;
-    this.evidenceFallbackRepository = evidenceFallbackRepository || this.repository;
+    this.evidenceFallbackRepository = evidenceFallbackRepository || null;
   }
 
   async createCampaign({ workspaceId, campaignName, actorUserId, timestamp } = {}) {

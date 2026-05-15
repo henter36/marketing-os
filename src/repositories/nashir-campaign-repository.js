@@ -1,4 +1,4 @@
-const { toRepositoryError: toUnexpectedRepositoryError } = require("./repository-error-logging");
+const { toRepositoryError } = require("./repository-error-logging");
 
 class NashirCampaignRepository {
   constructor({ pool } = {}) {
@@ -35,7 +35,7 @@ class NashirCampaignRepository {
 
       return rows.map(toPublicCampaign);
     } catch (error) {
-      throw toRepositoryError(error);
+      throw toRepositoryError("NashirCampaignRepository", error);
     }
   }
 
@@ -66,7 +66,7 @@ class NashirCampaignRepository {
 
       return rows[0] ? toPublicCampaign(rows[0]) : null;
     } catch (error) {
-      throw toRepositoryError(error);
+      throw toRepositoryError("NashirCampaignRepository", error);
     }
   }
 
@@ -101,7 +101,7 @@ class NashirCampaignRepository {
 
       return rows[0] ? toPublicCampaign(rows[0]) : null;
     } catch (error) {
-      throw toRepositoryError(error);
+      throw toRepositoryError("NashirCampaignRepository", error);
     }
   }
 }
@@ -124,10 +124,6 @@ function rowsFromQueryResult(result) {
   }
 
   return Array.isArray(result) ? result : result.rows || [];
-}
-
-function toRepositoryError(error) {
-  return toUnexpectedRepositoryError("NashirCampaignRepository", error);
 }
 
 module.exports = {
