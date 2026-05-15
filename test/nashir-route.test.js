@@ -144,6 +144,102 @@ function createNashirDbEvidenceTestServer(records = []) {
   return { request, store, nashirEvidenceRepository };
 }
 
+function createNashirEvidencePoolDouble(records = []) {
+  const pool = {
+    records: records.map((record) => ({ ...record })),
+    queries: [],
+    transactions: [],
+
+    async query(sql, params, options) {
+      this.queries.push({ sql, params, options });
+      if (sql.includes("FROM nashir_evidence") && params.length === 2) {
+        return this.records.filter(
+          (record) => record.workspace_id === params[0] && record.nashir_campaign_id === params[1]
+        );
+      }
+      if (sql.includes("FROM nashir_evidence") && params.length === 3) {
+        return this.records.filter(
+          (record) =>
+            record.workspace_id === params[0] &&
+            record.nashir_campaign_id === params[1] &&
+            record.evidence_id === params[2]
+        );
+      }
+      return [];
+    },
+
+    async withTransaction(callback, options) {
+      this.transactions.push({ options });
+      const client = {
+        query: async (sql, params, queryOptions) => {
+          this.queries.push({ sql, params, options: queryOptions });
+          if (sql.includes("INSERT INTO nashir_evidence ")) {
+            const record = {
+              evidence_id: `db-evidence-${this.records.length + 1}`,
+              workspace_id: params[0],
+              nashir_campaign_id: params[1],
+              evidence_type: params[2],
+              channel: params[3],
+              status: params[4],
+              submitted_at: params[5] || "2026-05-13T00:00:00.000Z",
+              submitted_by_user_id: params[6],
+              published_at: params[7] || null,
+              url: params[8] || null,
+              notes: params[9] || null,
+              external_reference: params[10] || null,
+              created_at: "2026-05-13T00:00:00.000Z",
+              updated_at: "2026-05-13T00:00:00.000Z"
+            };
+            this.records.push(record);
+            return [record];
+          }
+          return [];
+        }
+      };
+      return callback(client);
+    }
+  };
+
+  return pool;
+}
+
+function createNashirRuntimeModeTestServer({ env = {}, pool, repositories } = {}) {
+  const store = createSeedStore();
+  const app = createApp({ store, env, pool, repositories });
+
+  async function request(method, path, options = {}) {
+    const req = Readable.from(options.body ? [Buffer.from(JSON.stringify(options.body))] : []);
+    req.method = method;
+    req.url = `/v1${path}`;
+    req.headers = {
+      "content-type": "application/json",
+      ...(options.userId ? { "x-user-id": options.userId } : {}),
+      ...(options.headers || {})
+    };
+
+    return await new Promise((resolve) => {
+      const res = {
+        statusCode: 200,
+        headers: {},
+        writeHead(status, headers) {
+          this.statusCode = status;
+          this.headers = headers;
+        },
+        end(payload) {
+          resolve({
+            status: this.statusCode,
+            body: payload ? JSON.parse(payload) : null
+          });
+        }
+      };
+
+      app(req, res);
+    });
+  }
+
+  return { request, store, pool, repositories };
+}
+
 // ─── List route — workspace-scoped read-only collection ─────────────────────
 
 test("GET nashir-campaigns returns 200 with { data: [...] } for workspace-a", async () => {
@@ -570,6 +666,125 @@ test("GET nashir evidence list derives route IDs from path and ignores body over
 
   assert.strictEqual(res.status, 200);
   assert.deepStrictEqual(res.body, { data: [] });
+});
+
+test("NASHIR_EVIDENCE_RUNTIME_MODE defaults to in_memory even when DATABASE_URL exists", async () => {
+  const server = createNashirRuntimeModeTestServer({
+    env: { DATABASE_URL: "postgres://user:password@db.example.test:5432/marketing_os" }
+  });
+
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      url: "https://example.com/evidence"
+    }
+  });
+
+  assert.strictEqual(res.status, 201);
+  assert.deepStrictEqual(server.store.nashirEvidence, [res.body.data]);
+});
+
+test("explicit NASHIR_EVIDENCE_RUNTIME_MODE=in_memory keeps in-memory evidence with DATABASE_URL and pool", async () => {
+  const pool = createNashirEvidencePoolDouble();
+  const server = createNashirRuntimeModeTestServer({
+    env: {
+      DATABASE_URL: "postgres://user:password@db.example.test:5432/marketing_os",
+      NASHIR_EVIDENCE_RUNTIME_MODE: "in_memory"
+    },
+    pool
+  });
+
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      url: "https://example.com/evidence"
+    }
+  });
+
+  assert.strictEqual(res.status, 201);
+  assert.deepStrictEqual(server.store.nashirEvidence, [res.body.data]);
+  assert.deepStrictEqual(pool.records, []);
+  assert.deepStrictEqual(pool.queries, []);
+});
+
+test("NASHIR_EVIDENCE_RUNTIME_MODE=repository uses NashirEvidenceLifecycleRepository with an existing pool", async () => {
+  const pool = createNashirEvidencePoolDouble();
+  const server = createNashirRuntimeModeTestServer({
+    env: { NASHIR_EVIDENCE_RUNTIME_MODE: "repository" },
+    pool
+  });
+
+  const create = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      notes: "Published manually"
+    }
+  });
+  const list = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+  const read = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/${create.body.data.id}`,
+    { userId: OWNER_A }
+  );
+
+  assert.strictEqual(create.status, 201);
+  assert.strictEqual(list.status, 200);
+  assert.strictEqual(read.status, 200);
+  assert.deepStrictEqual(server.store.nashirEvidence, []);
+  assert.strictEqual(pool.records.length, 1);
+  assert.strictEqual(create.body.data.id, "db-evidence-1");
+  assert.strictEqual(create.body.data.submittedBy, OWNER_A);
+  assert.deepStrictEqual(list.body.data, [create.body.data]);
+  assert.deepStrictEqual(read.body.data, create.body.data);
+});
+
+test("NASHIR_EVIDENCE_RUNTIME_MODE=repository accepts injected repositories without DATABASE_URL or pool", async () => {
+  const nashirEvidenceRepository = createNashirEvidenceRepositoryDouble();
+  const server = createNashirRuntimeModeTestServer({
+    env: { NASHIR_EVIDENCE_RUNTIME_MODE: "repository" },
+    repositories: { nashirEvidenceLifecycle: nashirEvidenceRepository }
+  });
+
+  const create = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      notes: "Published manually"
+    }
+  });
+  const list = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(create.status, 201);
+  assert.strictEqual(list.status, 200);
+  assert.deepStrictEqual(server.store.nashirEvidence, []);
+  assert.deepStrictEqual(list.body.data, [create.body.data]);
+  assert.strictEqual(nashirEvidenceRepository.calls.createSubmittedEvidence.length, 1);
+  assert.strictEqual(nashirEvidenceRepository.calls.listByCampaign.length, 1);
+});
+
+test("NASHIR_EVIDENCE_RUNTIME_MODE=repository fails closed without DATABASE_URL or pool", () => {
+  assert.throws(
+    () => createApp({
+      store: createSeedStore(),
+      env: { NASHIR_EVIDENCE_RUNTIME_MODE: "repository" }
+    }),
+    (error) => {
+      assert.strictEqual(error.name, "ConfigurationError");
+      assert.strictEqual(error.code, "NASHIR_EVIDENCE_REPOSITORY_DATABASE_REQUIRED");
+      assert.strictEqual(
+        error.message,
+        "NASHIR_EVIDENCE_RUNTIME_MODE=repository requires DATABASE_URL or an existing pool."
+      );
+      return true;
+    }
+  );
 });
 
 test("GET nashir evidence list reads from DB-backed evidence repository after campaign guard", async () => {
