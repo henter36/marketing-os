@@ -203,9 +203,9 @@ function createNashirEvidencePoolDouble(records = []) {
   return pool;
 }
 
-function createNashirRuntimeModeTestServer({ env = {}, pool } = {}) {
+function createNashirRuntimeModeTestServer({ env = {}, pool, repositories } = {}) {
   const store = createSeedStore();
-  const app = createApp({ store, env, pool });
+  const app = createApp({ store, env, pool, repositories });
 
   async function request(method, path, options = {}) {
     const req = Readable.from(options.body ? [Buffer.from(JSON.stringify(options.body))] : []);
@@ -237,7 +237,7 @@ function createNashirRuntimeModeTestServer({ env = {}, pool } = {}) {
     });
   }
 
-  return { request, store, pool };
+  return { request, store, pool, repositories };
 }
 
 // ─── List route — workspace-scoped read-only collection ─────────────────────
@@ -742,6 +742,31 @@ test("NASHIR_EVIDENCE_RUNTIME_MODE=repository uses NashirEvidenceLifecycleReposi
   assert.strictEqual(create.body.data.submittedBy, OWNER_A);
   assert.deepStrictEqual(list.body.data, [create.body.data]);
   assert.deepStrictEqual(read.body.data, create.body.data);
+});
+
+test("NASHIR_EVIDENCE_RUNTIME_MODE=repository accepts injected repositories without DATABASE_URL or pool", async () => {
+  const nashirEvidenceRepository = createNashirEvidenceRepositoryDouble();
+  const server = createNashirRuntimeModeTestServer({
+    env: { NASHIR_EVIDENCE_RUNTIME_MODE: "repository" },
+    repositories: { nashirEvidenceLifecycle: nashirEvidenceRepository }
+  });
+
+  const create = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      notes: "Published manually"
+    }
+  });
+  const list = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(create.status, 201);
+  assert.strictEqual(list.status, 200);
+  assert.deepStrictEqual(server.store.nashirEvidence, []);
+  assert.deepStrictEqual(list.body.data, [create.body.data]);
+  assert.strictEqual(nashirEvidenceRepository.calls.createSubmittedEvidence.length, 1);
+  assert.strictEqual(nashirEvidenceRepository.calls.listByCampaign.length, 1);
 });
 
 test("NASHIR_EVIDENCE_RUNTIME_MODE=repository fails closed without DATABASE_URL or pool", () => {

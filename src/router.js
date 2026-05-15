@@ -123,6 +123,11 @@ function resolveEvidenceRepository({ config, mode, options, repositories: existi
     return null;
   }
 
+  const repositories = options.repositories || existingRepositories;
+  if (repositories) {
+    return repositories.nashirEvidenceLifecycle;
+  }
+
   if (!options.pool && !config.databaseUrl) {
     throw new ConfigurationError(
       "NASHIR_EVIDENCE_REPOSITORY_DATABASE_REQUIRED",
@@ -130,10 +135,11 @@ function resolveEvidenceRepository({ config, mode, options, repositories: existi
     );
   }
 
-  const repositories = options.repositories || existingRepositories || createRepositories({
+  const newRepositories = createRepositories({
     pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true })
   });
-  return repositories.nashirEvidenceLifecycle;
+
+  return newRepositories.nashirEvidenceLifecycle;
 }
 
 async function routeBrandRepositories(req, path, body, store, repositories) {
