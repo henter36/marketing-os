@@ -73,7 +73,10 @@ function createApp(options = {}) {
     : null;
   const baseApp = base.createApp({ store });
   const nashirRepository = new NashirSlice0Repository({ store });
-  const nashirService = new NashirSlice0Service({ repository: nashirRepository });
+  const nashirService = new NashirSlice0Service({
+    repository: nashirRepository,
+    evidenceRepository: options.evidenceRepository
+  });
 
   return async function app(req, res) {
     const url = new URL(req.url, "http://localhost");

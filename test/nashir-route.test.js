@@ -55,6 +55,95 @@ async function requestRawJson(method, path, { userId, json } = {}) {
   });
 }
 
+function createNashirEvidenceRepositoryDouble(records = []) {
+  const repository = {
+    records: records.map((record) => ({ ...record })),
+    calls: {
+      createSubmittedEvidence: [],
+      getById: [],
+      listByCampaign: []
+    },
+
+    async createSubmittedEvidence(input) {
+      this.calls.createSubmittedEvidence.push({ ...input });
+      const record = {
+        id: `db-evidence-${this.records.length + 1}`,
+        workspaceId: input.workspaceId,
+        nashirCampaignId: input.nashirCampaignId,
+        evidenceType: input.evidenceType,
+        channel: input.channel,
+        status: "submitted",
+        submittedByUserId: input.submittedByUserId,
+        submittedAt: input.submittedAt,
+        publishedAt: input.publishedAt || null,
+        url: input.url || null,
+        notes: input.notes || null,
+        externalReference: input.externalReference || null
+      };
+      this.records.push(record);
+      return { ...record };
+    },
+
+    async listByCampaign(input) {
+      this.calls.listByCampaign.push({ ...input });
+      return this.records
+        .filter((record) => record.workspaceId === input.workspaceId && record.nashirCampaignId === input.nashirCampaignId)
+        .map((record) => ({ ...record }));
+    },
+
+    async getById(input) {
+      this.calls.getById.push({ ...input });
+      const record = this.records.find(
+        (candidate) =>
+          candidate.workspaceId === input.workspaceId &&
+          candidate.nashirCampaignId === input.nashirCampaignId &&
+          candidate.id === input.evidenceId
+      );
+      return record ? { ...record } : null;
+    }
+  };
+
+  return repository;
+}
+
+function createNashirDbEvidenceTestServer(records = []) {
+  const store = createSeedStore();
+  const nashirEvidenceRepository = createNashirEvidenceRepositoryDouble(records);
+  const app = createApp({ store, evidenceRepository: nashirEvidenceRepository });
+
+  async function request(method, path, options = {}) {
+    const req = Readable.from(options.body ? [Buffer.from(JSON.stringify(options.body))] : []);
+    req.method = method;
+    req.url = `/v1${path}`;
+    req.headers = {
+      "content-type": "application/json",
+      ...(options.userId ? { "x-user-id": options.userId } : {}),
+      ...(options.headers || {})
+    };
+
+    return await new Promise((resolve) => {
+      const res = {
+        statusCode: 200,
+        headers: {},
+        writeHead(status, headers) {
+          this.statusCode = status;
+          this.headers = headers;
+        },
+        end(payload) {
+          resolve({
+            status: this.statusCode,
+            body: payload ? JSON.parse(payload) : null
+          });
+        }
+      };
+
+      app(req, res);
+    });
+  }
+
+  return { request, store, nashirEvidenceRepository };
+}
+
 // ─── List route — workspace-scoped read-only collection ─────────────────────
 
 test("GET nashir-campaigns returns 200 with { data: [...] } for workspace-a", async () => {
@@ -483,6 +572,48 @@ test("GET nashir evidence list derives route IDs from path and ignores body over
   assert.deepStrictEqual(res.body, { data: [] });
 });
 
+test("GET nashir evidence list reads from DB-backed evidence repository after campaign guard", async () => {
+  const server = createNashirDbEvidenceTestServer([
+    {
+      id: "db-evidence-a",
+      workspaceId: WORKSPACE_A,
+      nashirCampaignId: CAMPAIGN_A_ID,
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      status: "submitted",
+      submittedByUserId: OWNER_A,
+      submittedAt: "2026-05-13T00:00:00.000Z",
+      publishedAt: null,
+      url: "https://example.com/db-evidence",
+      notes: null,
+      externalReference: null
+    }
+  ]);
+
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.deepStrictEqual(server.nashirEvidenceRepository.calls.listByCampaign, [
+    { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }
+  ]);
+  assert.deepStrictEqual(res.body.data, [
+    {
+      id: "db-evidence-a",
+      workspaceId: WORKSPACE_A,
+      nashirCampaignId: CAMPAIGN_A_ID,
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      status: "submitted",
+      submittedAt: "2026-05-13T00:00:00.000Z",
+      publishedAt: null,
+      url: "https://example.com/db-evidence",
+      notes: null,
+      externalReference: null,
+      submittedBy: OWNER_A
+    }
+  ]);
+});
+
 test("POST nashir evidence creates submitted in-memory evidence for authorized member", async () => {
   const server = await createTestServer();
   const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
@@ -511,6 +642,46 @@ test("POST nashir evidence creates submitted in-memory evidence for authorized m
   assert.strictEqual(res.body.data.externalReference, "post-123");
   assert.ok(Date.parse(res.body.data.submittedAt));
   assert.deepStrictEqual(server.store.nashirEvidence, [res.body.data]);
+});
+
+test("POST nashir evidence persists through DB-backed evidence repository after campaign guard", async () => {
+  const server = createNashirDbEvidenceTestServer();
+  const auditCount = server.store.auditLogs.length;
+  const res = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      publishedAt: "2026-05-13T00:00:00.000Z",
+      url: "https://example.com/evidence",
+      notes: "Published manually",
+      externalReference: "post-123"
+    }
+  });
+
+  assert.strictEqual(res.status, 201);
+  assert.deepStrictEqual(server.store.nashirEvidence, []);
+  assert.strictEqual(server.nashirEvidenceRepository.records.length, 1);
+  assert.deepStrictEqual(server.nashirEvidenceRepository.calls.createSubmittedEvidence, [
+    {
+      workspaceId: WORKSPACE_A,
+      nashirCampaignId: CAMPAIGN_A_ID,
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      submittedAt: res.body.data.submittedAt,
+      submittedByUserId: OWNER_A,
+      publishedAt: "2026-05-13T00:00:00.000Z",
+      url: "https://example.com/evidence",
+      notes: "Published manually",
+      externalReference: "post-123"
+    }
+  ]);
+  assert.strictEqual(res.body.data.id, "db-evidence-1");
+  assert.strictEqual(res.body.data.submittedBy, OWNER_A);
+  assert.strictEqual(res.body.data.submittedByUserId, undefined);
+  assert.strictEqual(server.store.auditLogs.length, auditCount + 1);
+  assert.strictEqual(server.store.auditLogs.at(-1).action, "nashir_evidence.submitted");
+  assert.deepStrictEqual(server.store.auditLogs.at(-1).after_snapshot, res.body.data);
 });
 
 test("GET nashir evidence list returns submitted in-memory evidence after submit", async () => {
@@ -552,6 +723,39 @@ test("GET nashir evidence by ID returns 200 for existing evidence", async () => 
   assert.deepStrictEqual(res.body.data, submit.body.data);
 });
 
+test("GET nashir evidence by ID reads from DB-backed evidence repository after campaign guard", async () => {
+  const server = createNashirDbEvidenceTestServer([
+    {
+      id: "db-evidence-a",
+      workspaceId: WORKSPACE_A,
+      nashirCampaignId: CAMPAIGN_A_ID,
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      status: "submitted",
+      submittedByUserId: OWNER_A,
+      submittedAt: "2026-05-13T00:00:00.000Z",
+      publishedAt: null,
+      url: "https://example.com/db-evidence",
+      notes: null,
+      externalReference: null
+    }
+  ]);
+
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/db-evidence-a`,
+    { userId: OWNER_A }
+  );
+
+  assert.strictEqual(res.status, 200);
+  assert.deepStrictEqual(server.nashirEvidenceRepository.calls.getById, [
+    { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID, evidenceId: "db-evidence-a" }
+  ]);
+  assert.strictEqual(res.body.data.id, "db-evidence-a");
+  assert.strictEqual(res.body.data.submittedBy, OWNER_A);
+  assert.strictEqual(res.body.data.submittedByUserId, undefined);
+});
+
 test("GET nashir evidence by ID returns 404 for missing evidence", async () => {
   const server = await createTestServer();
   const res = await server.request(
@@ -561,6 +765,20 @@ test("GET nashir evidence by ID returns 404 for missing evidence", async () => {
   );
 
   assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence by ID returns 404 for missing DB-backed evidence", async () => {
+  const server = createNashirDbEvidenceTestServer();
+  const res = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/db-evidence-missing`,
+    { userId: OWNER_A }
+  );
+
+  assert.strictEqual(res.status, 404);
+  assert.deepStrictEqual(server.nashirEvidenceRepository.calls.getById, [
+    { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID, evidenceId: "db-evidence-missing" }
+  ]);
 });
 
 test("GET nashir evidence by ID returns 404 for cross-workspace evidence", async () => {
@@ -612,6 +830,103 @@ test("GET nashir evidence by ID returns 404 for cross-campaign evidence", async 
   assert.strictEqual(createCampaign.status, 201);
   assert.strictEqual(submit.status, 201);
   assert.strictEqual(res.status, 404);
+});
+
+test("GET nashir evidence by ID returns 404 for cross-workspace or cross-campaign DB-backed evidence", async () => {
+  const server = createNashirDbEvidenceTestServer([
+    {
+      id: "db-evidence-workspace-b",
+      workspaceId: WORKSPACE_B,
+      nashirCampaignId: CAMPAIGN_B_ID,
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      status: "submitted",
+      submittedByUserId: OWNER_A,
+      submittedAt: "2026-05-13T00:00:00.000Z"
+    },
+    {
+      id: "db-evidence-campaign-b",
+      workspaceId: WORKSPACE_A,
+      nashirCampaignId: "nashir-campaign-other",
+      evidenceType: "external_post_url",
+      channel: "linkedin",
+      status: "submitted",
+      submittedByUserId: OWNER_A,
+      submittedAt: "2026-05-13T00:00:00.000Z"
+    }
+  ]);
+
+  const crossWorkspace = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/db-evidence-workspace-b`,
+    { userId: OWNER_A }
+  );
+  const crossCampaign = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/db-evidence-campaign-b`,
+    { userId: OWNER_A }
+  );
+
+  assert.strictEqual(crossWorkspace.status, 404);
+  assert.strictEqual(crossCampaign.status, 404);
+});
+
+test("Nashir evidence DB-backed repository is not called before membership, permission, or campaign guards pass", async () => {
+  const server = createNashirDbEvidenceTestServer();
+
+  const unauthenticated = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/db-evidence-1`
+  );
+  const invalidUser = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/db-evidence-1`,
+    { userId: INVALID_USER }
+  );
+  const missingMembership = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/db-evidence-1`,
+    { userId: OUTSIDER }
+  );
+  const missingReadPermission = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence/db-evidence-1`,
+    { userId: BILLING_A }
+  );
+  const missingCampaignRead = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${UNKNOWN_ID}/evidence/db-evidence-1`,
+    { userId: OWNER_A }
+  );
+  const missingWritePermission = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: VIEWER_A,
+    body: {
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      notes: "Proof note"
+    }
+  });
+  const missingCampaignWrite = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${UNKNOWN_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      notes: "Proof note"
+    }
+  });
+
+  assert.strictEqual(unauthenticated.status, 401);
+  assert.strictEqual(invalidUser.status, 401);
+  assert.strictEqual(missingMembership.status, 404);
+  assert.strictEqual(missingReadPermission.status, 403);
+  assert.strictEqual(missingCampaignRead.status, 404);
+  assert.strictEqual(missingWritePermission.status, 403);
+  assert.strictEqual(missingCampaignWrite.status, 404);
+  assert.deepStrictEqual(server.nashirEvidenceRepository.calls, {
+    createSubmittedEvidence: [],
+    getById: [],
+    listByCampaign: []
+  });
 });
 
 test("GET nashir evidence by ID returns 404 for unknown workspace", async () => {
