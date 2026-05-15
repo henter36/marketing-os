@@ -61,6 +61,7 @@ Future implementation scope may include:
 - `404` for missing evidence.
 - `404` for cross-workspace evidence.
 - `404` for cross-campaign evidence.
+- `404` for missing campaign.
 - `404` for unknown workspace.
 - `404` for missing active membership.
 - `403` for member without `nashir.campaign.read` on `GET` routes.
