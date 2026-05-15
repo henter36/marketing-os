@@ -68,10 +68,8 @@ class NashirSlice0Repository {
       .map((evidence) => normalizeEvidenceRecord(evidence));
   }
 
-  async findEvidenceById({ workspaceId, nashirCampaignId, evidenceId } = {}) {
-    if (arguments.length === 0 || arguments[0] === null || typeof arguments[0] !== "object") {
-      throw new Error("not implemented");
-    }
+  async findEvidenceById(input = {}) {
+    const { workspaceId, nashirCampaignId, evidenceId } = input && typeof input === "object" ? input : {};
     if (!workspaceId || !nashirCampaignId || !evidenceId) {
       return null;
     }
