@@ -1,9 +1,10 @@
 "use strict";
 
 class NashirSlice0Service {
-  constructor({ repository, evidenceRepository } = {}) {
+  constructor({ repository, evidenceRepository, evidenceFallbackRepository } = {}) {
     this.repository = repository || null;
     this.evidenceRepository = evidenceRepository || null;
+    this.evidenceFallbackRepository = evidenceFallbackRepository || this.repository;
   }
 
   async createCampaign({ workspaceId, campaignName, actorUserId, timestamp } = {}) {
@@ -61,7 +62,10 @@ class NashirSlice0Service {
       const evidence = await this.evidenceRepository.listByCampaign({ workspaceId, nashirCampaignId });
       return evidence.map(toRuntimeEvidence);
     }
-    return this.repository.listCampaignEvidence({ workspaceId, nashirCampaignId });
+    if (!this.evidenceFallbackRepository) {
+      return [];
+    }
+    return this.evidenceFallbackRepository.listCampaignEvidence({ workspaceId, nashirCampaignId });
   }
 
   async getCampaignEvidenceById({ workspaceId, nashirCampaignId, evidenceId } = {}) {
@@ -73,7 +77,10 @@ class NashirSlice0Service {
       const evidence = await this.evidenceRepository.getById({ workspaceId, nashirCampaignId, evidenceId });
       return evidence ? toRuntimeEvidence(evidence) : null;
     }
-    return this.repository.findEvidenceById({ workspaceId, nashirCampaignId, evidenceId });
+    if (!this.evidenceFallbackRepository) {
+      return null;
+    }
+    return this.evidenceFallbackRepository.findEvidenceById({ workspaceId, nashirCampaignId, evidenceId });
   }
 
   async createCampaignEvidence({
@@ -107,7 +114,10 @@ class NashirSlice0Service {
       });
       return evidence ? toRuntimeEvidence(evidence) : null;
     }
-    return this.repository.createCampaignEvidence({
+    if (!this.evidenceFallbackRepository) {
+      return null;
+    }
+    return this.evidenceFallbackRepository.createCampaignEvidence({
       workspaceId,
       nashirCampaignId,
       evidenceType,
@@ -134,8 +144,8 @@ class NashirSlice0Service {
   }
 }
 
-function createNashirSlice0Service({ repository, evidenceRepository } = {}) {
-  return new NashirSlice0Service({ repository, evidenceRepository });
+function createNashirSlice0Service({ repository, evidenceRepository, evidenceFallbackRepository } = {}) {
+  return new NashirSlice0Service({ repository, evidenceRepository, evidenceFallbackRepository });
 }
 
 function toRuntimeEvidence(evidence) {

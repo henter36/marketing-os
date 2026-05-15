@@ -203,6 +203,74 @@ function createNashirEvidencePoolDouble(records = []) {
   return pool;
 }
 
+function createNashirCampaignPoolDouble(records = []) {
+  const pool = {
+    records: records.map((record) => ({ ...record })),
+    evidenceQueries: [],
+    queries: [],
+
+    async query(sql, params, options) {
+      this.queries.push({ sql, params, options });
+
+      if (sql.includes("FROM nashir_evidence") || sql.includes("INSERT INTO nashir_evidence")) {
+        this.evidenceQueries.push({ sql, params, options });
+        return [];
+      }
+
+      if (sql.includes("INSERT INTO nashir_campaigns")) {
+        const record = {
+          nashir_campaign_id: `00000000-0000-4000-8000-${String(this.records.length + 1).padStart(12, "0")}`,
+          workspace_id: params[0],
+          campaign_name: params[1],
+          campaign_status: "draft",
+          created_by_user_id: params[2],
+          created_at: params[3] || "2026-05-15T00:00:00.000Z",
+          updated_at: params[3] || "2026-05-15T00:00:00.000Z"
+        };
+        this.records.push(record);
+        return [record];
+      }
+
+      if (sql.includes("FROM nashir_campaigns") && params.length === 1) {
+        return this.records.filter((record) => record.workspace_id === params[0]);
+      }
+
+      if (sql.includes("FROM nashir_campaigns") && params.length === 2) {
+        return this.records.filter(
+          (record) => record.workspace_id === params[0] && record.nashir_campaign_id === params[1]
+        );
+      }
+
+      return [];
+    }
+  };
+
+  return pool;
+}
+
+function seedDbCampaigns() {
+  return [
+    {
+      nashir_campaign_id: CAMPAIGN_A_ID,
+      workspace_id: WORKSPACE_A,
+      campaign_name: "DB Workspace A Campaign",
+      campaign_status: "draft",
+      created_by_user_id: OWNER_A,
+      created_at: "2026-05-15T00:00:00.000Z",
+      updated_at: "2026-05-15T00:00:00.000Z"
+    },
+    {
+      nashir_campaign_id: CAMPAIGN_B_ID,
+      workspace_id: WORKSPACE_B,
+      campaign_name: "DB Workspace B Campaign",
+      campaign_status: "draft",
+      created_by_user_id: OWNER_A,
+      created_at: "2026-05-15T00:00:00.000Z",
+      updated_at: "2026-05-15T00:00:00.000Z"
+    }
+  ];
+}
+
 function createNashirRuntimeModeTestServer({ env = {}, pool, repositories } = {}) {
   const store = createSeedStore();
   const app = createApp({ store, env, pool, repositories });
@@ -785,6 +853,233 @@ test("NASHIR_EVIDENCE_RUNTIME_MODE=repository fails closed without DATABASE_URL 
       return true;
     }
   );
+});
+
+test("NASHIR_CAMPAIGN_RUNTIME_MODE defaults to in_memory even when DATABASE_URL exists", async () => {
+  const server = createNashirRuntimeModeTestServer({
+    env: { DATABASE_URL: "postgres://user:password@db.example.test:5432/marketing_os" }
+  });
+
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.body.data[0].campaign_name, "Intake Campaign A");
+});
+
+test("injected campaignRepository alone does not activate campaign repository mode", async () => {
+  const store = createSeedStore();
+  const campaignRepository = {
+    async listCampaigns() {
+      throw new Error("campaign repository should not be called");
+    }
+  };
+  const app = createApp({ store, campaignRepository });
+  const server = createNashirRuntimeModeTestServer();
+  server.store = store;
+  server.request = async (method, path, options = {}) => {
+    const req = Readable.from(options.body ? [Buffer.from(JSON.stringify(options.body))] : []);
+    req.method = method;
+    req.url = `/v1${path}`;
+    req.headers = {
+      "content-type": "application/json",
+      ...(options.userId ? { "x-user-id": options.userId } : {})
+    };
+
+    return await new Promise((resolve) => {
+      const res = {
+        statusCode: 200,
+        headers: {},
+        writeHead(status, headers) {
+          this.statusCode = status;
+          this.headers = headers;
+        },
+        end(payload) {
+          resolve({
+            status: this.statusCode,
+            body: payload ? JSON.parse(payload) : null
+          });
+        }
+      };
+
+      app(req, res);
+    });
+  };
+
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.body.data[0].campaign_name, "Intake Campaign A");
+});
+
+test("explicit NASHIR_CAMPAIGN_RUNTIME_MODE=in_memory keeps in-memory campaigns with DATABASE_URL and pool", async () => {
+  const pool = createNashirCampaignPoolDouble(seedDbCampaigns());
+  const server = createNashirRuntimeModeTestServer({
+    env: {
+      DATABASE_URL: "postgres://user:password@db.example.test:5432/marketing_os",
+      NASHIR_CAMPAIGN_RUNTIME_MODE: "in_memory"
+    },
+    pool
+  });
+
+  const res = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, { userId: OWNER_A });
+
+  assert.strictEqual(res.status, 200);
+  assert.strictEqual(res.body.data[0].campaign_name, "Intake Campaign A");
+  assert.deepStrictEqual(pool.queries, []);
+});
+
+test("NASHIR_CAMPAIGN_RUNTIME_MODE=repository fails closed without DATABASE_URL, pool, or repositories", () => {
+  assert.throws(
+    () => createApp({
+      store: createSeedStore(),
+      env: { NASHIR_CAMPAIGN_RUNTIME_MODE: "repository" }
+    }),
+    (error) => {
+      assert.strictEqual(error.name, "ConfigurationError");
+      assert.strictEqual(error.code, "NASHIR_CAMPAIGN_REPOSITORY_DATABASE_REQUIRED");
+      assert.strictEqual(
+        error.message,
+        "NASHIR_CAMPAIGN_RUNTIME_MODE=repository requires DATABASE_URL, an existing pool, or approved injected repositories."
+      );
+      return true;
+    }
+  );
+});
+
+test("NASHIR_CAMPAIGN_RUNTIME_MODE=repository uses NashirCampaignRepository for list/create/read", async () => {
+  const pool = createNashirCampaignPoolDouble(seedDbCampaigns());
+  const server = createNashirRuntimeModeTestServer({
+    env: { NASHIR_CAMPAIGN_RUNTIME_MODE: "repository" },
+    pool
+  });
+
+  const listBefore = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, { userId: OWNER_A });
+  const create = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: OWNER_A,
+    body: { campaign_name: "Repository Campaign" }
+  });
+  const read = await server.request(
+    "GET",
+    `/workspaces/${WORKSPACE_A}/nashir-campaigns/${create.body.data.nashir_campaign_id}`,
+    { userId: OWNER_A }
+  );
+  const listAfter = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, { userId: OWNER_A });
+
+  assert.strictEqual(listBefore.status, 200);
+  assert.deepStrictEqual(listBefore.body.data.map((campaign) => campaign.nashir_campaign_id), [CAMPAIGN_A_ID]);
+  assert.strictEqual(create.status, 201);
+  assert.strictEqual(create.body.data.campaign_name, "Repository Campaign");
+  assert.strictEqual(create.body.data.workspace_id, WORKSPACE_A);
+  assert.strictEqual(create.body.data.created_by_user_id, OWNER_A);
+  assert.strictEqual(read.status, 200);
+  assert.deepStrictEqual(read.body.data, create.body.data);
+  assert.strictEqual(listAfter.status, 200);
+  assert.deepStrictEqual(
+    listAfter.body.data.map((campaign) => campaign.campaign_name),
+    ["DB Workspace A Campaign", "Repository Campaign"]
+  );
+  assert(!server.store.nashirCampaigns.some((campaign) => campaign.campaign_name === "Repository Campaign"));
+});
+
+test("NASHIR_CAMPAIGN_RUNTIME_MODE=repository preserves non-disclosing campaign and guard behavior", async () => {
+  const pool = createNashirCampaignPoolDouble(seedDbCampaigns());
+  const server = createNashirRuntimeModeTestServer({
+    env: { NASHIR_CAMPAIGN_RUNTIME_MODE: "repository" },
+    pool
+  });
+
+  const missingCampaign = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${UNKNOWN_ID}`, { userId: OWNER_A });
+  const crossWorkspace = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_B_ID}`, { userId: OWNER_A });
+  const unknownWorkspace = await server.request("GET", `/workspaces/workspace-missing/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: OWNER_A });
+  const missingMembership = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: OUTSIDER });
+  const missingReadPermission = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: BILLING_A });
+  const missingWritePermission = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, {
+    userId: VIEWER_A,
+    body: { campaign_name: "Denied Campaign" }
+  });
+
+  assert.strictEqual(missingCampaign.status, 404);
+  assert.strictEqual(crossWorkspace.status, 404);
+  assert.strictEqual(unknownWorkspace.status, 404);
+  assert.strictEqual(missingMembership.status, 404);
+  assert.strictEqual(missingReadPermission.status, 403);
+  assert.strictEqual(missingWritePermission.status, 403);
+});
+
+test("NASHIR_CAMPAIGN_RUNTIME_MODE=repository accepts injected repositories without DATABASE_URL or pool", async () => {
+  const nashirCampaigns = {
+    calls: { listCampaigns: [], findCampaignById: [], createCampaign: [] },
+    async listCampaigns(input) {
+      this.calls.listCampaigns.push({ ...input });
+      return [seedDbCampaigns()[0]];
+    },
+    async findCampaignById(input) {
+      this.calls.findCampaignById.push({ ...input });
+      return input.nashirCampaignId === CAMPAIGN_A_ID ? seedDbCampaigns()[0] : null;
+    },
+    async createCampaign(input) {
+      this.calls.createCampaign.push({ ...input });
+      return {
+        ...seedDbCampaigns()[0],
+        nashir_campaign_id: "00000000-0000-4000-8000-000000000099",
+        campaign_name: input.campaignName,
+        created_by_user_id: input.actorUserId,
+        created_at: input.timestamp,
+        updated_at: input.timestamp
+      };
+    }
+  };
+  const server = createNashirRuntimeModeTestServer({
+    env: { NASHIR_CAMPAIGN_RUNTIME_MODE: "repository" },
+    repositories: { nashirCampaigns }
+  });
+
+  const list = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns`, { userId: OWNER_A });
+  const read = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}`, { userId: OWNER_A });
+
+  assert.strictEqual(list.status, 200);
+  assert.strictEqual(read.status, 200);
+  assert.deepStrictEqual(nashirCampaigns.calls.listCampaigns, [{ workspaceId: WORKSPACE_A }]);
+  assert.deepStrictEqual(nashirCampaigns.calls.findCampaignById, [{ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }]);
+});
+
+test("campaign repository mode does not implicitly activate evidence repository mode", async () => {
+  const pool = createNashirCampaignPoolDouble(seedDbCampaigns());
+  const server = createNashirRuntimeModeTestServer({
+    env: { NASHIR_CAMPAIGN_RUNTIME_MODE: "repository" },
+    pool
+  });
+
+  const submit = await server.request("POST", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, {
+    userId: OWNER_A,
+    body: {
+      evidenceType: "manual_publish_proof",
+      channel: "linkedin",
+      notes: "Published manually"
+    }
+  });
+  const list = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(submit.status, 201);
+  assert.strictEqual(list.status, 200);
+  assert.deepStrictEqual(list.body.data, [submit.body.data]);
+  assert.deepStrictEqual(server.store.nashirEvidence, [submit.body.data]);
+  assert.deepStrictEqual(pool.evidenceQueries, []);
+});
+
+test("evidence routes use campaign repository source for campaign existence checks", async () => {
+  const pool = createNashirCampaignPoolDouble(seedDbCampaigns());
+  const server = createNashirRuntimeModeTestServer({
+    env: { NASHIR_CAMPAIGN_RUNTIME_MODE: "repository" },
+    pool
+  });
+
+  const existingDbCampaign = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${CAMPAIGN_A_ID}/evidence`, { userId: OWNER_A });
+  const missingDbCampaign = await server.request("GET", `/workspaces/${WORKSPACE_A}/nashir-campaigns/${UNKNOWN_ID}/evidence`, { userId: OWNER_A });
+
+  assert.strictEqual(existingDbCampaign.status, 200);
+  assert.deepStrictEqual(existingDbCampaign.body.data, []);
+  assert.strictEqual(missingDbCampaign.status, 404);
 });
 
 test("GET nashir evidence list reads from DB-backed evidence repository after campaign guard", async () => {
