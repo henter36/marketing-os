@@ -99,8 +99,8 @@ Future implementation scope may include:
 - `repository` mode fails closed without `DATABASE_URL`, pool, repositories, or approved injected repository.
 - Create/list/read campaign work in `repository` mode.
 - Workspace isolation is preserved.
-- Non-existent campaign ID returns non-disclosing `404`.
-- Cross-workspace campaign ID access returns non-disclosing `404`.
+- Campaign read-by-id returns non-disclosing `404` for non-existent campaign IDs.
+- Campaign read-by-id returns non-disclosing `404` for cross-workspace campaign IDs.
 - Unknown workspace returns non-disclosing `404`.
 - Missing membership returns non-disclosing `404`.
 - User without `nashir.campaign.read` gets `403` for `GET` routes.
