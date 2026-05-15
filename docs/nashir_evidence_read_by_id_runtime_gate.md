@@ -38,6 +38,8 @@ The future implementation PR may:
 
 - Add only the GET evidence-by-id runtime route.
 - Use existing in-memory Nashir Slice 0 behavior only.
+- Preserve the existing router -> service -> repository layering.
+- Preserve tenant isolation through route-derived workspace and campaign scope.
 - Preserve generic `404 Not Found` non-disclosure for missing evidence, cross-workspace evidence, and cross-campaign evidence.
 - Preserve current permission behavior.
 
@@ -54,8 +56,10 @@ The future implementation PR must not:
 
 - `src/router.js`
 - `test/nashir-route.test.js`
-- `src/nashir/backend-slice0-service.js`, only if strictly necessary; prefer not to touch.
-- `src/nashir/backend-slice0-repository.js`, only if strictly necessary; prefer not to touch.
+- `src/nashir/backend-slice0-service.js`
+- `src/nashir/backend-slice0-repository.js`
+
+Future implementation should keep route handling in `src/router.js`, business read behavior in `src/nashir/backend-slice0-service.js`, and in-memory lookup behavior in `src/nashir/backend-slice0-repository.js`, while preserving tenant isolation from route-derived workspace and campaign context.
 
 ## 6. Forbidden Files for Future Implementation PR
 
@@ -74,6 +78,11 @@ The future implementation PR must not:
 - `404` for missing evidence.
 - `404` for cross-workspace evidence.
 - `404` for cross-campaign evidence.
+- `404` for unknown workspace, preserving non-disclosure.
+- `404` for missing active membership, preserving non-disclosure.
+- `403` for valid active member without `nashir.campaign.read` permission.
+- `401` for unauthenticated caller.
+- `401` for invalid user.
 - Permission behavior remains unchanged.
 
 ## 8. Verification Commands
