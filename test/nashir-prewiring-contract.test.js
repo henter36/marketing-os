@@ -43,6 +43,7 @@ function noGoSection(file) {
 // PR #197 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness.
 // PR #201 approved GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence.
 // PR #207 approved POST /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence.
+// PR #245 approved explicit Nashir evidence runtime mode configuration references.
 // Strip only the approved identifiers before checking for unauthorized Nashir references.
 
 test("src/router.js exposes only the approved nashir route patterns", () => {
@@ -94,6 +95,12 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
     .replace(/\bnashirRoutes\b/g, "")
     .replace(/\brouteNashir\b/g, "")
     .replace(/\bisNashirPath\b/g, "")
+    // Explicit runtime mode references introduced by the approved PR #245 wiring
+    .replace(/\bnashirEvidenceRuntimeMode\b/g, "")
+    .replace(/\bNASHIR_EVIDENCE_RUNTIME_MODE\b/g, "")
+    .replace(/\bNASHIR_EVIDENCE_REPOSITORY_DATABASE_REQUIRED\b/g, "")
+    .replace(/\bnashirEvidenceLifecycle\b/g, "")
+    .replace(/\bresolveEvidenceRepository\b/g, "")
     // Local variables inside the approved route handler
     .replace(/\bnashirRepository\b/g, "")
     .replace(/\bnashirService\b/g, "");
