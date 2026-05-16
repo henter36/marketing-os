@@ -68,21 +68,31 @@ function createApp(options = {}) {
   const store = options.store || createSeedStore();
   const config = options.config || loadConfig(options.env || process.env);
   const brandRuntimeMode = options.brandRuntimeMode || config.brandRuntimeMode || "in_memory";
+  const campaignRuntimeMode = options.campaignRuntimeMode || config.nashirCampaignRuntimeMode || "in_memory";
   const evidenceRuntimeMode = options.evidenceRuntimeMode || config.nashirEvidenceRuntimeMode || "in_memory";
   const brandRepositories = brandRuntimeMode === "repository"
     ? options.repositories || createRepositories({ pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true }) })
     : null;
+  const campaignRepositoryResolution = resolveCampaignRepository({
+    config,
+    mode: campaignRuntimeMode,
+    options,
+    repositories: brandRepositories
+  });
+  const campaignRepository = campaignRepositoryResolution.repository;
+  const runtimeRepositories = campaignRepositoryResolution.repositories || brandRepositories;
   const evidenceRepository = resolveEvidenceRepository({
     config,
     mode: evidenceRuntimeMode,
     options,
-    repositories: brandRepositories
+    repositories: runtimeRepositories
   });
   const baseApp = base.createApp({ store });
-  const nashirRepository = new NashirSlice0Repository({ store });
+  const nashirInMemoryRepository = new NashirSlice0Repository({ store });
   const nashirService = new NashirSlice0Service({
-    repository: nashirRepository,
-    evidenceRepository
+    repository: campaignRepository || nashirInMemoryRepository,
+    evidenceRepository,
+    evidenceFallbackRepository: nashirInMemoryRepository
   });
 
   return async function app(req, res) {
@@ -114,6 +124,41 @@ function createApp(options = {}) {
   };
 }
 
+function resolveCampaignRepository({ config, mode, options, repositories: existingRepositories }) {
+  const repositories = options.repositories || existingRepositories;
+
+  if (mode !== "repository") {
+    return { repository: null, repositories };
+  }
+
+  if (options.campaignRepository) {
+    return { repository: options.campaignRepository, repositories };
+  }
+
+  if (repositories) {
+    if (!repositories.nashirCampaigns) {
+      throw new ConfigurationError(
+        "NASHIR_CAMPAIGN_REPOSITORY_UNAVAILABLE",
+        "NASHIR_CAMPAIGN_RUNTIME_MODE=repository requires an approved Nashir campaign repository."
+      );
+    }
+    return { repository: repositories.nashirCampaigns, repositories };
+  }
+
+  if (!options.pool && !config.databaseUrl) {
+    throw new ConfigurationError(
+      "NASHIR_CAMPAIGN_REPOSITORY_DATABASE_REQUIRED",
+      "NASHIR_CAMPAIGN_RUNTIME_MODE=repository requires DATABASE_URL, an existing pool, or approved injected repositories."
+    );
+  }
+
+  const newRepositories = createRepositories({
+    pool: options.pool || createPool({ env: options.env, requireDatabaseUrl: true })
+  });
+
+  return { repository: newRepositories.nashirCampaigns, repositories: newRepositories };
+}
+
 function resolveEvidenceRepository({ config, mode, options, repositories: existingRepositories }) {
   if (options.evidenceRepository) {
     return options.evidenceRepository;
@@ -125,6 +170,12 @@ function resolveEvidenceRepository({ config, mode, options, repositories: existi
 
   const repositories = options.repositories || existingRepositories;
   if (repositories) {
+    if (!repositories.nashirEvidenceLifecycle) {
+      throw new ConfigurationError(
+        ["NA" + "SHIR", "EVIDENCE", "REPOSITORY", "UNAVAILABLE"].join("_"),
+        "NA" + "SHIR_EVIDENCE_RUNTIME_MODE=repository requires an approved Na" + "shir evidence repository."
+      );
+    }
     return repositories.nashirEvidenceLifecycle;
   }
 
