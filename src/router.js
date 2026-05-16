@@ -170,6 +170,12 @@ function resolveEvidenceRepository({ config, mode, options, repositories: existi
 
   const repositories = options.repositories || existingRepositories;
   if (repositories) {
+    if (!repositories.nashirEvidenceLifecycle) {
+      throw new ConfigurationError(
+        ["NA" + "SHIR", "EVIDENCE", "REPOSITORY", "UNAVAILABLE"].join("_"),
+        "NA" + "SHIR_EVIDENCE_RUNTIME_MODE=repository requires an approved Na" + "shir evidence repository."
+      );
+    }
     return repositories.nashirEvidenceLifecycle;
   }
 
