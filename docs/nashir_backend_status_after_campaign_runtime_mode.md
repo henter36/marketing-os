@@ -16,7 +16,7 @@ Date: 2026-05-16
 When explicitly enabled, repository mode can back:
 
 - Evidence list/create/read-by-id routes.
-- Campaign list/create/read routes.
+- Campaign list/create/read-by-id routes.
 
 ## Still In-Memory Or Not Implemented
 
