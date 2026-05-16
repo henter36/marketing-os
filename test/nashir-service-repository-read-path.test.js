@@ -515,7 +515,10 @@ test("service delegates to repository.findCampaignById with correct args", async
       return Promise.resolve({ nashir_campaign_id: CAMPAIGN_A_ID, workspace_id: WORKSPACE_A });
     },
   };
-  const svc = createNashirSlice0Service({ repository: fakeRepo });
+  const svc = createNashirSlice0Service({
+    repository: fakeRepo,
+    evidenceFallbackRepository: fakeRepo
+  });
 
   await svc.getCampaignById({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
 
@@ -528,7 +531,10 @@ test("service delegates to repository.findCampaignById with correct args", async
 test("service listCampaigns delegates to repository and returns matching campaigns", async () => {
   const store = createSeedStore();
   const repo = createNashirSlice0Repository({ store });
-  const svc = createNashirSlice0Service({ repository: repo });
+  const svc = createNashirSlice0Service({
+    repository: repo,
+    evidenceFallbackRepository: repo
+  });
 
   const campaigns = await svc.listCampaigns({ workspaceId: WORKSPACE_A });
 
@@ -553,7 +559,10 @@ test("service delegates to repository.listCampaigns with correct args", async ()
       return Promise.resolve([{ nashir_campaign_id: CAMPAIGN_A_ID, workspace_id: WORKSPACE_A }]);
     },
   };
-  const svc = createNashirSlice0Service({ repository: fakeRepo });
+  const svc = createNashirSlice0Service({
+    repository: fakeRepo,
+    evidenceFallbackRepository: fakeRepo
+  });
 
   await svc.listCampaigns({ workspaceId: WORKSPACE_A });
 
@@ -589,24 +598,35 @@ test("service listCampaignEvidence returns null for unknown or cross-workspace c
 });
 
 test("service listCampaignEvidence delegates through the workspace-scoped campaign read path first", async () => {
-  const calls = [];
-  const fakeRepo = {
+  const campaignCalls = [];
+  const evidenceCalls = [];
+  const campaignRepo = {
     findCampaignById(args) {
-      calls.push(["findCampaignById", args]);
+      campaignCalls.push(["findCampaignById", args]);
       return Promise.resolve({ nashir_campaign_id: CAMPAIGN_A_ID, workspace_id: WORKSPACE_A });
     },
+    listCampaignEvidence() {
+      throw new Error("campaign repository must not provide evidence fallback");
+    }
+  };
+  const evidenceFallbackRepository = {
     listCampaignEvidence(args) {
-      calls.push(["listCampaignEvidence", args]);
+      evidenceCalls.push(["listCampaignEvidence", args]);
       return Promise.resolve([]);
     }
   };
-  const svc = createNashirSlice0Service({ repository: fakeRepo });
+  const svc = createNashirSlice0Service({
+    repository: campaignRepo,
+    evidenceFallbackRepository
+  });
 
   const evidence = await svc.listCampaignEvidence({ workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
 
   assert.deepStrictEqual(evidence, []);
-  assert.deepStrictEqual(calls, [
-    ["findCampaignById", { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }],
+  assert.deepStrictEqual(campaignCalls, [
+    ["findCampaignById", { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }]
+  ]);
+  assert.deepStrictEqual(evidenceCalls, [
     ["listCampaignEvidence", { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }]
   ]);
 });
@@ -644,7 +664,18 @@ test("service listCampaignEvidence returns null when no repository is injected",
 test("service createCampaignEvidence returns submitted evidence for an existing campaign", async () => {
   const store = createSeedStore();
   const repo = createNashirSlice0Repository({ store });
-  const svc = createNashirSlice0Service({ repository: repo });
+  const campaignRepo = {
+    findCampaignById(args) {
+      return repo.findCampaignById(args);
+    },
+    createCampaignEvidence() {
+      throw new Error("campaign repository must not provide evidence fallback");
+    }
+  };
+  const svc = createNashirSlice0Service({
+    repository: campaignRepo,
+    evidenceFallbackRepository: repo
+  });
 
   const evidence = await svc.createCampaignEvidence({
     workspaceId: WORKSPACE_A,
@@ -681,18 +712,27 @@ test("service createCampaignEvidence returns null for unknown or cross-workspace
 });
 
 test("service createCampaignEvidence delegates through the workspace-scoped campaign read path first", async () => {
-  const calls = [];
-  const fakeRepo = {
+  const campaignCalls = [];
+  const evidenceCalls = [];
+  const campaignRepo = {
     findCampaignById(args) {
-      calls.push(["findCampaignById", args]);
+      campaignCalls.push(["findCampaignById", args]);
       return Promise.resolve({ nashir_campaign_id: CAMPAIGN_A_ID, workspace_id: WORKSPACE_A });
     },
+    createCampaignEvidence() {
+      throw new Error("campaign repository must not provide evidence fallback");
+    }
+  };
+  const evidenceFallbackRepository = {
     createCampaignEvidence(args) {
-      calls.push(["createCampaignEvidence", args]);
+      evidenceCalls.push(["createCampaignEvidence", args]);
       return Promise.resolve({ id: "nashir-evidence-1", workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID });
     }
   };
-  const svc = createNashirSlice0Service({ repository: fakeRepo });
+  const svc = createNashirSlice0Service({
+    repository: campaignRepo,
+    evidenceFallbackRepository
+  });
   const args = {
     workspaceId: WORKSPACE_A,
     nashirCampaignId: CAMPAIGN_A_ID,
@@ -705,8 +745,10 @@ test("service createCampaignEvidence delegates through the workspace-scoped camp
 
   await svc.createCampaignEvidence(args);
 
-  assert.deepStrictEqual(calls, [
-    ["findCampaignById", { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }],
+  assert.deepStrictEqual(campaignCalls, [
+    ["findCampaignById", { workspaceId: WORKSPACE_A, nashirCampaignId: CAMPAIGN_A_ID }]
+  ]);
+  assert.deepStrictEqual(evidenceCalls, [
     [
       "createCampaignEvidence",
       {
