@@ -60,7 +60,7 @@ Before running this checklist, confirm all of the following:
 
 | # | Step | Expected Result | Pass/Fail | Notes |
 |---|------|----------------|-----------|-------|
-| G-01 | Use `workspaceId` of workspace A while authenticated to workspace B | No workspace A data is returned or rendered | | |
+| G-01 | Use `workspaceId` of workspace A while authenticated to workspace B | Non-disclosing 404 state renders (no workspace A existence disclosed) | | |
 | G-02 | Inspect all network requests | UI calls only `/v1/workspaces/{workspaceId}/nashir-campaigns` and related approved evidence routes | | |
 | G-03 | Inspect page source and JS | No `prototype/` directory references; no generated client imports | | |
 | G-04 | Inspect all fetch responses | All responses use `{ "data": ... }` envelope | | |
