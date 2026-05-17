@@ -1,10 +1,80 @@
 const http = require("http");
+const fs = require("fs/promises");
+const path = require("path");
 const { loadConfig } = require("./config");
 const { createApp } = require("./router");
 
-const config = loadConfig();
-const server = http.createServer(createApp());
+const NASHIR_UI_DIR = path.join(__dirname, "..", "ui", "nashir");
+const NASHIR_STATIC_ASSETS = new Map([
+  ["/app.js", { file: "app.js", contentType: "application/javascript; charset=utf-8" }],
+  ["/styles.css", { file: "styles.css", contentType: "text/css; charset=utf-8" }],
+  ["/nashir/app.js", { file: "app.js", contentType: "application/javascript; charset=utf-8" }],
+  ["/nashir/styles.css", { file: "styles.css", contentType: "text/css; charset=utf-8" }]
+]);
 
-server.listen(config.port, () => {
-  console.log(`Marketing OS Sprint 0 API listening on http://localhost:${config.port}/v1`);
-});
+function createServer(options = {}) {
+  return http.createServer(createServerHandler(options));
+}
+
+function createServerHandler(options = {}) {
+  const app = options.app || createApp(options);
+
+  return async function serverHandler(req, res) {
+    if (await serveNashirStatic(req, res)) {
+      return;
+    }
+
+    return app(req, res);
+  };
+}
+
+async function serveNashirStatic(req, res) {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    return false;
+  }
+
+  const url = new URL(req.url, "http://localhost");
+  const pathname = url.pathname;
+
+  if (pathname === "/nashir" || pathname === "/nashir/") {
+    return sendStaticFile(res, "index.html", "text/html; charset=utf-8", req.method);
+  }
+
+  const asset = NASHIR_STATIC_ASSETS.get(pathname);
+  if (asset) {
+    return sendStaticFile(res, asset.file, asset.contentType, req.method);
+  }
+
+  if (pathname.startsWith("/nashir/")) {
+    res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+    res.end(req.method === "HEAD" ? undefined : "Not Found");
+    return true;
+  }
+
+  return false;
+}
+
+async function sendStaticFile(res, fileName, contentType, method) {
+  const filePath = path.join(NASHIR_UI_DIR, fileName);
+  const content = await fs.readFile(filePath);
+  res.writeHead(200, {
+    "content-type": contentType,
+    "cache-control": "no-store"
+  });
+  res.end(method === "HEAD" ? undefined : content);
+  return true;
+}
+
+if (require.main === module) {
+  const config = loadConfig();
+  const server = createServer();
+
+  server.listen(config.port, () => {
+    console.log(`Marketing OS Sprint 0 API listening on http://localhost:${config.port}/v1`);
+  });
+}
+
+module.exports = {
+  createServer,
+  createServerHandler
+};
