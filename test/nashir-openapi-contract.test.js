@@ -242,13 +242,14 @@ test("nashir_openapi_patch.yaml declares evidence route with read list and write
   assert.ok(block.includes("get:"));
   assert.ok(block.includes("operationId: listNashirCampaignEvidence"));
   assert.ok(block.includes("x-permission: nashir.campaign.read"));
-  assert.ok(block.includes("Submitted Nashir evidence list returned"));
+  assert.ok(block.includes("Nashir evidence list returned"));
   assert.ok(block.includes("NashirCampaignEvidenceListResponse"));
   assert.ok(block.includes("post:"));
   assert.ok(block.includes("operationId: submitNashirCampaignEvidence"));
   assert.ok(block.includes("x-permission: nashir.campaign.write"));
   assert.ok(block.includes("x-audit-event: nashir_evidence.submitted"));
   assert.ok(block.includes("SubmitNashirCampaignEvidenceRequest"));
+  assert.ok(block.includes("Nashir evidence submitted"));
   assert.ok(block.includes("NashirCampaignEvidenceResponse"));
   assert.ok(block.includes("ErrorResponse"));
   assert.ok(!block.includes("x-permission: nashir.evidence.submit"));
@@ -287,6 +288,7 @@ test("nashir evidence submit request schema declares required fields and proof l
   assert.ok(block.includes("notes:\n          type: string\n          minLength: 1"));
   assert.ok(block.includes("externalReference:\n          type: string\n          minLength: 1"));
   assert.ok(block.includes("anyOf:"));
+  assert.ok(block.includes("This patch does not implement campaignVersionId or assetVersionId."));
 });
 
 test("nashir evidence schema declares submitted in-memory response fields", () => {

@@ -190,7 +190,7 @@ paths:
         generic 404 Not Found without resource-existence disclosure.
       responses:
         '200':
-          description: Submitted Nashir evidence list returned; lifecycle-aware read/list contract remains route-derived by workspace and campaign
+          description: Nashir evidence list returned; lifecycle-aware read/list contract remains route-derived by workspace and campaign
           content:
             application/json:
               schema:
@@ -534,7 +534,7 @@ components:
         - required: [notes]
       x-rule: >
         workspaceId and nashirCampaignId are derived exclusively from the route.
-        This contract does not implement campaignVersionId or assetVersionId.
+        This patch does not implement campaignVersionId or assetVersionId.
 
     NashirCampaignEvidence:
       type: object
