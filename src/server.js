@@ -20,10 +20,11 @@ function createServer(options = {}) {
 
 function createServerHandler(options = {}) {
   const app = options.app || createApp(options);
+  const fileCache = new Map();
 
   return async function serverHandler(req, res) {
     try {
-      if (await serveNashirStatic(req, res)) {
+      if (await serveNashirStatic(req, res, fileCache)) {
         return;
       }
       return await app(req, res);
@@ -39,7 +40,7 @@ function createServerHandler(options = {}) {
   };
 }
 
-async function serveNashirStatic(req, res) {
+async function serveNashirStatic(req, res, fileCache) {
   if (req.method !== "GET" && req.method !== "HEAD") {
     return false;
   }
@@ -54,12 +55,12 @@ async function serveNashirStatic(req, res) {
   }
 
   if (pathname === "/nashir/") {
-    return sendStaticFile(res, "index.html", "text/html; charset=utf-8", req.method);
+    return sendStaticFile(res, "index.html", "text/html; charset=utf-8", req.method, fileCache);
   }
 
   const asset = NASHIR_STATIC_ASSETS.get(pathname);
   if (asset) {
-    return sendStaticFile(res, asset.file, asset.contentType, req.method);
+    return sendStaticFile(res, asset.file, asset.contentType, req.method, fileCache);
   }
 
   if (pathname.startsWith("/nashir/")) {
@@ -71,20 +72,23 @@ async function serveNashirStatic(req, res) {
   return false;
 }
 
-async function sendStaticFile(res, fileName, contentType, method) {
-  const filePath = path.join(NASHIR_UI_DIR, fileName);
-  let content;
-  try {
-    content = await fs.readFile(filePath);
-  } catch (err) {
-    if (err.code === "ENOENT") {
-      res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
-      res.end(method === "HEAD" ? undefined : "Not Found");
-    } else {
-      res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
-      res.end(method === "HEAD" ? undefined : "Internal Server Error");
+async function sendStaticFile(res, fileName, contentType, method, fileCache) {
+  let content = fileCache.get(fileName);
+  if (content === undefined) {
+    const filePath = path.join(NASHIR_UI_DIR, fileName);
+    try {
+      content = await fs.readFile(filePath);
+    } catch (err) {
+      if (err.code === "ENOENT") {
+        res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+        res.end(method === "HEAD" ? undefined : "Not Found");
+      } else {
+        res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
+        res.end(method === "HEAD" ? undefined : "Internal Server Error");
+      }
+      return true;
     }
-    return true;
+    fileCache.set(fileName, content);
   }
   res.writeHead(200, {
     "content-type": contentType,
