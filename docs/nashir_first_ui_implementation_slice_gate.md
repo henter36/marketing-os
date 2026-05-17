@@ -23,9 +23,12 @@ Future implementation should be limited to:
 - Evidence read-by-id/detail.
 - Loading state.
 - Empty state.
+- Success state.
+- Validation error state.
 - Error state for 401.
 - Error state for 403.
 - Error state for non-disclosing 404.
+- Generic failure state.
 
 ## Future Allowed Files
 
