@@ -242,7 +242,7 @@ test("nashir_openapi_patch.yaml declares evidence route with read list and write
   assert.ok(block.includes("get:"));
   assert.ok(block.includes("operationId: listNashirCampaignEvidence"));
   assert.ok(block.includes("x-permission: nashir.campaign.read"));
-  assert.ok(block.includes("Submitted in-memory Nashir evidence list returned"));
+  assert.ok(block.includes("Submitted Nashir evidence list returned"));
   assert.ok(block.includes("NashirCampaignEvidenceListResponse"));
   assert.ok(block.includes("post:"));
   assert.ok(block.includes("operationId: submitNashirCampaignEvidence"));
