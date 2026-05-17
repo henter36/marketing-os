@@ -3,77 +3,146 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Nashir Core V1 Static UI Shell</title>
+    <title>Nashir Campaign Evidence UI</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <main class="shell">
-      <header class="hero" aria-labelledby="page-title">
+      <header class="page-header" aria-labelledby="page-title">
         <div>
-          <p class="eyebrow">Marketing OS / Nashir Core V1</p>
-          <h1 id="page-title">Read-only UI-contract-first surface</h1>
-          <p class="hero-copy">
-            Static governance shell for manual, reviewable, approval-gated, and evidence-based
-            Nashir planning states. No backend, no API calls, no persistence, and no protected
-            action controls are present.
+          <p class="eyebrow">Marketing OS / Nashir</p>
+          <h1 id="page-title">Campaign and evidence workspace</h1>
+          <p class="lede">
+            Static browser UI for approved Nashir campaign and submitted-evidence routes.
+            Configure workspace and user context before loading data.
           </p>
         </div>
-        <aside class="hero-panel" aria-label="Surface constraints">
-          <span class="status-pill">Static only</span>
-          <span class="status-pill">No runtime wiring</span>
-          <span class="status-pill">No protected actions</span>
-        </aside>
+        <div class="mode-note" aria-label="Runtime compatibility">
+          <span>Direct fetch</span>
+          <span>{ data: ... }</span>
+          <span>Mode agnostic</span>
+        </div>
       </header>
 
-      <section class="governance-banner" aria-labelledby="governance-title">
-        <h2 id="governance-title">Mandatory Governance Labels</h2>
-        <div id="governance-labels" class="label-grid"></div>
-      </section>
-
-      <section class="section" aria-labelledby="status-title">
-        <div class="section-heading">
-          <p class="eyebrow">Planned Display States</p>
-          <h2 id="status-title">Nashir Core V1 status map</h2>
-        </div>
-        <div id="status-cards" class="card-grid"></div>
-      </section>
-
-      <section class="section split" aria-labelledby="boundaries-title">
-        <div class="section-heading">
-          <p class="eyebrow">Workspace Governance</p>
-          <h2 id="boundaries-title">Role, tenant, and AI boundaries</h2>
-        </div>
-        <div id="boundary-cards" class="boundary-grid"></div>
-      </section>
-
-      <section class="section no-go" aria-labelledby="nogo-title">
-        <div class="section-heading">
-          <p class="eyebrow">Core V1 NO-GO</p>
-          <h2 id="nogo-title">Blocked actions</h2>
-          <p>
-            These are static blocked labels only. They are not disabled buttons, commands,
-            integrations, workflows, or runtime checks.
-          </p>
-        </div>
-        <ul id="blocked-actions" class="blocked-list" aria-label="NO-GO blocked actions"></ul>
-      </section>
-
-      <section class="section rtl-panel" dir="rtl" lang="ar" aria-labelledby="arabic-title">
+      <section class="toolbar" aria-labelledby="context-title">
         <div>
-          <p class="eyebrow">عرض عربي مختصر</p>
-          <h2 id="arabic-title">ناشر Core V1 للقراءة فقط</h2>
-          <p>
-            هذه الواجهة ثابتة وتعرض حدود الحوكمة فقط. الجاهزية استشارية وليست موافقة،
-            والنشر اليدوي يبقى خارج النظام وبإجراء المستخدم.
-          </p>
+          <h2 id="context-title">Request context</h2>
+          <p>Workspace and user identifiers are sent through the approved route and x-user-id header.</p>
         </div>
-        <div class="arabic-notes">
-          <span>لا نشر مباشر</span>
-          <span>لا ربط حسابات</span>
-          <span>لا تحليلات أو إسناد</span>
-          <span>الذكاء الاصطناعي استشاري فقط</span>
-        </div>
+        <form id="context-form" class="context-form">
+          <label>
+            <span>Workspace ID</span>
+            <input id="workspace-id" name="workspaceId" autocomplete="off" required>
+          </label>
+          <label>
+            <span>User ID</span>
+            <input id="user-id" name="userId" autocomplete="off" required>
+          </label>
+          <button type="submit">Load campaigns</button>
+        </form>
       </section>
+
+      <section id="notice" class="notice" role="status" aria-live="polite" hidden></section>
+
+      <div class="layout">
+        <section class="panel" aria-labelledby="campaign-list-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Campaigns</p>
+              <h2 id="campaign-list-title">Campaign list</h2>
+            </div>
+            <button id="refresh-campaigns" type="button">Refresh</button>
+          </div>
+          <div id="campaign-list-state" class="state-line"></div>
+          <ul id="campaign-list" class="record-list"></ul>
+        </section>
+
+        <section class="panel" aria-labelledby="campaign-create-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Create</p>
+              <h2 id="campaign-create-title">New campaign</h2>
+            </div>
+          </div>
+          <form id="campaign-create-form" class="stacked-form">
+            <label>
+              <span>Campaign name</span>
+              <input id="campaign-name" name="campaignName" autocomplete="off" required>
+            </label>
+            <button type="submit">Create campaign</button>
+          </form>
+        </section>
+
+        <section class="panel detail-panel" aria-labelledby="campaign-detail-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Selected campaign</p>
+              <h2 id="campaign-detail-title">Campaign detail</h2>
+            </div>
+            <button id="load-campaign-detail" type="button">Reload detail</button>
+          </div>
+          <div id="campaign-detail" class="detail-block empty">Select a campaign to view details.</div>
+        </section>
+
+        <section class="panel" aria-labelledby="evidence-list-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Evidence</p>
+              <h2 id="evidence-list-title">Evidence list</h2>
+            </div>
+            <button id="refresh-evidence" type="button">Refresh</button>
+          </div>
+          <div id="evidence-list-state" class="state-line"></div>
+          <ul id="evidence-list" class="record-list"></ul>
+        </section>
+
+        <section class="panel" aria-labelledby="evidence-submit-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Submit</p>
+              <h2 id="evidence-submit-title">New evidence</h2>
+            </div>
+          </div>
+          <form id="evidence-submit-form" class="stacked-form">
+            <label>
+              <span>Evidence type</span>
+              <input id="evidence-type" name="evidenceType" autocomplete="off" required>
+            </label>
+            <label>
+              <span>Channel</span>
+              <input id="evidence-channel" name="channel" autocomplete="off" required>
+            </label>
+            <label>
+              <span>URL</span>
+              <input id="evidence-url" name="url" autocomplete="off" type="url">
+            </label>
+            <label>
+              <span>External reference</span>
+              <input id="evidence-external-reference" name="externalReference" autocomplete="off">
+            </label>
+            <label>
+              <span>Notes</span>
+              <textarea id="evidence-notes" name="notes" rows="4"></textarea>
+            </label>
+            <label>
+              <span>Published at</span>
+              <input id="evidence-published-at" name="publishedAt" type="datetime-local">
+            </label>
+            <button type="submit">Submit evidence</button>
+          </form>
+        </section>
+
+        <section class="panel detail-panel" aria-labelledby="evidence-detail-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Selected evidence</p>
+              <h2 id="evidence-detail-title">Evidence detail</h2>
+            </div>
+            <button id="load-evidence-detail" type="button">Reload detail</button>
+          </div>
+          <div id="evidence-detail" class="detail-block empty">Select an evidence record to view details.</div>
+        </section>
+      </div>
     </main>
 
     <script src="./app.js"></script>
