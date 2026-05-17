@@ -10,8 +10,6 @@ const appJsAsset = { file: "app.js", contentType: "application/javascript; chars
 const stylesCssAsset = { file: "styles.css", contentType: "text/css; charset=utf-8" };
 
 const NASHIR_STATIC_ASSETS = new Map([
-  ["/app.js", appJsAsset],
-  ["/styles.css", stylesCssAsset],
   ["/nashir/app.js", appJsAsset],
   ["/nashir/styles.css", stylesCssAsset]
 ]);
@@ -30,7 +28,7 @@ function createServerHandler(options = {}) {
       }
       return await app(req, res);
     } catch (err) {
-      console.error("Static file serving failed:", err);
+      console.error("Server handler failed:", err);
       if (!res.headersSent) {
         res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
       }
@@ -49,7 +47,13 @@ async function serveNashirStatic(req, res) {
   const url = new URL(req.url, "http://localhost");
   const pathname = url.pathname;
 
-  if (pathname === "/nashir" || pathname === "/nashir/") {
+  if (pathname === "/nashir") {
+    res.writeHead(301, { location: "/nashir/" });
+    res.end();
+    return true;
+  }
+
+  if (pathname === "/nashir/") {
     return sendStaticFile(res, "index.html", "text/html; charset=utf-8", req.method);
   }
 
@@ -85,7 +89,7 @@ async function sendStaticFile(res, fileName, contentType, method) {
   res.writeHead(200, {
     "content-type": contentType,
     "content-length": content.length,
-    "cache-control": "no-store"
+    "cache-control": "no-cache"
   });
   res.end(method === "HEAD" ? undefined : content);
   return true;
