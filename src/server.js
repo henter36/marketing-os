@@ -28,7 +28,7 @@ function createServerHandler(options = {}) {
       if (await serveNashirStatic(req, res)) {
         return;
       }
-      return app(req, res);
+      return await app(req, res);
     } catch (err) {
       console.error("Static file serving failed:", err);
       if (!res.headersSent) {
@@ -84,6 +84,7 @@ async function sendStaticFile(res, fileName, contentType, method) {
   }
   res.writeHead(200, {
     "content-type": contentType,
+    "content-length": content.length,
     "cache-control": "no-store"
   });
   res.end(method === "HEAD" ? undefined : content);
