@@ -106,7 +106,7 @@
       throw failure;
     }
 
-    if (!payload || !Object.hasOwn(payload, "data")) {
+    if (!payload || !Object.prototype.hasOwnProperty.call(payload, "data")) {
       const failure = new Error("Response did not include the expected data envelope.");
       failure.status = 0;
       throw failure;
@@ -367,7 +367,14 @@
     if (url) body.url = url;
     if (externalReference) body.externalReference = externalReference;
     if (notes) body.notes = notes;
-    if (publishedAt) body.publishedAt = new Date(publishedAt).toISOString();
+    if (publishedAt) {
+      const publishedAtDate = new Date(publishedAt);
+      if (Number.isNaN(publishedAtDate.getTime())) {
+        setNotice("validation", "Invalid publication date format.");
+        return null;
+      }
+      body.publishedAt = publishedAtDate.toISOString();
+    }
     return body;
   }
 
