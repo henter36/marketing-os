@@ -49,18 +49,45 @@ test("existing API routes still work behind the static server", async () => {
   assert.equal(body.data.status, "ok");
 });
 
-async function request(handler, path) {
+test("HEAD /nashir returns headers without body", async () => {
+  const handler = createServerHandler();
+  const response = await request(handler, "/nashir", "HEAD");
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers["content-type"], /^text\/html/);
+  assert.equal(response.body, "");
+});
+
+test("read failure returns controlled 500", async (t) => {
+  const fs = require("fs/promises");
+  t.mock.method(fs, "readFile", async () => {
+    const err = new Error("disk error");
+    throw err;
+  });
+  const handler = createServerHandler();
+  const response = await request(handler, "/nashir");
+
+  assert.equal(response.status, 500);
+  assert.match(response.headers["content-type"], /^text\/plain/);
+});
+
+async function request(handler, path, method = "GET") {
   const req = Readable.from([]);
-  req.method = "GET";
+  req.method = method;
   req.url = path;
   req.headers = {};
 
-  return await new Promise((resolve) => {
+  return await new Promise((resolve, reject) => {
     const chunks = [];
+    let headersSent = false;
     const res = {
       statusCode: 200,
       headers: {},
+      get headersSent() {
+        return headersSent;
+      },
       writeHead(status, headers) {
+        headersSent = true;
         this.statusCode = status;
         this.headers = normalizeHeaders(headers);
       },
@@ -76,7 +103,7 @@ async function request(handler, path) {
       }
     };
 
-    handler(req, res);
+    Promise.resolve(handler(req, res)).catch(reject);
   });
 }
 

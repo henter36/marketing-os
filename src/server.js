@@ -5,11 +5,15 @@ const { loadConfig } = require("./config");
 const { createApp } = require("./router");
 
 const NASHIR_UI_DIR = path.join(__dirname, "..", "ui", "nashir");
+
+const appJsAsset = { file: "app.js", contentType: "application/javascript; charset=utf-8" };
+const stylesCssAsset = { file: "styles.css", contentType: "text/css; charset=utf-8" };
+
 const NASHIR_STATIC_ASSETS = new Map([
-  ["/app.js", { file: "app.js", contentType: "application/javascript; charset=utf-8" }],
-  ["/styles.css", { file: "styles.css", contentType: "text/css; charset=utf-8" }],
-  ["/nashir/app.js", { file: "app.js", contentType: "application/javascript; charset=utf-8" }],
-  ["/nashir/styles.css", { file: "styles.css", contentType: "text/css; charset=utf-8" }]
+  ["/app.js", appJsAsset],
+  ["/styles.css", stylesCssAsset],
+  ["/nashir/app.js", appJsAsset],
+  ["/nashir/styles.css", stylesCssAsset]
 ]);
 
 function createServer(options = {}) {
@@ -20,11 +24,17 @@ function createServerHandler(options = {}) {
   const app = options.app || createApp(options);
 
   return async function serverHandler(req, res) {
-    if (await serveNashirStatic(req, res)) {
-      return;
+    try {
+      if (await serveNashirStatic(req, res)) {
+        return;
+      }
+      return app(req, res);
+    } catch (err) {
+      if (!res.headersSent) {
+        res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
+        res.end("Internal Server Error");
+      }
     }
-
-    return app(req, res);
   };
 }
 
@@ -56,7 +66,19 @@ async function serveNashirStatic(req, res) {
 
 async function sendStaticFile(res, fileName, contentType, method) {
   const filePath = path.join(NASHIR_UI_DIR, fileName);
-  const content = await fs.readFile(filePath);
+  let content;
+  try {
+    content = await fs.readFile(filePath);
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+      res.end(method === "HEAD" ? undefined : "Not Found");
+    } else {
+      res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
+      res.end(method === "HEAD" ? undefined : "Internal Server Error");
+    }
+    return true;
+  }
   res.writeHead(200, {
     "content-type": contentType,
     "cache-control": "no-store"
