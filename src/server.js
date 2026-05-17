@@ -30,8 +30,11 @@ function createServerHandler(options = {}) {
       }
       return app(req, res);
     } catch (err) {
+      console.error("Static file serving failed:", err);
       if (!res.headersSent) {
         res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
+      }
+      if (!res.writableEnded) {
         res.end("Internal Server Error");
       }
     }
