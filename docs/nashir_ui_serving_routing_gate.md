@@ -42,11 +42,11 @@ No route is approved by this PR.
 
 Future implementation may include:
 
-- `server.js` or `src/server.js` only if serving implementation is later approved.
-- `src/router.js` only if route handling is required and separately justified.
-- `ui/nashir/index.html`
-- `ui/nashir/app.js`
-- `ui/nashir/styles.css`
+- `src/server.js` (modification) only if serving implementation is later approved.
+- `src/router.js` (modification) only if route handling is required and separately justified.
+- `ui/nashir/index.html` (modification)
+- `ui/nashir/app.js` (modification)
+- `ui/nashir/styles.css` (modification)
 - tests or smoke tests directly related to static serving.
 - `docs/03_decision_log.md`
 - `docs/17_change_log.md`
