@@ -45,6 +45,9 @@ function noGoSection(file) {
 // PR #207 approved POST /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence.
 // PR #245 approved explicit Nashir evidence runtime mode configuration references.
 // PR #250 approved explicit Nashir campaign runtime mode configuration references.
+// PR #270 approved GET /workspaces/{workspaceId}/nashir-store-profile (read-only).
+// PR #270 approved GET /workspaces/{workspaceId}/nashir-products (read-only).
+// PR #270 approved GET /workspaces/{workspaceId}/nashir-products/{productId} (read-only).
 // Strip only the approved identifiers before checking for unauthorized Nashir references.
 
 test("src/router.js exposes only the approved nashir route patterns", () => {
@@ -116,7 +119,16 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
     .replace(/approved Nashir campaign repository\./g, "")
     // Local variables inside the approved route handler
     .replace(/\bnashirInMemoryRepository\b/g, "")
-    .replace(/\bnashirService\b/g, "");
+    .replace(/\bnashirService\b/g, "")
+    // Store profile and product route wiring approved by PR #270
+    .replace(/\bisNashirStorePath\b/g, "")
+    .replace(/\brouteNashirStore\b/g, "")
+    .replace(/\bnashirStoreProfiles\b/g, "")
+    .replace(/\bnashirProducts\b/g, "")
+    .replace(/\bnashir-store-profile\b/gi, "")
+    .replace(/\bnashir-products\b/gi, "")
+    .replace(/\bnashir\.store\.read\b/g, "")
+    .replace(/\bnashir\.product\.read\b/g, "");
 
   assert.ok(
     !/nashir/i.test(withoutApproved),

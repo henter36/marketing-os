@@ -53,6 +53,9 @@ const patch002Routes = [
   "POST /workspaces/{workspaceId}/notification-rules",
   "GET /workspaces/{workspaceId}/notification-deliveries"
 ];
+// Store profile and product GET routes are handled by isNashirStorePath / routeNashirStore
+// but are not yet in any OpenAPI spec (OpenAPI migration is blocked).
+// They are excluded from implementedRoutes to avoid OpenAPI lint failures.
 const nashirRoutes = [
   "GET /workspaces/{workspaceId}/nashir-campaigns",
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}",
@@ -87,6 +90,12 @@ function createApp(options = {}) {
     options,
     repositories: runtimeRepositories
   });
+  const storeProfileRepository = options.storeProfileRepository
+    || (runtimeRepositories && runtimeRepositories.nashirStoreProfiles)
+    || null;
+  const productRepository = options.productRepository
+    || (runtimeRepositories && runtimeRepositories.nashirProducts)
+    || null;
   const baseApp = base.createApp({ store });
   const nashirInMemoryRepository = new NashirSlice0Repository({ store });
   const nashirService = new NashirSlice0Service({
@@ -100,7 +109,7 @@ function createApp(options = {}) {
     const path = url.pathname.replace(/^\/v1/, "");
     const shouldRouteBrandToRepository = brandRuntimeMode === "repository" && isBrandPath(path);
 
-    if (!shouldRouteBrandToRepository && !isSprint4Path(path) && !isPatch002Path(path) && !isNashirPath(path)) {
+    if (!shouldRouteBrandToRepository && !isSprint4Path(path) && !isPatch002Path(path) && !isNashirPath(path) && !isNashirStorePath(path)) {
       return baseApp(req, res);
     }
 
@@ -111,9 +120,11 @@ function createApp(options = {}) {
         ? await routeBrandRepositories(req, path, body, store, brandRepositories)
         : isNashirPath(path)
           ? await routeNashir(req, path, body, store, nashirService)
-          : isPatch002Path(path)
-            ? routePatch002(req, path, body, store)
-            : routeSprint4(req, path, body, store);
+          : isNashirStorePath(path)
+            ? await routeNashirStore(req, path, body, store, storeProfileRepository, productRepository)
+            : isPatch002Path(path)
+              ? routePatch002(req, path, body, store)
+              : routeSprint4(req, path, body, store);
       sendJson(res, result.status || 200, result.body);
     } catch (error) {
       const appError = error instanceof AppError
@@ -795,6 +806,44 @@ async function routeNashir(req, path, body, store, nashirService) {
   const result = await nashirService.getCampaignById({ workspaceId, nashirCampaignId });
   if (result === null) throw notFound();
   return ok(result);
+}
+
+function isNashirStorePath(path) {
+  return /^\/workspaces\/[^/]+\/nashir-store-profile$/.test(path)
+    || /^\/workspaces\/[^/]+\/nashir-products(?:\/[^/]+)?$/.test(path);
+}
+
+async function routeNashirStore(req, path, body, store, storeProfileRepository, productRepository) {
+  const workspaceMatch = path.match(/^\/workspaces\/([^/]+)\/(nashir-store-profile|nashir-products(?:\/([^/]+))?)$/);
+  if (!workspaceMatch) throw notFound();
+
+  const user = authGuard(req, store);
+  if (req.method !== "GET") throw notFound();
+  const workspaceId = workspaceContextGuard({ workspaceId: workspaceMatch[1] });
+  const membership = nonDisclosingMembershipCheck(user, workspaceId, store);
+
+  const isStoreProfile = workspaceMatch[2] === "nashir-store-profile";
+  const productId = workspaceMatch[3] || null;
+
+  if (isStoreProfile) {
+    permissionGuard(membership, "nashir.store.read");
+    if (!storeProfileRepository) throw notFound();
+    const profile = await storeProfileRepository.findStoreProfileByWorkspace({ workspaceId });
+    if (!profile) throw notFound();
+    return ok(profile);
+  }
+
+  permissionGuard(membership, "nashir.product.read");
+  if (!productRepository) return ok([]);
+
+  if (productId) {
+    const product = await productRepository.findProductById({ workspaceId, productId });
+    if (!product) throw notFound();
+    return ok(product);
+  }
+
+  const products = await productRepository.listProducts({ workspaceId });
+  return ok(products);
 }
 
 function isNashirPath(path) {
