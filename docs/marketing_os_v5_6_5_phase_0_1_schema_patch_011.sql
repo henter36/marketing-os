@@ -116,6 +116,71 @@ CREATE INDEX IF NOT EXISTS idx_nashir_cost_usage_provider ON nashir_cost_usage_r
 CREATE INDEX IF NOT EXISTS idx_nashir_cost_usage_source_entity ON nashir_cost_usage_records(source_entity_type, source_entity_id);
 CREATE INDEX IF NOT EXISTS idx_nashir_cost_usage_workspace_status ON nashir_cost_usage_records(workspace_id, usage_status);
 
+-- =========================================================
+-- 5) WORKSPACE-SCOPED FOREIGN KEYS (guarded for idempotency)
+-- =========================================================
+
+-- nashir_model_routing_rules.(workspace_id, provider_key) → nashir_ai_providers(workspace_id, provider_key)
+-- Routing rules must reference a registered AI provider in the same workspace.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_model_routing_rules'
+      AND constraint_name = 'fk_nashir_routing_rules_provider_workspace'
+  ) THEN
+    ALTER TABLE nashir_model_routing_rules
+      ADD CONSTRAINT fk_nashir_routing_rules_provider_workspace
+      FOREIGN KEY (workspace_id, provider_key)
+      REFERENCES nashir_ai_providers(workspace_id, provider_key);
+  END IF;
+END $$;
+
+-- nashir_cost_usage_records.(nashir_campaign_id, workspace_id) → nashir_campaigns (nullable)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_cost_usage_records'
+      AND constraint_name = 'fk_nashir_cost_usage_campaign_workspace'
+  ) THEN
+    ALTER TABLE nashir_cost_usage_records
+      ADD CONSTRAINT fk_nashir_cost_usage_campaign_workspace
+      FOREIGN KEY (nashir_campaign_id, workspace_id)
+      REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id);
+  END IF;
+END $$;
+
+-- nashir_cost_usage_records.(session_id, workspace_id) → nashir_creator_studio_sessions (nullable)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_cost_usage_records'
+      AND constraint_name = 'fk_nashir_cost_usage_session_workspace'
+  ) THEN
+    ALTER TABLE nashir_cost_usage_records
+      ADD CONSTRAINT fk_nashir_cost_usage_session_workspace
+      FOREIGN KEY (session_id, workspace_id)
+      REFERENCES nashir_creator_studio_sessions(session_id, workspace_id);
+  END IF;
+END $$;
+
+-- nashir_cost_usage_records.(ai_provider_id, workspace_id) → nashir_ai_providers (nullable)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_cost_usage_records'
+      AND constraint_name = 'fk_nashir_cost_usage_provider_workspace'
+  ) THEN
+    ALTER TABLE nashir_cost_usage_records
+      ADD CONSTRAINT fk_nashir_cost_usage_provider_workspace
+      FOREIGN KEY (ai_provider_id, workspace_id)
+      REFERENCES nashir_ai_providers(ai_provider_id, workspace_id);
+  END IF;
+END $$;
+
 COMMIT;
 
 -- End of Patch 011

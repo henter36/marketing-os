@@ -121,6 +121,21 @@ CREATE TABLE IF NOT EXISTS nashir_data_sources (
 CREATE INDEX IF NOT EXISTS idx_nashir_data_sources_workspace ON nashir_data_sources(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_nashir_data_sources_workspace_status ON nashir_data_sources(workspace_id, data_source_status);
 
+-- Workspace-scoped FK for optional store profile association (nullable; only enforced when non-NULL)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_data_sources'
+      AND constraint_name = 'fk_nashir_data_sources_store_profile_workspace'
+  ) THEN
+    ALTER TABLE nashir_data_sources
+      ADD CONSTRAINT fk_nashir_data_sources_store_profile_workspace
+      FOREIGN KEY (store_profile_id, workspace_id)
+      REFERENCES nashir_store_profiles(store_profile_id, workspace_id);
+  END IF;
+END $$;
+
 -- =========================================================
 -- 6) NASHIR INTEGRATION CONNECTIONS
 -- =========================================================
@@ -148,6 +163,21 @@ CREATE TABLE IF NOT EXISTS nashir_integration_connections (
 
 CREATE INDEX IF NOT EXISTS idx_nashir_integration_connections_workspace ON nashir_integration_connections(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_nashir_integration_connections_workspace_status ON nashir_integration_connections(workspace_id, connection_status);
+
+-- Workspace-scoped FK for optional store profile association (nullable; only enforced when non-NULL)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_integration_connections'
+      AND constraint_name = 'fk_nashir_integration_connections_store_profile_workspace'
+  ) THEN
+    ALTER TABLE nashir_integration_connections
+      ADD CONSTRAINT fk_nashir_integration_connections_store_profile_workspace
+      FOREIGN KEY (store_profile_id, workspace_id)
+      REFERENCES nashir_store_profiles(store_profile_id, workspace_id);
+  END IF;
+END $$;
 
 -- =========================================================
 -- 7) NASHIR ASSETS
@@ -177,11 +207,20 @@ CREATE INDEX IF NOT EXISTS idx_nashir_assets_workspace_status ON nashir_assets(w
 CREATE INDEX IF NOT EXISTS idx_nashir_assets_linked_product ON nashir_assets(linked_product_id) WHERE linked_product_id IS NOT NULL;
 
 -- FK: linked_product_id → nashir_products (workspace-scoped, nullable 1:N)
--- Added after the products table is established above.
-ALTER TABLE nashir_assets
-  ADD CONSTRAINT fk_nashir_assets_product_workspace
-  FOREIGN KEY (linked_product_id, workspace_id)
-  REFERENCES nashir_products(product_id, workspace_id);
+-- Added after the products table is established above. Guarded for idempotency.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_assets'
+      AND constraint_name = 'fk_nashir_assets_product_workspace'
+  ) THEN
+    ALTER TABLE nashir_assets
+      ADD CONSTRAINT fk_nashir_assets_product_workspace
+      FOREIGN KEY (linked_product_id, workspace_id)
+      REFERENCES nashir_products(product_id, workspace_id);
+  END IF;
+END $$;
 
 -- =========================================================
 -- 8) ADD store_profile_id TO nashir_campaigns (nullable)

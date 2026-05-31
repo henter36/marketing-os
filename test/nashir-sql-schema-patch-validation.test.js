@@ -63,58 +63,85 @@ for (const num of NASHIR_PATCHES) {
 }
 
 // =========================================================
-// workspace_id PRESENT WHERE REQUIRED
+// workspace_id PRESENT WHERE REQUIRED (inspects actual table body)
 // =========================================================
+
+function tableBody(sql, tableName) {
+  const startMarker = `CREATE TABLE IF NOT EXISTS ${tableName}`;
+  const startIdx = sql.indexOf(startMarker);
+  if (startIdx === -1) return null;
+  // Find the closing ); of the CREATE TABLE block
+  const endIdx = sql.indexOf(");", startIdx);
+  return endIdx === -1 ? null : sql.slice(startIdx, endIdx + 2);
+}
 
 test("patch 006 nashir_store_profiles has workspace_id NOT NULL", () => {
   const sql = readPatch(6);
+  const body = tableBody(sql, "nashir_store_profiles");
+  assert.ok(body, "nashir_store_profiles must be defined in patch 006");
   assert.ok(
-    sql.includes("workspace_id uuid NOT NULL"),
-    "nashir_store_profiles must have workspace_id NOT NULL"
+    body.includes("workspace_id uuid NOT NULL"),
+    "nashir_store_profiles must have workspace_id uuid NOT NULL"
   );
 });
 
 test("patch 006 nashir_products has workspace_id NOT NULL", () => {
   const sql = readPatch(6);
-  const productSection = sql.includes("CREATE TABLE IF NOT EXISTS nashir_products");
-  assert.ok(productSection, "nashir_products table must be defined in patch 006");
+  const body = tableBody(sql, "nashir_products");
+  assert.ok(body, "nashir_products table must be defined in patch 006");
+  assert.ok(
+    body.includes("workspace_id uuid NOT NULL"),
+    "nashir_products must have workspace_id uuid NOT NULL"
+  );
 });
 
 test("patch 007 nashir_campaign_content_items has workspace_id NOT NULL", () => {
   const sql = readPatch(7);
+  const body = tableBody(sql, "nashir_campaign_content_items");
+  assert.ok(body, "nashir_campaign_content_items must be defined in patch 007");
   assert.ok(
-    sql.includes("nashir_campaign_content_items"),
-    "patch 007 must define nashir_campaign_content_items"
+    body.includes("workspace_id uuid NOT NULL"),
+    "nashir_campaign_content_items must have workspace_id uuid NOT NULL"
   );
 });
 
 test("patch 009 nashir_prompt_templates has workspace_id NOT NULL", () => {
   const sql = readPatch(9);
+  const body = tableBody(sql, "nashir_prompt_templates");
+  assert.ok(body, "nashir_prompt_templates must be defined in patch 009");
   assert.ok(
-    sql.includes("CREATE TABLE IF NOT EXISTS nashir_prompt_templates"),
-    "patch 009 must define nashir_prompt_templates"
-  );
-  const tableIndex = sql.indexOf("CREATE TABLE IF NOT EXISTS nashir_prompt_templates");
-  const afterTable = sql.slice(tableIndex, tableIndex + 400);
-  assert.ok(
-    afterTable.includes("workspace_id uuid NOT NULL"),
-    "nashir_prompt_templates must have workspace_id NOT NULL"
+    body.includes("workspace_id uuid NOT NULL"),
+    "nashir_prompt_templates must have workspace_id uuid NOT NULL"
   );
 });
 
 test("patch 010 nashir_creator_studio_sessions has workspace_id NOT NULL", () => {
   const sql = readPatch(10);
+  const body = tableBody(sql, "nashir_creator_studio_sessions");
+  assert.ok(body, "nashir_creator_studio_sessions must be defined in patch 010");
   assert.ok(
-    sql.includes("CREATE TABLE IF NOT EXISTS nashir_creator_studio_sessions"),
-    "patch 010 must define nashir_creator_studio_sessions"
+    body.includes("workspace_id uuid NOT NULL"),
+    "nashir_creator_studio_sessions must have workspace_id uuid NOT NULL"
   );
 });
 
 test("patch 011 nashir_model_routing_rules has workspace_id NOT NULL", () => {
   const sql = readPatch(11);
+  const body = tableBody(sql, "nashir_model_routing_rules");
+  assert.ok(body, "nashir_model_routing_rules must be defined in patch 011");
   assert.ok(
-    sql.includes("CREATE TABLE IF NOT EXISTS nashir_model_routing_rules"),
-    "patch 011 must define nashir_model_routing_rules"
+    body.includes("workspace_id uuid NOT NULL"),
+    "nashir_model_routing_rules must have workspace_id uuid NOT NULL"
+  );
+});
+
+test("patch 011 nashir_cost_usage_records has workspace_id NOT NULL", () => {
+  const sql = readPatch(11);
+  const body = tableBody(sql, "nashir_cost_usage_records");
+  assert.ok(body, "nashir_cost_usage_records must be defined in patch 011");
+  assert.ok(
+    body.includes("workspace_id uuid NOT NULL"),
+    "nashir_cost_usage_records must have workspace_id uuid NOT NULL"
   );
 });
 
@@ -372,6 +399,137 @@ test("patch 010 references nashir_prompt_templates (not base prompt_templates)",
     "patch 010 Creator Studio FKs must reference nashir_prompt_templates (patch 009), not base prompt_templates"
   );
 });
+
+// =========================================================
+// PATCH 006: WORKSPACE-SCOPED FK CONSTRAINTS
+// =========================================================
+
+test("patch 006 nashir_data_sources has guarded workspace-scoped store_profile FK", () => {
+  const sql = readPatch(6);
+  assert.ok(
+    sql.includes("fk_nashir_data_sources_store_profile_workspace"),
+    "patch 006 must define fk_nashir_data_sources_store_profile_workspace"
+  );
+  assert.ok(
+    sql.includes("REFERENCES nashir_store_profiles(store_profile_id, workspace_id)"),
+    "nashir_data_sources store_profile FK must reference nashir_store_profiles(store_profile_id, workspace_id)"
+  );
+});
+
+test("patch 006 nashir_integration_connections has guarded workspace-scoped store_profile FK", () => {
+  const sql = readPatch(6);
+  assert.ok(
+    sql.includes("fk_nashir_integration_connections_store_profile_workspace"),
+    "patch 006 must define fk_nashir_integration_connections_store_profile_workspace"
+  );
+});
+
+test("patch 006 nashir_assets has guarded workspace-scoped product FK", () => {
+  const sql = readPatch(6);
+  assert.ok(
+    sql.includes("fk_nashir_assets_product_workspace"),
+    "patch 006 must define fk_nashir_assets_product_workspace"
+  );
+});
+
+// =========================================================
+// PATCH 010: WORKSPACE-SCOPED CAMPAIGN FK CONSTRAINTS
+// =========================================================
+
+const PATCH010_CAMPAIGN_FK_TABLES = [
+  { table: "nashir_creator_content_ideas",     constraint: "fk_nashir_cs_idea_campaign_workspace" },
+  { table: "nashir_creator_campaign_angles",    constraint: "fk_nashir_cs_angle_campaign_workspace" },
+  { table: "nashir_creator_publish_windows",    constraint: "fk_nashir_cs_publish_window_campaign_workspace" },
+  { table: "nashir_creator_readiness_assessments", constraint: "fk_nashir_cs_readiness_campaign_workspace" },
+  { table: "nashir_creator_transfer_drafts",    constraint: "fk_nashir_cs_transfer_draft_campaign_workspace" },
+  { table: "nashir_creator_studio_sessions",    constraint: "fk_nashir_cs_session_campaign_workspace" }
+];
+
+for (const { table, constraint } of PATCH010_CAMPAIGN_FK_TABLES) {
+  test(`patch 010 ${table} has workspace-scoped campaign FK (${constraint})`, () => {
+    const sql = readPatch(10);
+    assert.ok(
+      sql.includes(constraint),
+      `patch 010 must define ${constraint} for ${table}`
+    );
+    assert.ok(
+      sql.includes("REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id)"),
+      `${constraint} must reference nashir_campaigns(nashir_campaign_id, workspace_id)`
+    );
+  });
+}
+
+// =========================================================
+// PATCH 011: WORKSPACE-SCOPED FK CONSTRAINTS
+// =========================================================
+
+test("patch 011 nashir_model_routing_rules has workspace-scoped provider FK", () => {
+  const sql = readPatch(11);
+  assert.ok(
+    sql.includes("fk_nashir_routing_rules_provider_workspace"),
+    "patch 011 must define fk_nashir_routing_rules_provider_workspace"
+  );
+  assert.ok(
+    sql.includes("REFERENCES nashir_ai_providers(workspace_id, provider_key)"),
+    "routing rules provider FK must reference nashir_ai_providers(workspace_id, provider_key)"
+  );
+});
+
+test("patch 011 nashir_cost_usage_records has workspace-scoped campaign FK", () => {
+  const sql = readPatch(11);
+  assert.ok(
+    sql.includes("fk_nashir_cost_usage_campaign_workspace"),
+    "patch 011 must define fk_nashir_cost_usage_campaign_workspace"
+  );
+});
+
+test("patch 011 nashir_cost_usage_records has workspace-scoped session FK", () => {
+  const sql = readPatch(11);
+  assert.ok(
+    sql.includes("fk_nashir_cost_usage_session_workspace"),
+    "patch 011 must define fk_nashir_cost_usage_session_workspace"
+  );
+  assert.ok(
+    sql.includes("REFERENCES nashir_creator_studio_sessions(session_id, workspace_id)"),
+    "cost usage session FK must reference nashir_creator_studio_sessions(session_id, workspace_id)"
+  );
+});
+
+test("patch 011 nashir_cost_usage_records has workspace-scoped ai_provider FK", () => {
+  const sql = readPatch(11);
+  assert.ok(
+    sql.includes("fk_nashir_cost_usage_provider_workspace"),
+    "patch 011 must define fk_nashir_cost_usage_provider_workspace"
+  );
+  assert.ok(
+    sql.includes("REFERENCES nashir_ai_providers(ai_provider_id, workspace_id)"),
+    "cost usage provider FK must reference nashir_ai_providers(ai_provider_id, workspace_id)"
+  );
+});
+
+// =========================================================
+// NO BARE ALTER TABLE ADD CONSTRAINT (idempotency guard)
+// =========================================================
+// A bare "ALTER TABLE ... ADD CONSTRAINT" is not idempotent and will fail on re-run.
+// All such statements must be wrapped in a DO $$ ... END $$; block with an IF NOT EXISTS guard.
+
+function stripDoBlocks(sql) {
+  // Remove content inside DO $$ ... END $$; blocks (including the ALTER TABLE statements within)
+  return sql.replace(/DO\s+\$\$[\s\S]*?END\s+\$\$\s*;/g, "/* DO_BLOCK_REMOVED */");
+}
+
+for (const num of [6, 10, 11]) {
+  test(`patch ${String(num).padStart(3, "0")} has no bare ALTER TABLE ADD CONSTRAINT outside DO blocks`, () => {
+    const sql = stripDoBlocks(readPatch(num));
+    // After stripping DO blocks, no ALTER TABLE ... ADD CONSTRAINT should remain
+    const bareMatches = sql.match(/ALTER\s+TABLE\s+\S+[\s\S]{0,200}?ADD\s+CONSTRAINT/i);
+    assert.ok(
+      !bareMatches,
+      `patch_${num}: all ALTER TABLE ADD CONSTRAINT must be inside DO $$ IF NOT EXISTS blocks. ` +
+      `Found bare: ${bareMatches ? bareMatches[0].slice(0, 80) : ""}`
+    );
+  });
+}
 
 // =========================================================
 // IF NOT EXISTS PATTERNS (idempotency)

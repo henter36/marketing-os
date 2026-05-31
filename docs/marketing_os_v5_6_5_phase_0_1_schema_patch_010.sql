@@ -46,17 +46,35 @@ CREATE TABLE IF NOT EXISTS nashir_creator_studio_sessions (
   CONSTRAINT chk_nashir_cs_session_expires_after_created CHECK (expires_at > created_at)
 );
 
--- FK to prompt template from Patch 009 (must be applied after Patch 009)
-ALTER TABLE nashir_creator_studio_sessions
-  ADD CONSTRAINT fk_nashir_cs_session_prompt_template
-  FOREIGN KEY (prompt_template_id, workspace_id)
-  REFERENCES nashir_prompt_templates(prompt_template_id, workspace_id);
+-- FK to prompt template from Patch 009 (must be applied after Patch 009). Guarded for idempotency.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_creator_studio_sessions'
+      AND constraint_name = 'fk_nashir_cs_session_prompt_template'
+  ) THEN
+    ALTER TABLE nashir_creator_studio_sessions
+      ADD CONSTRAINT fk_nashir_cs_session_prompt_template
+      FOREIGN KEY (prompt_template_id, workspace_id)
+      REFERENCES nashir_prompt_templates(prompt_template_id, workspace_id);
+  END IF;
+END $$;
 
--- FK to nashir_campaigns if campaign is associated
-ALTER TABLE nashir_creator_studio_sessions
-  ADD CONSTRAINT fk_nashir_cs_session_campaign_workspace
-  FOREIGN KEY (nashir_campaign_id, workspace_id)
-  REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id);
+-- FK to nashir_campaigns if campaign is associated (nullable; only enforced when non-NULL). Guarded.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_creator_studio_sessions'
+      AND constraint_name = 'fk_nashir_cs_session_campaign_workspace'
+  ) THEN
+    ALTER TABLE nashir_creator_studio_sessions
+      ADD CONSTRAINT fk_nashir_cs_session_campaign_workspace
+      FOREIGN KEY (nashir_campaign_id, workspace_id)
+      REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id);
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_nashir_cs_session_workspace ON nashir_creator_studio_sessions(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_nashir_cs_session_campaign ON nashir_creator_studio_sessions(nashir_campaign_id) WHERE nashir_campaign_id IS NOT NULL;
@@ -93,6 +111,21 @@ CREATE INDEX IF NOT EXISTS idx_nashir_cs_idea_workspace_nonterminal
   ON nashir_creator_content_ideas(workspace_id, expires_at)
   WHERE idea_status NOT IN ('approved', 'archived');
 
+-- Workspace-scoped FK for optional campaign association (nullable; only enforced when non-NULL).
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_creator_content_ideas'
+      AND constraint_name = 'fk_nashir_cs_idea_campaign_workspace'
+  ) THEN
+    ALTER TABLE nashir_creator_content_ideas
+      ADD CONSTRAINT fk_nashir_cs_idea_campaign_workspace
+      FOREIGN KEY (nashir_campaign_id, workspace_id)
+      REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id);
+  END IF;
+END $$;
+
 -- =========================================================
 -- 4) NASHIR CREATOR CAMPAIGN ANGLES
 -- =========================================================
@@ -119,6 +152,21 @@ CREATE INDEX IF NOT EXISTS idx_nashir_cs_angle_session ON nashir_creator_campaig
 CREATE INDEX IF NOT EXISTS idx_nashir_cs_angle_workspace_nonterminal
   ON nashir_creator_campaign_angles(workspace_id, expires_at)
   WHERE angle_status NOT IN ('selected', 'archived');
+
+-- Workspace-scoped FK for optional campaign association (nullable; only enforced when non-NULL).
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_creator_campaign_angles'
+      AND constraint_name = 'fk_nashir_cs_angle_campaign_workspace'
+  ) THEN
+    ALTER TABLE nashir_creator_campaign_angles
+      ADD CONSTRAINT fk_nashir_cs_angle_campaign_workspace
+      FOREIGN KEY (nashir_campaign_id, workspace_id)
+      REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id);
+  END IF;
+END $$;
 
 -- =========================================================
 -- 5) NASHIR CREATOR AUDIENCE SEGMENTS
@@ -177,6 +225,21 @@ CREATE INDEX IF NOT EXISTS idx_nashir_cs_publish_window_workspace_nonterminal
   ON nashir_creator_publish_windows(workspace_id, expires_at)
   WHERE window_status NOT IN ('passed', 'archived');
 
+-- Workspace-scoped FK for optional campaign association (nullable; only enforced when non-NULL).
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_creator_publish_windows'
+      AND constraint_name = 'fk_nashir_cs_publish_window_campaign_workspace'
+  ) THEN
+    ALTER TABLE nashir_creator_publish_windows
+      ADD CONSTRAINT fk_nashir_cs_publish_window_campaign_workspace
+      FOREIGN KEY (nashir_campaign_id, workspace_id)
+      REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id);
+  END IF;
+END $$;
+
 -- =========================================================
 -- 7) NASHIR CREATOR CONTEXT DRAFTS
 -- =========================================================
@@ -231,17 +294,35 @@ CREATE TABLE IF NOT EXISTS nashir_creator_transfer_drafts (
     CHECK (submitted_for_review_at IS NULL OR draft_status IN ('pending_review', 'approved', 'rejected'))
 );
 
--- FK to prompt template from Patch 009
-ALTER TABLE nashir_creator_transfer_drafts
-  ADD CONSTRAINT fk_nashir_cs_transfer_draft_prompt_template
-  FOREIGN KEY (prompt_template_id, workspace_id)
-  REFERENCES nashir_prompt_templates(prompt_template_id, workspace_id);
+-- FK to prompt template from Patch 009. Guarded for idempotency.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_creator_transfer_drafts'
+      AND constraint_name = 'fk_nashir_cs_transfer_draft_prompt_template'
+  ) THEN
+    ALTER TABLE nashir_creator_transfer_drafts
+      ADD CONSTRAINT fk_nashir_cs_transfer_draft_prompt_template
+      FOREIGN KEY (prompt_template_id, workspace_id)
+      REFERENCES nashir_prompt_templates(prompt_template_id, workspace_id);
+  END IF;
+END $$;
 
--- FK to nashir_campaigns if associated
-ALTER TABLE nashir_creator_transfer_drafts
-  ADD CONSTRAINT fk_nashir_cs_transfer_draft_campaign_workspace
-  FOREIGN KEY (nashir_campaign_id, workspace_id)
-  REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id);
+-- FK to nashir_campaigns if associated (nullable; only enforced when non-NULL). Guarded.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_creator_transfer_drafts'
+      AND constraint_name = 'fk_nashir_cs_transfer_draft_campaign_workspace'
+  ) THEN
+    ALTER TABLE nashir_creator_transfer_drafts
+      ADD CONSTRAINT fk_nashir_cs_transfer_draft_campaign_workspace
+      FOREIGN KEY (nashir_campaign_id, workspace_id)
+      REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id);
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_nashir_cs_transfer_draft_workspace ON nashir_creator_transfer_drafts(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_nashir_cs_transfer_draft_session ON nashir_creator_transfer_drafts(session_id);
@@ -277,6 +358,21 @@ CREATE INDEX IF NOT EXISTS idx_nashir_cs_readiness_session ON nashir_creator_rea
 CREATE INDEX IF NOT EXISTS idx_nashir_cs_readiness_workspace_nonterminal
   ON nashir_creator_readiness_assessments(workspace_id, expires_at)
   WHERE readiness_status NOT IN ('ready', 'blocked');
+
+-- Workspace-scoped FK for optional campaign association (nullable; only enforced when non-NULL).
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'nashir_creator_readiness_assessments'
+      AND constraint_name = 'fk_nashir_cs_readiness_campaign_workspace'
+  ) THEN
+    ALTER TABLE nashir_creator_readiness_assessments
+      ADD CONSTRAINT fk_nashir_cs_readiness_campaign_workspace
+      FOREIGN KEY (nashir_campaign_id, workspace_id)
+      REFERENCES nashir_campaigns(nashir_campaign_id, workspace_id);
+  END IF;
+END $$;
 
 COMMIT;
 
