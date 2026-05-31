@@ -495,11 +495,11 @@ Pattern: `test/nashir-campaign-repository.test.js` (pool-double pattern; synchro
 
 Required coverage:
 - Constructor requires pool; throws on missing pool.
-- `listByWorkspace({ workspaceId })` returns only records matching workspaceId.
-- `listByWorkspace({ workspaceId })` returns empty array when workspaceId matches no records.
-- `findById({ workspaceId, id })` returns null for non-existent IDs.
-- `findById({ workspaceId, id })` returns null for IDs from a different workspace (cross-workspace isolation).
-- `findById({ workspaceId, id })` returns the matching record with correct fields.
+- `listProducts({ workspaceId })` returns only records matching workspaceId.
+- `listProducts({ workspaceId })` returns empty array when workspaceId matches no records.
+- `findProductById({ workspaceId, productId })` returns null for non-existent IDs.
+- `findProductById({ workspaceId, productId })` returns null for IDs from a different workspace (cross-workspace isolation).
+- `findProductById({ workspaceId, productId })` returns the matching product with correct fields.
 - All queries pass `{ workspaceId }` as pool.query options.
 - DB failures are caught and surfaced as AppError(500, INTERNAL_ERROR) via toRepositoryError.
 
@@ -554,7 +554,7 @@ node --test test/nashir-store-profile-repository.test.js
 node --test test/nashir-product-repository.test.js
 node --test test/nashir-store-product-route.test.js  # or applicable file
 # Forbidden file grep:
-git diff --name-only | grep -E "server\.js|router\.js(?!.*nashir)|guards\.js|error-model\.js|rbac\.js|prototype/|package\.json|openapi\.yaml|patch_\d{3}\.sql"
+git diff --name-only | grep -v "^src/router\\.js$" | grep -E "(^server\\.js$|^router\\.js$|^guards\\.js$|^error-model\\.js$|^src/rbac\\.js$|^prototype/|^package\\.json$|^package-lock\\.json$|openapi\\.yaml|patch_[0-9]{3}\\.sql)" || true
 # Patch 012 guard:
 grep -c "schema_patch_012" scripts/db-migrate.js docs/07_database_schema.sql
 # Status:
