@@ -132,18 +132,49 @@ test("src/router.js registers only approved POST nashir evidence route", () => {
 });
 
 // ─── Group 2: src/rbac.js — approved Nashir permission codes only ───────────
+// Updated to reflect the full approved set from:
+//   nashir_auth_rbac_workspace_identity_gate.md (Section 8) +
+//   nashir_auth_rbac_review_gate.md (Section 8, confirmed consistent)
+// 28 active V1 nashir.* codes (33 IN codes minus 5 non-nashir.* reused codes).
+// The 2 DEFER codes (nashir.integration.*) are Post-V1 and must NOT appear here.
 
 const APPROVED_NASHIR_CODES = [
+  "nashir.admin.manage",
+  "nashir.approval.decide",
+  "nashir.asset.link",
+  "nashir.asset.read",
+  "nashir.asset.write",
   "nashir.campaign.read",
   "nashir.campaign.write",
+  "nashir.content.create",
+  "nashir.content.read",
+  "nashir.content.submit_review",
+  "nashir.content.update",
+  "nashir.cost.manage",
+  "nashir.cost.read",
+  "nashir.creator_studio.transfer.create",
+  "nashir.creator_studio.use",
+  "nashir.evidence.manage",
   "nashir.evidence.submit",
-  "nashir.approval.decide"
+  "nashir.model_routing.manage",
+  "nashir.model_routing.read",
+  "nashir.prompt_governance.manage",
+  "nashir.prompt_governance.read",
+  "nashir.product.read",
+  "nashir.product.write",
+  "nashir.publishing.draft.receive",
+  "nashir.publishing.queue.read",
+  "nashir.store.read",
+  "nashir.store.update",
+  "nashir.workflow.read"
 ];
 
 function nashirCodesInRbac() {
   const rbac = srcText("rbac.js");
+  // Match any quoted string starting with "nashir." to capture multi-segment codes
+  // (e.g. nashir.creator_studio.transfer.create, nashir.publishing.queue.read)
   return new Set(
-    [...rbac.matchAll(/["'`](nashir\.[a-z_]+\.[a-z_]+)["'`]/g)].map((m) => m[1])
+    [...rbac.matchAll(/["'`](nashir\.[a-z0-9_.]+)["'`]/g)].map((m) => m[1])
   );
 }
 

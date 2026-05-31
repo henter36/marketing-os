@@ -74,7 +74,31 @@ const permissions = [
   "nashir.campaign.read",
   "nashir.campaign.write",
   "nashir.evidence.submit",
-  "nashir.approval.decide"
+  "nashir.approval.decide",
+  "nashir.store.read",
+  "nashir.store.update",
+  "nashir.product.read",
+  "nashir.product.write",
+  "nashir.asset.read",
+  "nashir.asset.write",
+  "nashir.asset.link",
+  "nashir.content.read",
+  "nashir.content.create",
+  "nashir.content.update",
+  "nashir.content.submit_review",
+  "nashir.creator_studio.use",
+  "nashir.creator_studio.transfer.create",
+  "nashir.publishing.queue.read",
+  "nashir.publishing.draft.receive",
+  "nashir.evidence.manage",
+  "nashir.prompt_governance.read",
+  "nashir.prompt_governance.manage",
+  "nashir.model_routing.read",
+  "nashir.model_routing.manage",
+  "nashir.cost.read",
+  "nashir.cost.manage",
+  "nashir.workflow.read",
+  "nashir.admin.manage"
 ].map((permission_code) => ({
   permission_code,
   permission_name: permission_code,
@@ -118,7 +142,21 @@ const rolePermissions = {
     "notification_rule.read",
     "notification_delivery.read",
     "nashir.campaign.read",
-    "nashir.campaign.write"
+    "nashir.campaign.write",
+    "nashir.store.read",
+    "nashir.product.read",
+    "nashir.product.write",
+    "nashir.asset.read",
+    "nashir.asset.write",
+    "nashir.asset.link",
+    "nashir.content.read",
+    "nashir.content.create",
+    "nashir.content.update",
+    "nashir.content.submit_review",
+    "nashir.creator_studio.use",
+    "nashir.creator_studio.transfer.create",
+    "nashir.publishing.queue.read",
+    "nashir.prompt_governance.read"
   ],
   reviewer: [
     "workspace.read",
@@ -134,7 +172,13 @@ const rolePermissions = {
     "notification_rule.read",
     "notification_delivery.read",
     "nashir.campaign.read",
-    "nashir.approval.decide"
+    "nashir.approval.decide",
+    "nashir.store.read",
+    "nashir.product.read",
+    "nashir.asset.read",
+    "nashir.content.read",
+    "nashir.publishing.queue.read",
+    "nashir.prompt_governance.read"
   ],
   publisher: [
     "workspace.read",
@@ -159,7 +203,13 @@ const rolePermissions = {
     "notification_rule.read",
     "notification_delivery.read",
     "nashir.campaign.read",
-    "nashir.evidence.submit"
+    "nashir.evidence.submit",
+    "nashir.store.read",
+    "nashir.product.read",
+    "nashir.asset.read",
+    "nashir.content.read",
+    "nashir.publishing.queue.read",
+    "nashir.publishing.draft.receive"
   ],
   billing_admin: [
     "workspace.read",
@@ -171,7 +221,10 @@ const rolePermissions = {
     "cost_budget.write",
     "cost_guardrail.read",
     "cost_guardrail.write",
-    "performance.read"
+    "performance.read",
+    "nashir.store.read",
+    "nashir.cost.read",
+    "nashir.cost.manage"
   ],
   viewer: [
     "workspace.read",
@@ -197,7 +250,13 @@ const rolePermissions = {
     "lead_capture.read",
     "notification_rule.read",
     "notification_delivery.read",
-    "nashir.campaign.read"
+    "nashir.campaign.read",
+    "nashir.store.read",
+    "nashir.product.read",
+    "nashir.asset.read",
+    "nashir.content.read",
+    "nashir.publishing.queue.read",
+    "nashir.prompt_governance.read"
   ]
 };
 
