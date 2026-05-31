@@ -25,7 +25,14 @@ test("migration wiring preserves approved SQL order", () => {
     "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_001.sql",
     "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_002.sql",
     "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_003.sql",
-    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_004.sql"
+    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_004.sql",
+    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_005.sql",
+    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_006.sql",
+    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_007.sql",
+    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_008.sql",
+    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_009.sql",
+    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_010.sql",
+    "docs/marketing_os_v5_6_5_phase_0_1_schema_patch_011.sql"
   ]);
 });
 
