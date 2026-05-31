@@ -6,15 +6,16 @@
 --        already support Nashir permission codes. RBAC seeding is handled by
 --        scripts/db-seed.js driving from src/rbac.js. No permission-row duplication needed.
 -- Explicitly out of scope: routes/runtime, OpenAPI, generated clients, UI,
---        additional permission codes beyond the four approved Nashir codes
---        (nashir.campaign.read, nashir.campaign.write, nashir.evidence.submit,
---        nashir.approval.decide), Pilot, Production.
+--        unapproved Nashir permission codes, deferred Post-V1 integration permissions
+--        (nashir.integration.*), destination service actors, Pilot, Production.
 
 BEGIN;
 
 -- RBAC seed compatibility note:
--- nashir.campaign.read, nashir.campaign.write, nashir.evidence.submit, and
--- nashir.approval.decide are seeded by db-seed.js from src/rbac.js.
+-- The active V1 Nashir-specific RBAC surface is seeded by db-seed.js from src/rbac.js.
+-- This slice activates 28 V1 nashir.* permission codes.
+-- Reused non-nashir permissions remain outside the nashir.* count.
+-- Deferred nashir.integration.* permissions remain Post-V1 and must not be seeded here.
 -- The base schema roles/permissions/role_permissions schema is sufficient.
 -- No additional schema-level DDL is required for Nashir RBAC seed compatibility.
 
