@@ -102,7 +102,7 @@ This gate answers:
 | No Store/Product write routes introduced | **PASS** | No `POST`/`PUT`/`PATCH`/`DELETE` type contracts for store/product in generated output |
 | No Creator Studio/publishing/integrations/provider/model/analytics/pilot/production scope | **PASS** | Generator `out-of-scope` comment block covers all; no such types in generated output |
 
-**All 31 criteria: PASS.**
+**All 32 criteria: PASS.**
 
 ---
 
@@ -151,7 +151,7 @@ The types correctly represent all Nashir V1 API shapes per the canonical OpenAPI
 
 **No blocking corrections are required.**
 
-All 31 review criteria pass. The generated types implementation is correct and ready. The UI API Integration Planning Gate may proceed once this review gate merges.
+All 32 review criteria pass. The generated types implementation is correct and ready. The UI API Integration Planning Gate may proceed once this review gate merges.
 
 ---
 
