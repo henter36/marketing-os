@@ -20,7 +20,9 @@
     "test:integration": "node --test test/integration/*.test.js",
     "verify:local": "node scripts/verify-sprint0.js && npm run openapi:lint:local && npm test && npm run test:integration && npm run db:seed && npm run db:migrate:local",
     "verify:strict": "node scripts/verify-sprint0.js && npm run openapi:lint:strict && npm test && npm run test:integration && npm run db:seed && npm run db:migrate:strict",
-    "verify": "npm run verify:strict"
+    "verify": "npm run verify:strict",
+    "generate:nashir-types": "node scripts/generate-nashir-types.js",
+    "generate:nashir-types:check": "node scripts/generate-nashir-types.js --check"
   },
   "dependencies": {
     "pg": "^8.20.0"
