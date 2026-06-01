@@ -33,7 +33,8 @@ if (!existsSync(OPENAPI_SOURCE)) {
   process.exit(1);
 }
 
-const sourceText = readFileSync(OPENAPI_SOURCE, "utf8");
+// Normalize CRLF → LF so hash is consistent across platforms and git checkout configs.
+const sourceText = readFileSync(OPENAPI_SOURCE, "utf8").replace(/\r\n/g, "\n");
 const sourceHash = createHash("sha256").update(sourceText).digest("hex");
 
 // ─── Check mode ──────────────────────────────────────────────────────────────
@@ -60,6 +61,20 @@ if (CHECK_MODE) {
 }
 
 // ─── Generate types ───────────────────────────────────────────────────────────
+//
+// MAINTAINER NOTE — hardcoded template:
+// This generator intentionally uses a zero-dependency hardcoded declaration
+// template for the V1 types-only gate. It is NOT a dynamic OpenAPI-to-TypeScript
+// parser. --check detects a stale hash but does NOT infer new TypeScript
+// declarations from changed YAML content.
+//
+// If docs/nashir_v1_openapi.yaml is updated (schemas added, fields changed,
+// or new operations added), maintainers must ALSO update the template output
+// in this script to reflect those changes, then run:
+//   npm run generate:nashir-types
+//
+// Failure to update the template means the generated types will be hash-stale
+// and --check will fail, but the types will not reflect the new contract.
 
 const output = `// Generated TypeScript declaration types for Nashir V1 API.
 // DO NOT EDIT MANUALLY.
@@ -100,7 +115,7 @@ export interface ErrorModel {
 }
 
 /** Alias for consistent naming with OpenAPI ErrorResponse component. */
-export type ErrorResponse = NashirDataEnvelope<never> & ErrorModel;
+export type ErrorResponse = ErrorModel;
 
 // ─── Store Profile ────────────────────────────────────────────────────────────
 

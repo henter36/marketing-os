@@ -37,7 +37,7 @@ export interface ErrorModel {
 }
 
 /** Alias for consistent naming with OpenAPI ErrorResponse component. */
-export type ErrorResponse = NashirDataEnvelope<never> & ErrorModel;
+export type ErrorResponse = ErrorModel;
 
 // ─── Store Profile ────────────────────────────────────────────────────────────
 

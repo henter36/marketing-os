@@ -103,6 +103,17 @@ test("generated types NashirOperationId includes listNashirProducts and getNashi
   assert.ok(typesText().includes("getNashirProduct"), "must include getNashirProduct");
 });
 
+test("generated types ErrorResponse is a simple alias for ErrorModel (not a broken intersection)", () => {
+  assert.ok(
+    typesText().includes("export type ErrorResponse = ErrorModel;"),
+    "ErrorResponse must be a simple alias for ErrorModel"
+  );
+  assert.ok(
+    !typesText().includes("NashirDataEnvelope<never>"),
+    "ErrorResponse must not use NashirDataEnvelope<never>"
+  );
+});
+
 test("generated types do not include fetch/client/runtime helper exports", () => {
   const text = typesText();
   assert.ok(!text.includes("export function fetch"), "must not export a fetch function");
