@@ -1,0 +1,887 @@
+openapi: 3.1.0
+info:
+  title: Marketing OS — Nashir V1 Canonical OpenAPI
+  version: 0.1.0-nashir-v1
+  description: |
+    Canonical Nashir V1 OpenAPI source in marketing-os.
+
+    This file is the authoritative Nashir V1 OpenAPI contract owned by marketing-os
+    after the migration approved by D-156 and reviewed in D-157 (PR #272, PR #273).
+
+    nashir-ui-prototype/docs/nashir_v1_openapi.yaml is now a read-only historical
+    reference only. This file governs OpenAPI lint checks, implementedRoutes alignment,
+    and future generated types.
+
+    docs/nashir_openapi_patch.yaml remains as a historical Slice 0 patch reference;
+    it is no longer the canonical Nashir OpenAPI source.
+
+    Scope:
+      - Nashir campaign/intake surface (campaigns, readiness, evidence)
+      - Backend Slice 0: Store Profile GET and Products GET list/by-id
+    Out of scope:
+      - Store/Product write routes
+      - Creator Studio backend
+      - Publishing queue
+      - Integration runtime
+      - Model/provider runtime
+      - Analytics runtime
+      - Generated client update (separate gate required)
+      - UI API integration (separate gate required)
+      - Production or pilot readiness
+
+    RBAC permission codes (all 28 active V1 nashir.* codes are in src/rbac.js):
+      nashir.store.read   — used by Store Profile and Products GET operations
+      nashir.product.read — used by Products GET operations
+      nashir.campaign.read  — used by campaign/evidence GET operations
+      nashir.campaign.write — used by campaign/evidence POST operations
+
+    Guard chain for all authenticated routes:
+      authGuard → workspaceContextGuard → nonDisclosingMembershipCheck → permissionGuard
+
+    Non-disclosing 404 behavior:
+      Non-member workspace access returns 404 NOT_FOUND (not 403) to prevent
+      workspace enumeration. Cross-workspace resource access also returns 404.
+
+    Invalid UUID path parameters:
+      An invalid UUID productId (or other UUID path param) is validated before
+      any DB query; the route returns 404 NOT_FOUND without triggering a DB error.
+
+    No write routes for Store/Profile or Products are included.
+    No Creator Studio, publishing, integrations, model/provider runtime, or
+    analytics runtime routes are included.
+
+security:
+  - bearerAuth: []
+
+x-contract-rules:
+  source_authority: marketing-os canonical (D-156, D-157, D-158)
+  rbac_codes_source: src/rbac.js (28 active V1 nashir.* codes)
+  no_code_before_contracts: true
+  global_guards:
+    - authGuard
+    - workspaceContextGuard
+    - nonDisclosingMembershipCheck
+    - permissionGuard
+  body_workspace_id_trusted: false
+  generated-client: NO-GO until Generated Types Input Update Gate
+  no_go_rules:
+    - workspace_id accepted from body as trusted source
+    - endpoint reads or writes workspace-scoped record without workspace path context
+    - store/product write routes exposed without separate approval
+    - creator studio backend exposed without separate approval
+    - publishing or integration runtime routes added without separate approval
+    - generated clients updated without separate approval
+
+x-error-codes:
+  PERMISSION_DENIED:
+    status: 403
+    description: >
+      Role does not have the required Nashir permission code.
+      permissionGuard throws this when hasPermission returns false.
+  WORKSPACE_ACCESS_DENIED:
+    status: 403
+    description: >
+      User is not a member of this workspace. membershipCheck (or
+      nonDisclosingMembershipCheck) handles this; non-disclosing checks
+      return 404 NOT_FOUND instead of 403 to prevent workspace enumeration.
+  TENANT_CONTEXT_MISMATCH:
+    status: 422
+    description: >
+      workspace_id in request body does not match the route workspace context.
+      rejectBodyWorkspaceId throws this on body workspace_id mismatch.
+  NASHIR_IDEMPOTENCY_CONFLICT:
+    status: 409
+    description: Idempotent operation repeated with a conflicting payload.
+  NASHIR_PROCESS_BLOCKED:
+    status: 409
+    description: Nashir process blocked pending review or governance action.
+  NASHIR_INVALID_STATE_TRANSITION:
+    status: 409
+    description: Attempted invalid Nashir campaign state transition.
+
+tags:
+  - name: NashirStore
+    description: >
+      Backend Slice 0 Store Profile read-only surface.
+      GET only. Uses nashir.store.read permission.
+      No write routes. No Creator Studio, publishing, or integration runtime.
+  - name: NashirProducts
+    description: >
+      Backend Slice 0 Product read-only surface.
+      GET only. Uses nashir.product.read permission.
+      No write routes. Invalid UUID productId returns 404 without DB error.
+  - name: NashirCampaigns
+    description: >
+      Nashir campaign/intake/evidence surface. Uses nashir.campaign.* permission codes.
+      Gated separately from the non-Nashir campaign paths.
+
+paths:
+  /workspaces/{workspaceId}/nashir-store-profile:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [NashirStore]
+      summary: Get active Nashir store profile for workspace
+      operationId: getNashirStoreProfile
+      x-permission: nashir.store.read
+      x-no-request-body: true
+      x-route-derived-scope:
+        - workspaceId
+      x-generic-404: >
+        Returns 404 NOT_FOUND when the workspace has no active store profile.
+        Non-member workspace access also returns 404 without disclosing membership.
+      responses:
+        '200':
+          description: Active Nashir store profile returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirStoreProfileResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-products:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [NashirProducts]
+      summary: List Nashir products for workspace
+      operationId: listNashirProducts
+      x-permission: nashir.product.read
+      x-no-request-body: true
+      x-route-derived-scope:
+        - workspaceId
+      x-empty-list-allowed: >
+        Returns 200 with empty data array when workspace has no products.
+      responses:
+        '200':
+          description: Nashir products returned; empty array when no products exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirProductListResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-products/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/NashirProductId'
+    get:
+      tags: [NashirProducts]
+      summary: Get Nashir product by ID
+      operationId: getNashirProduct
+      x-permission: nashir.product.read
+      x-no-request-body: true
+      x-route-derived-scope:
+        - workspaceId
+        - productId
+      x-generic-404: >
+        Non-existent product, cross-workspace product, and invalid UUID productId
+        all return generic 404 NOT_FOUND without resource-existence disclosure.
+        Invalid UUID productId is validated before any DB query.
+      responses:
+        '200':
+          description: Nashir product returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirProductResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-campaigns:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+    get:
+      tags: [NashirCampaigns]
+      summary: List Nashir campaigns for workspace
+      operationId: listNashirCampaigns
+      x-permission: nashir.campaign.read
+      responses:
+        '200':
+          description: Nashir campaigns returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignListResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [NashirCampaigns]
+      summary: Create Nashir campaign intake record
+      operationId: createNashirCampaign
+      x-permission: nashir.campaign.write
+      x-audit-event: nashir_campaign.created
+      x-no-go: workspace_id_accepted_from_body_as_trusted_source
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNashirCampaignRequest'
+      responses:
+        '201':
+          description: Nashir campaign intake record created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/NashirCampaignId'
+    get:
+      tags: [NashirCampaigns]
+      summary: Get Nashir campaign by ID
+      operationId: getNashirCampaign
+      x-permission: nashir.campaign.read
+      responses:
+        '200':
+          description: Nashir campaign returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/readiness:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/NashirCampaignId'
+    get:
+      tags: [NashirCampaigns]
+      summary: Get advisory Nashir campaign readiness
+      operationId: getNashirCampaignReadiness
+      x-permission: nashir.campaign.read
+      responses:
+        '200':
+          description: Advisory Nashir campaign readiness returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignReadinessResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/NashirCampaignId'
+    get:
+      tags: [NashirCampaigns]
+      summary: List Nashir campaign lifecycle evidence records
+      operationId: listNashirCampaignEvidence
+      x-permission: nashir.campaign.read
+      x-no-request-body: true
+      x-route-derived-scope:
+        - workspaceId
+        - nashirCampaignId
+      x-generic-404: >
+        Non-existent campaign and cross-workspace campaign access return
+        generic 404 Not Found without resource-existence disclosure.
+      responses:
+        '200':
+          description: Nashir evidence list returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignEvidenceListResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [NashirCampaigns]
+      summary: Submit Nashir campaign evidence
+      operationId: submitNashirCampaignEvidence
+      x-permission: nashir.campaign.write
+      x-audit-event: nashir_evidence.submitted
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitNashirCampaignEvidenceRequest'
+      responses:
+        '201':
+          description: Nashir evidence submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignEvidenceResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence/{evidenceId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkspaceId'
+      - $ref: '#/components/parameters/NashirCampaignId'
+      - $ref: '#/components/parameters/EvidenceId'
+    get:
+      tags: [NashirCampaigns]
+      summary: Get Nashir campaign lifecycle evidence by ID
+      operationId: getNashirCampaignEvidence
+      x-permission: nashir.campaign.read
+      x-no-request-body: true
+      x-route-derived-scope:
+        - workspaceId
+        - nashirCampaignId
+        - evidenceId
+      x-generic-404: >
+        Non-existent evidence, cross-workspace evidence, and cross-campaign
+        evidence all return generic 404 Not Found without resource-existence
+        disclosure.
+      responses:
+        '200':
+          description: Nashir evidence lifecycle record returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NashirCampaignEvidenceResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: >
+        Workspace context identifier. Must be authorized by route path.
+        Must not be trusted from request body (body_workspace_id_trusted: false).
+
+    NashirCampaignId:
+      name: nashirCampaignId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Nashir campaign record identifier.
+
+    EvidenceId:
+      name: evidenceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: >
+        Route-derived Nashir evidence identifier. Must only be resolved inside
+        the route-derived workspaceId and nashirCampaignId scope.
+
+    NashirProductId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: >
+        Nashir product record identifier (UUID format).
+        An invalid UUID returns 404 NOT_FOUND without triggering a DB query.
+
+  schemas:
+    # ── Store Profile schemas ─────────────────────────────────────────────────
+
+    NashirStoreProfile:
+      type: object
+      required:
+        - storeProfileId
+        - workspaceId
+        - storeName
+        - storeProfileStatus
+        - createdByUserId
+        - createdAt
+        - updatedAt
+      properties:
+        storeProfileId:
+          type: string
+          format: uuid
+          description: Store profile record identifier.
+        workspaceId:
+          type: string
+          format: uuid
+          description: >
+            Route-derived workspace context. Never accepted from request body
+            as trusted input.
+        storeName:
+          type: string
+          description: Display name of the store profile.
+        storeUrl:
+          oneOf:
+            - type: string
+            - type: "null"
+          description: Optional store URL.
+        storeProfileStatus:
+          type: string
+          enum:
+            - active
+            - suspended
+          description: >
+            Active lifecycle status. Archived profiles are excluded; only
+            active or suspended profiles are returned.
+        createdByUserId:
+          type: string
+          format: uuid
+          description: User who created the store profile.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    NashirStoreProfileResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NashirStoreProfile'
+
+    # ── Product schemas ───────────────────────────────────────────────────────
+
+    NashirProduct:
+      type: object
+      required:
+        - productId
+        - workspaceId
+        - storeProfileId
+        - productName
+        - productStatus
+        - createdByUserId
+        - createdAt
+        - updatedAt
+      properties:
+        productId:
+          type: string
+          format: uuid
+          description: Product record identifier (UUID format required by route).
+        workspaceId:
+          type: string
+          format: uuid
+          description: Route-derived workspace context.
+        storeProfileId:
+          type: string
+          format: uuid
+          description: Store profile this product belongs to.
+        productName:
+          type: string
+          description: Display name of the product.
+        productDescription:
+          oneOf:
+            - type: string
+            - type: "null"
+          description: Optional product description.
+        productUrl:
+          oneOf:
+            - type: string
+            - type: "null"
+          description: Optional product URL.
+        productStatus:
+          type: string
+          enum:
+            - draft
+            - active
+            - archived
+          description: Current product lifecycle status.
+        createdByUserId:
+          type: string
+          format: uuid
+          description: User who created the product record.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    NashirProductResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NashirProduct'
+
+    NashirProductListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          description: >
+            List of products for the route-derived workspace. Empty array when
+            workspace has no products.
+          items:
+            $ref: '#/components/schemas/NashirProduct'
+
+    # ── Campaign schemas ──────────────────────────────────────────────────────
+
+    NashirCampaign:
+      type: object
+      required:
+        - nashir_campaign_id
+        - workspace_id
+        - campaign_name
+        - campaign_status
+        - created_at
+      properties:
+        nashir_campaign_id:
+          type: string
+          format: uuid
+          description: Nashir campaign record identifier.
+        workspace_id:
+          type: string
+          format: uuid
+          description: >
+            Route-derived workspace context. Never accepted from request body.
+        campaign_name:
+          type: string
+          description: Name of the Nashir campaign intake record.
+        campaign_status:
+          type: string
+          enum:
+            - draft
+            - submitted_for_review
+            - approved
+            - rejected
+            - archived
+          description: Current campaign lifecycle state.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+
+    CreateNashirCampaignRequest:
+      type: object
+      required:
+        - campaign_name
+      additionalProperties: false
+      properties:
+        campaign_name:
+          type: string
+          description: Name of the Nashir campaign intake record.
+      x-rule: >
+        workspace_id must not appear in this request body. Workspace authority
+        is derived exclusively from the {workspaceId} route parameter.
+        rejectBodyWorkspaceId must be called before any state mutation.
+
+    NashirCampaignResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NashirCampaign'
+
+    NashirCampaignListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NashirCampaign'
+
+    ReadinessIssue:
+      type: object
+      required:
+        - code
+        - message
+        - severity
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum:
+            - blocker
+            - warning
+        field:
+          oneOf:
+            - type: string
+            - type: "null"
+        user_action:
+          oneOf:
+            - type: string
+            - type: "null"
+
+    ReadinessMissingField:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+        user_action:
+          oneOf:
+            - type: string
+            - type: "null"
+
+    ReadinessExplanation:
+      type: object
+      required:
+        - code
+        - message
+        - related_fields
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        related_fields:
+          type: array
+          items:
+            type: string
+
+    NashirCampaignReadiness:
+      type: object
+      required:
+        - nashir_campaign_id
+        - workspace_id
+        - readiness_level
+        - gate_state
+        - blockers
+        - warnings
+        - missing_fields
+        - explanations
+        - evaluated_at
+      properties:
+        nashir_campaign_id:
+          type: string
+        workspace_id:
+          type: string
+          description: Route-derived workspace context.
+        readiness_level:
+          type: string
+          enum:
+            - pass
+            - soft_pass
+            - fail
+            - blocked_until_review
+        gate_state:
+          type: string
+          enum:
+            - advisory_only
+            - blocked_until_review
+            - ready_for_human_review
+        blockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadinessIssue'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadinessIssue'
+        missing_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadinessMissingField'
+        explanations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadinessExplanation'
+        evaluated_at:
+          type: string
+          format: date-time
+          description: Runtime evaluation timestamp. Readiness output is not persisted.
+
+    NashirCampaignReadinessResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NashirCampaignReadiness'
+
+    NashirCampaignEvidenceListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          description: >
+            Evidence lifecycle list for the route-derived workspace and Nashir
+            campaign.
+          items:
+            $ref: '#/components/schemas/NashirCampaignEvidence'
+
+    SubmitNashirCampaignEvidenceRequest:
+      type: object
+      required:
+        - evidenceType
+        - channel
+      additionalProperties: false
+      properties:
+        evidenceType:
+          type: string
+        channel:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        url:
+          type: string
+          minLength: 1
+        notes:
+          type: string
+          minLength: 1
+        externalReference:
+          type: string
+          minLength: 1
+      anyOf:
+        - required: [url]
+        - required: [externalReference]
+        - required: [notes]
+      x-rule: >
+        workspaceId and nashirCampaignId are derived exclusively from the route.
+        This patch does not implement campaignVersionId or assetVersionId.
+
+    NashirCampaignEvidence:
+      type: object
+      required:
+        - id
+        - workspaceId
+        - nashirCampaignId
+        - evidenceType
+        - channel
+        - status
+        - submittedAt
+        - submittedBy
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+          description: Route-derived workspace context.
+        nashirCampaignId:
+          type: string
+          description: Route-derived Nashir campaign identifier.
+        evidenceType:
+          type: string
+        channel:
+          type: string
+        status:
+          type: string
+          enum:
+            - submitted
+        submittedAt:
+          type: string
+          format: date-time
+        submittedBy:
+          type: string
+        publishedAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        url:
+          oneOf:
+            - type: string
+            - type: "null"
+        notes:
+          oneOf:
+            - type: string
+            - type: "null"
+        externalReference:
+          oneOf:
+            - type: string
+            - type: "null"
+      x-rule: >
+        workspaceId and nashirCampaignId are route-derived trusted scope.
+        Request body overrides are forbidden. GET request bodies are forbidden.
+
+    NashirCampaignEvidenceResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NashirCampaignEvidence'
+
+    # ── Shared error schemas ──────────────────────────────────────────────────
+
+    ErrorModel:
+      type: object
+      required: [code, message, user_action, correlation_id]
+      properties:
+        code:
+          type: string
+          description: >
+            Machine-readable error code. Nashir-specific codes:
+            PERMISSION_DENIED (403), WORKSPACE_ACCESS_DENIED (403),
+            TENANT_CONTEXT_MISMATCH (422), NASHIR_IDEMPOTENCY_CONFLICT (409),
+            NASHIR_PROCESS_BLOCKED (409), NASHIR_INVALID_STATE_TRANSITION (409).
+          examples:
+            - PERMISSION_DENIED
+            - WORKSPACE_ACCESS_DENIED
+            - TENANT_CONTEXT_MISMATCH
+            - NASHIR_IDEMPOTENCY_CONFLICT
+            - NASHIR_PROCESS_BLOCKED
+            - NASHIR_INVALID_STATE_TRANSITION
+        message:
+          type: string
+          description: Human-readable error description.
+        user_action:
+          type: string
+          description: Suggested corrective action for the caller.
+        correlation_id:
+          type: string
+          description: Request correlation identifier for traceability.
+
+  responses:
+    ErrorResponse:
+      description: Error response using ErrorModel shape
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
