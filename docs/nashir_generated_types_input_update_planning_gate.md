@@ -153,7 +153,7 @@ Rationale:
 
 ### Recommended future destination
 
-```
+```text
 generated/nashir-api-types/
 ```
 
