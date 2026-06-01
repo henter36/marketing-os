@@ -75,7 +75,7 @@ All checks run via Python (avoids environment tempfs constraints).
 
 **Node.js static syntax check:**
 ```
-node -e "new Function(fs.readFileSync('ui/nashir/app.js','utf8'))"
+node -e "new Function(require('fs').readFileSync('ui/nashir/app.js','utf8'))"
 ```
 Result: **PASS — no syntax errors detected**
 
