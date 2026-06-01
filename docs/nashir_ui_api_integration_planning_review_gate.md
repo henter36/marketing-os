@@ -47,7 +47,7 @@ This gate answers:
 | Source | Finding |
 |---|---|
 | `docs/nashir_ui_api_integration_planning_gate.md` | **Primary review input** — 17 sections; includes static no-build clarification (Section 10 updated by Gemini remediation); recommends `ui/nashir/` in marketing-os as integration target; defines three eligible GET endpoints; documents JSDoc-only type consumption; rejects nashir-ui-prototype as target; defers runtime client, write routes, Creator Studio, publishing, integrations |
-| `docs/03_decision_log.md` — D-164 | **Verified** — date 2026-06-01; attributes to PR #280; correctly records no UI, API calls, runtime client, package changes, backend, or production/pilot changes |
+| `docs/03_decision_log.md` — D-164 | **Verified** — date 2026-06-01; correctly records no UI, API calls, runtime client, package changes, backend, or production/pilot changes |
 | `docs/17_change_log.md` — 2026-06-01 row | **Verified** — accurately states documentation-only scope; no UI or runtime changes listed |
 | `docs/nashir_v1_openapi.yaml` | **Verified** — canonical Nashir V1 OpenAPI; covers the three eligible GET routes; unchanged by PR #280 |
 | `generated/nashir-api-types/` | **Verified** — reviewed types-only artifact; `generate:nashir-types:check` passes; unchanged by PR #280 |
