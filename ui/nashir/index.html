@@ -44,6 +44,32 @@
 
       <section id="notice" class="notice" role="status" aria-live="polite" hidden></section>
 
+      <div class="layout store-layout">
+        <section class="panel detail-panel" aria-labelledby="store-profile-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Store</p>
+              <h2 id="store-profile-title">Store profile</h2>
+            </div>
+            <button id="refresh-store-profile" type="button">Refresh</button>
+          </div>
+          <div id="store-profile-state" class="state-line"></div>
+          <div id="store-profile-detail" class="detail-block empty">Enter request context to load store profile.</div>
+        </section>
+
+        <section class="panel" aria-labelledby="product-list-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Products</p>
+              <h2 id="product-list-title">Product catalog</h2>
+            </div>
+            <button id="refresh-products" type="button">Refresh</button>
+          </div>
+          <div id="product-list-state" class="state-line"></div>
+          <ul id="product-list" class="record-list"></ul>
+        </section>
+      </div>
+
       <div class="layout">
         <section class="panel" aria-labelledby="campaign-list-title">
           <div class="panel-heading">
