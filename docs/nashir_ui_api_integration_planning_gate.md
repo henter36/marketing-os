@@ -202,12 +202,17 @@ The following UI surfaces in `ui/nashir/` are candidates for the first integrati
 
 ## 10. Generated Types Consumption Boundary
 
+**Important: `ui/nashir/` is a static, no-build, vanilla JavaScript environment.** There is no bundler, transpiler, or TypeScript compilation step. Normal `import` statements for TypeScript declaration files (`.d.ts`) do not function at runtime in this environment and must not be used in `ui/nashir/app.js`.
+
 | Rule | Detail |
 |---|---|
-| `generated/nashir-api-types/` is a type reference only | May be imported for compile-time type annotations; does not provide runtime fetch behavior |
+| `generated/nashir-api-types/` is a type reference only | May be referenced via JSDoc type comments for compile-time/editor annotations in the static no-build `ui/nashir/app.js` environment; does not provide runtime fetch behavior |
+| JSDoc type comments are the only permitted consumption pattern | Example: `/** @type {import("../../generated/nashir-api-types").NashirStoreProfile} */` — this is a comment only; no runtime import occurs |
+| JSDoc references must remain comments | Must not introduce `import`/`require` statements, bundling, transpilation, TypeScript compilation, or build steps in `ui/nashir/` |
 | No runtime client exists | No `fetch`, `axios`, or generated SDK client; future UI calls must use direct `fetch` against approved endpoints |
-| Any fetch helper must be separately approved | If a lightweight fetch utility is proposed, it must be: explicit, typed, read-only, scoped to the three eligible GET endpoints, and approved in the implementation gate |
+| Any fetch helper must be separately approved | If a lightweight fetch utility is proposed, it must be: explicit, typed (via JSDoc), read-only, scoped to the three eligible GET endpoints, and approved in the implementation gate |
 | No broad API SDK is approved | A full API client SDK is not approved for V1 |
+| Any future build step requires a separate gate | Any bundler, TypeScript compiler, or transpiler for `ui/nashir/` requires an explicit separate gate before it may be introduced |
 | Freshness check must pass | `npm run generate:nashir-types:check` must pass before any integration references the generated types |
 
 ---
