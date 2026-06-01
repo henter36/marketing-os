@@ -9,7 +9,9 @@
     campaigns: [],
     selectedCampaignId: "",
     evidence: [],
-    selectedEvidenceId: ""
+    selectedEvidenceId: "",
+    storeProfile: null,
+    products: []
   };
 
   const elements = {
@@ -447,9 +449,116 @@
     ]);
   }
 
+  // ── Store Profile & Products ─────────────────────────────────────────────────
+  // JSDoc type references — comment-only; no runtime imports; browser-safe.
+  /** @typedef {import("../../generated/nashir-api-types").NashirStoreProfile} NashirStoreProfile */
+  /** @typedef {import("../../generated/nashir-api-types").NashirStoreProfileResponse} NashirStoreProfileResponse */
+  /** @typedef {import("../../generated/nashir-api-types").NashirProduct} NashirProduct */
+  /** @typedef {import("../../generated/nashir-api-types").NashirProductListResponse} NashirProductListResponse */
+
+  const storeElements = {
+    refreshStoreProfile: document.getElementById("refresh-store-profile"),
+    storeProfileState: document.getElementById("store-profile-state"),
+    storeProfileDetail: document.getElementById("store-profile-detail"),
+    refreshProducts: document.getElementById("refresh-products"),
+    productListState: document.getElementById("product-list-state"),
+    productList: document.getElementById("product-list")
+  };
+
+  function storePath() {
+    return workspacePath("/nashir-store-profile");
+  }
+
+  function productsPath() {
+    return workspacePath("/nashir-products");
+  }
+
+  /** @param {NashirStoreProfile|null} profile */
+  function renderStoreProfile(profile) {
+    if (!storeElements.storeProfileDetail) return;
+    if (!profile) {
+      storeElements.storeProfileDetail.className = "detail-block empty";
+      storeElements.storeProfileDetail.textContent = "No active store profile found.";
+      return;
+    }
+    renderDetail(storeElements.storeProfileDetail, profile, [
+      ["Store name", "storeName"],
+      ["Store URL", "storeUrl"],
+      ["Status", "storeProfileStatus"],
+      ["Created by", "createdByUserId"],
+      ["Created at", "createdAt"],
+      ["Updated at", "updatedAt"]
+    ]);
+  }
+
+  async function loadStoreProfile() {
+    if (!readContext()) return;
+    if (!storeElements.storeProfileState || !storeElements.storeProfileDetail) return;
+    setListState(storeElements.storeProfileState, "loading", "Loading store profile...");
+    storeElements.storeProfileDetail.className = "detail-block loading";
+    storeElements.storeProfileDetail.textContent = "Loading...";
+    try {
+      const profile = await requestJson(storePath());
+      state.storeProfile = profile || null;
+      if (!state.storeProfile) {
+        setListState(storeElements.storeProfileState, "empty", "No active store profile.");
+        storeElements.storeProfileDetail.className = "detail-block empty";
+        storeElements.storeProfileDetail.textContent = "No active store profile.";
+      } else {
+        setListState(storeElements.storeProfileState, "success", "Store profile loaded.");
+        renderStoreProfile(state.storeProfile);
+      }
+    } catch (error) {
+      setListState(storeElements.storeProfileState, "failure", "Failed to load store profile.");
+      storeElements.storeProfileDetail.className = "detail-block empty";
+      storeElements.storeProfileDetail.textContent = "Failed to load store profile.";
+      handleFailure(error);
+    }
+  }
+
+  /** @param {NashirProduct[]} products */
+  function renderProductList(products) {
+    if (!storeElements.productList) return;
+    storeElements.productList.textContent = "";
+    if (!products.length) {
+      setListState(storeElements.productListState, "empty", "No products registered yet.");
+      return;
+    }
+    setListState(storeElements.productListState, "success", `${products.length} product(s) loaded.`);
+    const fragment = document.createDocumentFragment();
+    products.forEach((product) => {
+      const item = document.createElement("li");
+      const row = document.createElement("div");
+      row.className = "record-button";
+      row.appendChild(textElement("span", "record-title", product.productName));
+      row.appendChild(textElement("span", "record-meta", product.productStatus || "status unavailable"));
+      item.appendChild(row);
+      fragment.appendChild(item);
+    });
+    storeElements.productList.appendChild(fragment);
+  }
+
+  async function loadProducts() {
+    if (!readContext()) return;
+    if (!storeElements.productListState || !storeElements.productList) return;
+    setListState(storeElements.productListState, "loading", "Loading products...");
+    try {
+      const products = await requestJson(productsPath());
+      state.products = Array.isArray(products) ? products : [];
+      renderProductList(state.products);
+    } catch (error) {
+      setListState(storeElements.productListState, "failure", "Failed to load products.");
+      handleFailure(error);
+    }
+  }
+
+  // ── Event listeners ──────────────────────────────────────────────────────────
+
   elements.contextForm.addEventListener("submit", (event) => {
     event.preventDefault();
     loadCampaigns();
+    loadStoreProfile();
+    loadProducts();
   });
   elements.refreshCampaigns.addEventListener("click", loadCampaigns);
   elements.campaignCreateForm.addEventListener("submit", createCampaign);
@@ -458,6 +567,19 @@
   elements.evidenceSubmitForm.addEventListener("submit", submitEvidence);
   elements.loadEvidenceDetail.addEventListener("click", loadEvidenceDetail);
 
+  if (storeElements.refreshStoreProfile) {
+    storeElements.refreshStoreProfile.addEventListener("click", loadStoreProfile);
+  }
+  if (storeElements.refreshProducts) {
+    storeElements.refreshProducts.addEventListener("click", loadProducts);
+  }
+
   setListState(elements.campaignListState, "empty", "Enter request context to load campaigns.");
   setListState(elements.evidenceListState, "empty", "Select a campaign to load evidence.");
+  if (storeElements.storeProfileState) {
+    setListState(storeElements.storeProfileState, "empty", "Enter request context to load store profile.");
+  }
+  if (storeElements.productListState) {
+    setListState(storeElements.productListState, "empty", "Enter request context to load products.");
+  }
 })();
