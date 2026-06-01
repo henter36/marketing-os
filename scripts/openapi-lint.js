@@ -33,9 +33,9 @@ if (strict && !existsSync(nashirCanonicalPath)) {
 
 const baseSpec = readFileSync(specPath, "utf8");
 const sprint3Patch = existsSync(sprint3PatchPath) ? readFileSync(sprint3PatchPath, "utf8") : "";
-const patch002 = strict && existsSync(patch002Path) ? readFileSync(patch002Path, "utf8") : "";
+const patch002 = existsSync(patch002Path) ? readFileSync(patch002Path, "utf8") : "";
 const nashirPatch = strict ? readFileSync(nashirPatchPath, "utf8") : "";
-const nashirCanonical = strict ? readFileSync(nashirCanonicalPath, "utf8") : "";
+const nashirCanonical = existsSync(nashirCanonicalPath) ? readFileSync(nashirCanonicalPath, "utf8") : "";
 const spec = `${baseSpec}\n${sprint3Patch}\n${patch002}\n${nashirPatch}\n${nashirCanonical}`;
 const requiredFragments = [
   "openapi: 3.1.0",
