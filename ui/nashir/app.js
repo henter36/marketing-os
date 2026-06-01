@@ -509,24 +509,24 @@
         renderStoreProfile(state.storeProfile);
       }
     } catch (error) {
-      setListState(storeElements.storeProfileState, "failure", "تعذر تحميل بيانات المتجر.");
+      setListState(storeElements.storeProfileState, "failure", "Failed to load store profile.");
       storeElements.storeProfileDetail.className = "detail-block empty";
-      storeElements.storeProfileDetail.textContent = "تعذر تحميل بيانات المتجر.";
+      storeElements.storeProfileDetail.textContent = "Failed to load store profile.";
       handleFailure(error);
     }
   }
 
   /** @param {NashirProduct[]} products */
-  function renderProductList() {
+  function renderProductList(products) {
     if (!storeElements.productList) return;
     storeElements.productList.textContent = "";
-    if (!state.products.length) {
-      setListState(storeElements.productListState, "empty", "لا توجد منتجات مسجلة بعد.");
+    if (!products.length) {
+      setListState(storeElements.productListState, "empty", "No products registered yet.");
       return;
     }
-    setListState(storeElements.productListState, "success", `${state.products.length} product(s) loaded.`);
+    setListState(storeElements.productListState, "success", `${products.length} product(s) loaded.`);
     const fragment = document.createDocumentFragment();
-    state.products.forEach((product) => {
+    products.forEach((product) => {
       const item = document.createElement("li");
       const row = document.createElement("div");
       row.className = "record-button";
@@ -545,9 +545,9 @@
     try {
       const products = await requestJson(productsPath());
       state.products = Array.isArray(products) ? products : [];
-      renderProductList();
+      renderProductList(state.products);
     } catch (error) {
-      setListState(storeElements.productListState, "failure", "تعذر تحميل المنتجات.");
+      setListState(storeElements.productListState, "failure", "Failed to load products.");
       handleFailure(error);
     }
   }
