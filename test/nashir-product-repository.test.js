@@ -201,6 +201,16 @@ test("findProductById returns null for missing workspaceId", async () => {
   assert.strictEqual(pool.queries.length, 0, "no query must be issued for missing workspaceId");
 });
 
+test("findProductById returns null without querying DB when productId is not a valid UUID", async () => {
+  const pool = createPoolDouble(seedProducts());
+  const repository = new NashirProductRepository({ pool });
+
+  const result = await repository.findProductById({ workspaceId: WORKSPACE_A, productId: "not-a-uuid" });
+
+  assert.strictEqual(result, null);
+  assert.strictEqual(pool.queries.length, 0, "pool.query must not be called for an invalid UUID productId");
+});
+
 test("findProductById passes workspaceId and productId to pool.query options", async () => {
   const pool = createPoolDouble(seedProducts());
   const repository = new NashirProductRepository({ pool });

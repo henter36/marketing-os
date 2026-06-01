@@ -2,6 +2,8 @@
 
 const { toRepositoryError } = require("./repository-error-logging");
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 class NashirProductRepository {
   constructor({ pool } = {}) {
     if (!pool) {
@@ -45,7 +47,7 @@ class NashirProductRepository {
   }
 
   async findProductById({ workspaceId, productId } = {}) {
-    if (!workspaceId || !productId) {
+    if (!workspaceId || !productId || !UUID_REGEX.test(productId)) {
       return null;
     }
 

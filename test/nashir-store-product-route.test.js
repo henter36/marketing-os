@@ -338,6 +338,17 @@ test("GET nashir-products/{productId} returns 404 for non-member (non-disclosing
   assert.notStrictEqual(res.body.code, "PERMISSION_DENIED");
 });
 
+test("GET nashir-products/{productId} returns 404 (not 200 []) when productRepository is missing", async () => {
+  const productId = PRODUCTS_A[0].productId;
+  const res = await request("GET", `/workspaces/${WORKSPACE_A}/nashir-products/${productId}`, {
+    userId: OWNER_A
+    // productRepo intentionally omitted — null repository
+  });
+
+  assert.strictEqual(res.status, 404, "missing productRepository must return 404, not 200 with empty data");
+  assert.ok(!Array.isArray(res.body?.data), "response body.data must not be an array when repository is missing");
+});
+
 // ── No write routes ───────────────────────────────────────────────────────────
 
 test("POST to nashir-products returns 404 — write routes must not exist", async () => {

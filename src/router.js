@@ -834,7 +834,10 @@ async function routeNashirStore(req, path, body, store, storeProfileRepository, 
   }
 
   permissionGuard(membership, "nashir.product.read");
-  if (!productRepository) return ok([]);
+  if (!productRepository) {
+    if (productId) throw notFound();
+    return ok([]);
+  }
 
   if (productId) {
     const product = await productRepository.findProductById({ workspaceId, productId });
