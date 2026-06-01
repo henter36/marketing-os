@@ -318,6 +318,9 @@ Before UI API integration planning may begin, all of the following must be true:
 | `docs/03_decision_log.md` | Record the migration decision | CANDIDATE |
 | `docs/17_change_log.md` | Record migration completion | CANDIDATE |
 | `scripts/openapi-lint.js` or related validation | Only if an existing validation reference must be updated to point to new canonical path | CANDIDATE — only if explicitly required; must not add new packages |
+| `src/router.js` | Update `implementedRoutes` to include the Nashir Store Profile and Product GET routes after those routes are covered by the canonical OpenAPI file | CANDIDATE — metadata/list update only; no runtime behavior changes, no handler changes, no route exposure changes, no write routes, no Creator Studio, no publishing/integrations/model runtime, no analytics runtime |
+
+Adding `src/router.js` to a future gate is limited to `implementedRoutes` alignment after the canonical OpenAPI spec covers those routes; it does not authorize runtime routing or handler changes.
 
 ### For the future Generated Types Input Update Gate PR
 
