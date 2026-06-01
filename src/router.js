@@ -53,9 +53,8 @@ const patch002Routes = [
   "POST /workspaces/{workspaceId}/notification-rules",
   "GET /workspaces/{workspaceId}/notification-deliveries"
 ];
-// Store profile and product GET routes are handled by isNashirStorePath / routeNashirStore
-// but are not yet in any OpenAPI spec (OpenAPI migration is blocked).
-// They are excluded from implementedRoutes to avoid OpenAPI lint failures.
+// Store profile and product GET routes are covered by docs/nashir_v1_openapi.yaml
+// (canonical Nashir source established by D-158). They are now included in implementedRoutes.
 const nashirRoutes = [
   "GET /workspaces/{workspaceId}/nashir-campaigns",
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}",
@@ -63,7 +62,10 @@ const nashirRoutes = [
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence",
   "GET /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence/{evidenceId}",
   "POST /workspaces/{workspaceId}/nashir-campaigns/{nashirCampaignId}/evidence",
-  "POST /workspaces/{workspaceId}/nashir-campaigns"
+  "POST /workspaces/{workspaceId}/nashir-campaigns",
+  "GET /workspaces/{workspaceId}/nashir-store-profile",
+  "GET /workspaces/{workspaceId}/nashir-products",
+  "GET /workspaces/{workspaceId}/nashir-products/{productId}"
 ];
 const implementedRoutes = [...base.implementedRoutes, ...sprint4Routes, ...patch002Routes, ...nashirRoutes];
 

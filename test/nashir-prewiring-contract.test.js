@@ -128,7 +128,10 @@ test("src/router.js exposes only the approved nashir route patterns", () => {
     .replace(/\bnashir-store-profile\b/gi, "")
     .replace(/\bnashir-products\b/gi, "")
     .replace(/\bnashir\.store\.read\b/g, "")
-    .replace(/\bnashir\.product\.read\b/g, "");
+    .replace(/\bnashir\.product\.read\b/g, "")
+    // Canonical OpenAPI source reference added by D-158 (openapi/nashir-canonical-source-migration)
+    .replace(/\bnashir_v1_openapi\.yaml\b/gi, "")
+    .replace(/canonical Nashir/gi, "");
 
   assert.ok(
     !/nashir/i.test(withoutApproved),
@@ -247,7 +250,8 @@ const NASHIR_OPENAPI_DOCS = ALL_YAML_FILES.filter(
   f => isOpenApiSpec(f) && /\bnashir\b/i.test(docText(f))
 );
 
-const NASHIR_OPENAPI_WHITELIST = ["nashir_openapi_patch.yaml"];
+// nashir_v1_openapi.yaml added by D-158: canonical Nashir OpenAPI source migration.
+const NASHIR_OPENAPI_WHITELIST = ["nashir_openapi_patch.yaml", "nashir_v1_openapi.yaml"];
 
 assert.ok(OPENAPI_DOCS.length > 0, "At least one non-Nashir OpenAPI specification must be present for verification");
 assert.deepStrictEqual(
